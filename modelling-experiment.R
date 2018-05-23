@@ -1,5 +1,5 @@
 # " -----------------------------------------------
-# REQUIRED PACKAGES####
+# packages####
 #rm(list=ls())
 require(raster)
 require(maps)
@@ -7,7 +7,6 @@ require(maps)
 require(vegan)
 library(dismo)
 require(kernlab)
-
 #install.packages(mask)
 dyn.load('/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home/jre/lib/server/libjvm.dylib')
 library(rJava)
@@ -16,6 +15,8 @@ library(rJava)
 # 01. Preparing for variables selection####
 #Here we will import and prepare only the worldclim varibles for current conditions (~1960-1990) to proceed them for varimax selection. Once, selected throug the loadings, we'll make use of the same varible number in each future GCMs.
 #variable rastering and stacking
+
+
 
 now_bio_1 <- raster("./data/climatic_vars/vars_present/bio1.asc")
 now_bio_2 <- raster("./data/climatic_vars/vars_present/bio2.asc")
@@ -113,9 +114,7 @@ clima_now_loadings <- loadings(clima_now_fa)
 
 # 03. Saving selected variables####
 
-# Now we selected the variables bio... from the current GMC (worldclim v 1.4 at 2,5"), we'll take the same variable number from all 17 future projections at RCP +8.5 and save them (current + 17 future) at "./data/climatic_vars" as a .grd file.
-
-
+# Now we have selected the variables bio... from the current GMC (worldclim v 1.4 at 2,5"), we'll take the same variable number from all 17 future projections at RCP +8.5 and save them (current + 17 future) at "./data/climatic_vars" as a .grd file.
 
 # 04. Background Sampling####
 
