@@ -1,441 +1,180 @@
-# 03. Selecting AOGCMs - Cluster analysis####
+# Selecting AOGCMs - Cluster analysis####
+#####
+# Global Circulation Models (GCMs) selection through cluster analysis to reduce bias and improve uncertainty analysis.
+# At worldclim.com at the resolution of 2.5min we selected the only the variables that apper in all the Representative Concetration Pathways projetions (RCP26, RCP45, RCP60, RCP80). The codes of the GCMs utilized are: bc, cc, gs, hd, he, ip, mi, mr, mc, mg, no.
 
-# Starting with the 17 AOGCMs downloaded at worldclim.com for RCP 8.5 at 2.5", we'll selection through cluster analysis to help reduce bias at the uncertainty analysis.
+library (raster)
+library (rgdal)
+
+# A. RCP 26 ----
+### read the variables ----
+
+#importing all 19 variables from each one of the 11 GCMs of RCP 26
 
 
-# github/SaraVarela/LGM_climate
+bc_26 <- stack(list.files("./data/climatic_vars/26bi70/bc26bi70",  pattern = ".tif$", full.names = TRUE))
 
-# Statistical procedures stabilished by varela 2015 PlosOne: "We constructed our initial array with the 19 variables of the 9 GCMs using the function abind, from the abind package in R [24]. We then chose to run simple statistical analyses. We used the standard deviation between all models to calculate the heterogeneity of the predictions for every pixel using the function apply, from the base package in R [25]. For plotting the maps we used raster [26] and maptools [27], and the coastline shapefile map from Natural Earth (http:// www.naturalearthdata.com/downloads/110m-physical-vectors/). For quantifying the agree- ment between models at each cell we calculated the standard deviation of the 9 GCMs, plus the quartile coefficient of deviation (q3-q1)/q3+q1, in order to have a relative value of the climatic uncertainties. We classified the models into groups by using the correlation between their climatic predictions. We used the function hcluster from the R-library amap [28] for running a hierarchical clustering analysis to order the similarities between the model predictions (based on the correlations between the predictions for the same variables), and we set the maximum number of clusters to 4. 
+cc_26 <- stack(list.files("./data/climatic_vars/26bi70/cc26bi70",  pattern = ".tif$", full.names = TRUE))
 
+gs_26 <- stack(list.files("./data/climatic_vars/26bi70/gs26bi70",  pattern = ".tif$", full.names = TRUE))
 
-citation(package = "abind", lib.loc = NULL)
+hd_26 <- stack(list.files("./data/climatic_vars/26bi70/hd26bi70",  pattern = ".tif$", full.names = TRUE))
 
-### read the variables from the models of the LGM
+he_26 <- stack(list.files("./data/climatic_vars/26bi70/he26bi70",  pattern = ".tif$", full.names = TRUE))
 
-library (abind)
-setwd ("C:/clima_Sara/downscaling_matheus_0.5/21")
-clima_21<- list.files ("C:/clima_Sara/downscaling_matheus_0.5/21")
+ip_26 <- stack(list.files("./data/climatic_vars/26bi70/ip26bi70",  pattern = ".tif$", full.names = TRUE))
 
-data<- read.table (clima_21[1], head=T)
-for (i in 2:length(clima_21)){
-  data2<- read.table (clima_21[i], head=T)
-  data<- abind (data, data2, along=3)
-}
-rm ("data2")
+mr_26 <- stack(list.files("./data/climatic_vars/26bi70/mr26bi70",  pattern = ".tif$", full.names = TRUE))
 
-dim (data)
+mi_26 <- stack(list.files("./data/climatic_vars/26bi70/mi26bi70",  pattern = ".tif$", full.names = TRUE))
 
-## plot variable
-dim(data)
+mc_26 <- stack(list.files("./data/climatic_vars/26bi70/mc26bi70",  pattern = ".tif$", full.names = TRUE))
 
-image<- rasterFromXYZ (cbind (coord, data [,4,1]))
-str (image)
+mg_26 <- stack(list.files("./data/climatic_vars/26bi70/mg26bi70",  pattern = ".tif$", full.names = TRUE))
+
+no_26 <- stack(list.files("./data/climatic_vars/26bi70/no26bi70",  pattern = ".tif$", full.names = TRUE))
+
+rcp_26 <- stack(bc_26, cc_26, gs_26, hd_26, he_26, ip_26, mi_26, mr_26, mc_26, mg_26, no_26)
+
+## plot variables
+dim(rcp_26)
+str(rcp_26)
+
 colores<- colorRampPalette (c("darkblue", "blue", "lightblue", 
                               "white", "salmon", "red"))
 par (mar=c(0,0,0,0))
-plot (image, axes=F, box=F, col=coloreliss(100), legend=F)
-plot (coast, add=T)
-
-image<- rasterFromXYZ (cbind (coord, data [,15,1]))
-str (image)
-colores<- colorRampPalette (c("lightblue", "blue2", "blue3", 
-                              "blue4", "black", "black"))
-par (mar=c(0,0,0,0))
-plot (image, axes=F, box=F, col=colores(100), legend=F)
-plot (coast, add=T)
+plot (rcp_26, axes=F, box=F, col=colores(100), legend=F)
 
 
-### sd of the variables
 
-bio1<- data[,"bio.1",]
-sd_bio<- apply(bio1, 1, sd, na.rm = TRUE)
-for (i in 1:18){
-  bio<- data [,4+i,]
-  sd_bio2<- apply(bio, 1, sd, na.rm = TRUE)
-  sd_bio<- cbind (sd_bio, sd_bio2)
-}
+#sd of the variables----
 
 
-kk<- shapiro.test (bio1 [1,])
-no<- kk$p.value
-for (i in 2:dim (bio1)[1]){
-  kk<- shapiro.test (bio1 [i,])  
-  kkk<- kk$p.value
-  no<- c(no, kkk)
-}
 
-no
+#map sd----
 
-length (no [no< 0.01]) / length (no)
-map_no<- rasterFromXYZ (cbind (coord, no))
-nono<- reclassify (map_no, c(-Inf, 0.01, 0, 0.01, 1, 1))
+#identifying areas of high heterogeneity between models using the quartile coeff----
 
-X11()
-plot (nono)
-plot (coast, add=T)
+# absolute change, using thresholds----
 
-bio12<- data[,"bio.12",]
-kk<- shapiro.test (bio12 [1,])
-no<- kk$p.value
-for (i in 2:dim (bio12)[1]){
-  kk<- shapiro.test (bio12 [i,])  
-  kkk<- kk$p.value
-  no<- c(no, kkk)
-}
-
-no
-length (no [no< 0.01]) / length (no)
-map_no_12<- rasterFromXYZ (cbind (coord, no))
-nono_12<- reclassify (map_no_12, c(-Inf, 0.01, 0, 0.01, 1, 1))
-
-plot (nono_12)
-plot (coast, add=T)
-rm ("sd_bio2")
-rm ("bio")
-rm ("bio1")
-
-bio1<- data[,"bio.1",]
-mean_bio<- apply(bio1, 1, quantile, na.rm = TRUE)
-q3_bio<- mean_bio [4,]
-q1_bio<- mean_bio [2,]
-for (i in 1:18){
-  bio<- data [,4+i,]
-  mean_bio2<- apply(bio, 1, quantile, na.rm = TRUE)
-  q3_bio2<- mean_bio2 [4,]
-  q1_bio2<- mean_bio2 [2,]
-  q3_bio<- cbind (q3_bio, q3_bio2)
-  q1_bio<- cbind (q1_bio, q1_bio2)
-}
-
-qcd<- (q3_bio - q1_bio) /(q3_bio + q1_bio) 
-
-head (qcd)
-
-rm ("mean_bio2")
-rm ("bio")
-rm ("bio1")
-
-head (mean_bio)
-
-dif<- sd_bio/mean_bio
-
-## map sd
-library (raster)
-library (rgdal)
-library (maptools)
-data(wrld_simpl)
-
-coord<- data[, 2:3, 1]
-
-map_bio<- rasterFromXYZ (cbind (coord, sd_bio[,1]))
-for (i in 2:19){
-  map_bio1<- rasterFromXYZ (cbind (coord, sd_bio[,i]))
-  map_bio<- stack (map_bio, map_bio1)
-}
-rm ("map_bio1")
-
-map_qcd<- rasterFromXYZ (cbind (coord, abs (qcd[,1])))
-for (i in 2:19){
-  map_qc<- rasterFromXYZ (cbind (coord, abs (qcd[,i])))
-  map_qcd<- stack (map_qcd, map_qc)
-}
-
-rm ("map_qc")
-
-X11()
-plot (map_qcd [[2]], zlim=c(0, 2))
-
-names (map_bio)<- c(paste ("BIO", c(1:19), sep=""))
-plot (map_bio)
-str (wrld_simpl)
-colores<- colorRampPalette (c("white", "white",  "salmon", "red", "black"))
-
-par (mar=c(0,0,0,0))
-plot (continents, col="grey", border="NA")
-plot (map_bio [[1]], axes=F, box=F, col=colores(100))
-plot (wrld_simpl, add=T)
-text(-130, -70, "Bio1", cex=2)
-plot (map_bio [[12]], axes=F, box=F)
-mtext("Bio12", side=3, line=-4)
-
-## continents <- unionSpatialPolygons(wrld_simpl, rep(1, length(wrld_simpl)))
-## plot (continents)
-setwd ("C:\\Users\\sara\\Documents\\_CIENCIAS\\Climate_matheus")
-coast<- readShapeSpatial ("ne_110m_coastline.shp")
-
-par (mar=c(0,0,0,0))
-plot (coast)
-
-colores<- colorRampPalette (c("white", "white",  "salmon", "red", "black"))
-colores2<- colorRampPalette (c("white",  "salmon", "red", "black"))
-dev.off()
-par (mfrow=c(5, 4), mar=c(0,0,0,4), las=2)
-for (i in c(1:11)){
-  plot (map_bio [[i]], axes=F, box=F, col=colores(100))
-  plot (coast, add=T)
-  #text(-130, -50, paste ("Bio", i, sep=""), cex=1.8)
-}
-for (i in c(12:14)){
-  plot (map_bio [[i]], axes=F, box=F, col=colores2(100))
-  plot (coast, add=T)
-  # text(-130, -50, paste ("Bio", i, sep=""), cex=1.8)
-}
-plot (map_bio [[15]], axes=F, box=F,zlim=c(0,100), col=colores2(100))
-plot (coast, add=T)
-# text(-130, -50, paste ("Bio", 15, sep=""), cex=1.8)
-for (i in c(16:19)){
-  plot (map_bio [[i]], axes=F, box=F, col=colores2(100))
-  plot (coast, add=T)
-  # text(-130, -50, paste ("Bio", i, sep=""), cex=1.8)
-}
+# correlation between predictions and Hierarchical cluster analysis----
 
 
-plot (wrld_simpl, add=T, 
-      border="grey10")
-mtext("standard deviation",
-      side = 2, line = -49,
-      outer = TRUE)
-plot (map_bio12, axes=F, box=F)
+# B. RCP 45 ----
+### read the variables ----
 
 
-### identifying areas of high heterogeneity between models using the quartile coeff
+
+bc_45 <- stack(list.files("./data/climatic_vars/45bi70/bc45bi70",  pattern = ".tif$", full.names = TRUE))
+
+cc_45 <- stack(list.files("./data/climatic_vars/45bi70/cc45bi70",  pattern = ".tif$", full.names = TRUE))
+
+gs_45 <- stack(list.files("./data/climatic_vars/45bi70/gs45bi70",  pattern = ".tif$", full.names = TRUE))
+
+hd_45 <- stack(list.files("./data/climatic_vars/45bi70/hd45bi70",  pattern = ".tif$", full.names = TRUE))
+
+he_45 <- stack(list.files("./data/climatic_vars/45bi70/he45bi70",  pattern = ".tif$", full.names = TRUE))
+
+ip_45 <- stack(list.files("./data/climatic_vars/45bi70/ip45bi70",  pattern = ".tif$", full.names = TRUE))
+
+mr_45 <- stack(list.files("./data/climatic_vars/45bi70/mr45bi70",  pattern = ".tif$", full.names = TRUE))
+
+mi_45 <- stack(list.files("./data/climatic_vars/45bi70/mi45bi70",  pattern = ".tif$", full.names = TRUE))
+
+mc_45 <- stack(list.files("./data/climatic_vars/45bi70/mc45bi70",  pattern = ".tif$", full.names = TRUE))
+
+mg_45 <- stack(list.files("./data/climatic_vars/45bi70/mg45bi70",  pattern = ".tif$", full.names = TRUE))
+
+no_45 <- stack(list.files("./data/climatic_vars/45bi70/no45bi70",  pattern = ".tif$", full.names = TRUE))
+
+rcp_45 <- stack(bc_45, cc_45, gs_45, hd_45, he_45, ip_45, mi_45, mr_45, mc_45, mg_45, no_45)
+
+#sd of the variables----
+
+#map sd----
+
+#identifying areas of high heterogeneity between models using the quartile coeff----
+
+# absolute change, using thresholds----
+
+# correlation between predictions and Hierarchical cluster analysis----
 
 
-precip_stab<- reclassify (map_qcd[[12]], 
-                          c(-Inf, 0.5, 1, 0.5, +Inf, 0))   
-for (i in 13:19){
-  precip_stab1<- reclassify (map_qcd[[i]], 
-                             c(-Inf, 0.5, 1, 0.5, +Inf, 0))                               
-  precip_stab<- precip_stab + precip_stab1
-}
+# C. RCP 60 ----
+### read the variables ----
 
 
-precip_stab<- reclassify (map_bio[[12]], 
-                          c(-Inf, 100, 1, 100, +Inf, 0))  
-for (i in 13:19){
-  precip_stab1<- reclassify (map_bio[[i]], 
-                             c(-Inf, 100, 1, 100, +Inf, 0))  
-  precip_stab<- precip_stab + precip_stab1
-}
+bc_60 <- stack(list.files("./data/climatic_vars/60bi70/bc60bi70",  pattern = ".tif$", full.names = TRUE))
 
-dev.off()
-X11()
-par (mar=c(0,0,0,2))
-colores2<- colorRampPalette (c( "white", "red", "darkred"))
-plot (precip_stab, axes=F, box=F, col=colores2(100))
-plot (coast, add=T)
+cc_60 <- stack(list.files("./data/climatic_vars/60bi70/cc60bi70",  pattern = ".tif$", full.names = TRUE))
 
+gs_60 <- stack(list.files("./data/climatic_vars/60bi70/gs60bi70",  pattern = ".tif$", full.names = TRUE))
 
-temp_stab<- reclassify (map_qcd [[1]], 
-                        c(-Inf, 0.5, 1, 0.5, +Inf, 0)) 
-for (i in 2:11){
-  temp_stab1<- reclassify (map_qcd [[i]], 
-                           c(-Inf, 0.5, 1, 0.5, +Inf, 0)) 
-  temp_stab<- temp_stab + temp_stab1
-}
+hd_60 <- stack(list.files("./data/climatic_vars/60bi70/hd60bi70",  pattern = ".tif$", full.names = TRUE))
 
-stab<- temp_stab + precip_stab
-st<- reclassify (stab, c(-Inf, 18, 0, 18, 20, 1))
-X11()
-plot (st, axes=F, box=F,col=c("white", "red"), legend=F)
-plot (coast, add=T)
+he_60 <- stack(list.files("./data/climatic_vars/60bi70/he60bi70",  pattern = ".tif$", full.names = TRUE))
 
-X11()
-par (mar=c(0,0,0,2))
-plot (temp_stab, axes=F, box=F, col=colores2(100))
-plot (coast, add=T)
+ip_60 <- stack(list.files("./data/climatic_vars/60bi70/ip60bi70",  pattern = ".tif$", full.names = TRUE))
 
+mr_60 <- stack(list.files("./data/climatic_vars/60bi70/mr60bi70",  pattern = ".tif$", full.names = TRUE))
 
-## absolute change, using thresholds
-temp_stab<- reclassify (map_bio[[1]], c(-Inf, 5, 1, 5, +Inf, 0))
-for (i in 2:11){
-  temp_stab1<- reclassify (map_bio[[i]], 
-                           c(-Inf, 5, 1, 5, +Inf, 0))
-  temp_stab<- temp_stab + temp_stab1
-}
+mi_60 <- stack(list.files("./data/climatic_vars/60bi70/mi60bi70",  pattern = ".tif$", full.names = TRUE))
 
-temp_stab1<- reclassify (map_bio[[4]], 
-                         c(-Inf, 500, 1, 500, +Inf, 0))
-temp_stab<- temp_stab + temp_stab1
+mc_60 <- stack(list.files("./data/climatic_vars/60bi70/mc60bi70",  pattern = ".tif$", full.names = TRUE))
 
-par (mar=c(0,0,0,0))
-colores3<- colorRampPalette (c("black", "red", "salmon", "white"))
-plot (temp_stab, axes=F, box=F, col=colores3(100))
-plot (coast, add=T)
+mg_60 <- stack(list.files("./data/climatic_vars/60bi70/mg60bi70",  pattern = ".tif$", full.names = TRUE))
 
-plot (precip_stab, axes=F, box=F, col=colores3(100))
-plot (coast, add=T)
+no_60 <- stack(list.files("./data/climatic_vars/60bi70/no60bi70",  pattern = ".tif$", full.names = TRUE))
+
+rcp_60 <- stack(bc_60, cc_60, gs_60, hd_60, he_60, ip_60, mi_60, mr_60, mc_60, mg_60, no_60)
+
+#sd of the variables----
+
+#map sd----
+
+#identifying areas of high heterogeneity between models using the quartile coeff----
+
+# absolute change, using thresholds----
+
+# correlation between predictions and Hierarchical cluster analysis----
+
+# D. RCP 85 ----
+### read the variables ----
+
+#importing all 19 variables from each one of the 11 chossen  worldclim GCMs of RCP 85
 
 
-stab<- temp_stab + precip_stab
-plot (stab)
-plot (wrld_simpl, add=T)
+bc_85 <- stack(list.files("./data/climatic_vars/85bi70/bcc-csm1-1(bc)",  pattern = ".asc$", full.names = TRUE))
 
-ts<- reclassify (temp_stab, c(-Inf, 5, 0, 5, +Inf, 1))
-ps<- reclassify (precip_stab, c(-Inf, 5, 0, 5, +Inf, 1))
+cc_85 <- stack(list.files("./data/climatic_vars/85bi70/ccsm4(cc)",  pattern = ".asc$", full.names = TRUE))
 
-stab2<- ts * ps
-par (mar=c(0,0,0,0))
-plot (stab2, axes=F, box=F, legend=F, col=c("red", "white"))
-plot (coast, add=T)
+gs_85 <- stack(list.files("./data/climatic_vars/85bi70/giss-e2-r(gs)",  pattern = ".asc$", full.names = TRUE))
 
-### correlation between predictions and Hierarchical cluster analysis
-library (amap)
-model_names<- substr(clima_21, 9, nchar (clima_21)-15) 
-hc<- list ()
-for (i in 1:19){
-  raw_layer<-  t(data[,3+i,])
-  rownames (raw_layer)<- model_names 
-  cor_bio<- hcluster (raw_layer, method="correlation")
-  plot(cor_bio)
-  hc[[i]]<- cor_bio
-}
+hd_85 <- stack(list.files("./data/climatic_vars/85bi70/hadgem2-ao(hd)",  pattern = ".asc$", full.names = TRUE))
 
-head (cor_bio
-      names (hc)<- c(paste ("BIO", c(1:19), sep=""))
-      hc
-      par (las=1)
-      for (i in 1:19){
-        plot (hc[[i]]) 
-        mtext (names(hc)[i], side= 1, line=2)
-      }
-      
-      ### euclidean clusters
-      library (stats)
-      model_names<- substr(clima_21, 9, nchar (clima_21)-15) 
-      hc2<- list ()
-      for (i in 1:19){
-        raw_layer<-  t(data[,3+i,])
-        rownames (raw_layer)<- model_names 
-        cor_bio<- hcluster (raw_layer, method="euclidean")
-        hc2[[i]]<- cor_bio
-      }
-      
-      names (hc2)<- c(paste ("BIO", c(1:19), sep=""))
-      hc
-      par (las=1)
-      for (i in 1:19){
-        plot (hc2[[i]]) 
-        mtext (names(hc2)[i], side= 1, line=2)
-      }
-      dev.off()
-      plot (hc[[4]])
-      
-      res_groups2<- NULL
-      for (i in 1:19){
-        res2<- cutree(hc[[i]], k=4) 
-        res_groups2<- rbind (res_groups2, res2)
-      }
-      
-      t(res_groups2)
-      
-      
-      rownames (res_groups2)<- c(paste ("BIO", c(1:19), sep="")) 
-      res_groups2
-      
-      clust_categ<- hcluster (t(res_groups2), method="euclidean")
-      dev.off()
-      plot (clust_categ)
-      
-      res_groups<- NULL
-      for (i in 1:19){
-        res<- cutree(hc[[i]], h=0.2) 
-        res_groups<- rbind (res_groups, res)
-      }
-      
-      rownames (res_groups)<- c(paste ("BIO", c(1:19), sep="")) 
-      
-      res_groups
-      ### read correlation between models to contruct clusters with the GCMs
-      library (tree)
-      library (rpart)
-      
-      rpart(formula, data=, method=,control=) where
-      ?rpart
-      
-      rpart(. ~ Age + Number + Start, data = kyphosis)
-      
-      
-      groups<- res_groups [rowSums (res_groups)>9, ]
-      clust_categ<- hcluster (t(groups), method="euclidean")
-      plot (clust_categ)
-      
-      
-      
-      ## correlation: Variables
-      cor_bio<- cor (data[,3+1,])
-      res_cor<- cor_bio[lower.tri(cor_bio, diag = FALSE)]
-      for (i in 2:19){
-        cor_bio1<- cor (data[,3+i,])
-        res_cor1<- cor_bio1[lower.tri(cor_bio1, diag = FALSE)] 
-        res_cor<- data.frame (res_cor, res_cor1)
-      }
-      
-      dim (res_cor)
-      
-      names (res_cor)<- c(paste ("BIO", c(1:19), sep=""))
-      dev.off()
-      par (las=2)
-      boxplot (res_cor, axes=T, col="grey30",
-               border="grey50",
-               frame=F, ylab="Correlation")
-      
-      unlist (colMeans (res_cor))
-      
-      
-      ## correlation models
-      model_names<- substr(clima_21, 9, nchar (clima_21)-15) 
-      
-      cor_mod<- cor (data[,3+1,])
-      colnames (cor_mod)<- model_names
-      diag(cor_mod)<-NA
-      for (i in 2:11){
-        cor_mod1<- cor (data[,3+i,])
-        diag(cor_mod1)<-NA
-        cor_mod<- rbind (cor_mod, cor_mod1)
-      }
-      
-      head (cor_mod)
-      
-      temperature<- colMeans (cor_mod, na.rm=T)
-      
-      cor_mod2<- cor (data[,3+12,])
-      colnames (cor_mod2)<- model_names
-      diag(cor_mod2)<-NA
-      for (i in 13:19){
-        cor_mod1<- cor (data[,3+i,])
-        diag(cor_mod1)<-NA
-        cor_mod2<- rbind (cor_mod2, cor_mod1)
-      }
-      
-      names (data[, 21, ])
-      
-      dim (cor_mod)
-      dim (cor_mod2)
-      correlation<- rbind (cor_mod, cor_mod2)
-      
-      precipitation<- colMeans (cor_mod, na.rm=T)
-      
-      par (las=2)
-      boxplot (cor_mod, axes=T, col="firebrick",
-               boxwex = 0.25, at = 1:9 - 0.2,
-               border="lightcoral",
-               frame=F, ylab="Correlation")
-      
-      boxplot (cor_mod2, axes=T, col="blue", add=T,
-               border="lightblue",
-               boxwex = 0.25, at = 1:9 + 0.2,
-               frame=F)
-      
-      
-      rbind (temperature, precipitation)
-      
-      
-      
-      cor_bio<- cor (data[,3+12,])
-      cor_bio[upper.tri(cor_bio, diag = TRUE)] <- NA
-      colnames (cor_bio)<- model_names
-      rownames (cor_bio)<- model_names
-      
-      
-      
+he_85 <- stack(list.files("./data/climatic_vars/85bi70/hadgem2-es(he)",  pattern = ".asc$", full.names = TRUE))
+
+ip_85 <- stack(list.files("./data/climatic_vars/85bi70/ipsl-cm5a-lr(ip)",  pattern = ".asc$", full.names = TRUE))
+
+mr_85 <- stack(list.files("./data/climatic_vars/85bi70/miroc-esm(mr)",  pattern = ".asc$", full.names = TRUE))
+
+mi_85 <- stack(list.files("./data/climatic_vars/85bi70/miroc-esm-chem(mi)",  pattern = ".asc$", full.names = TRUE))
+
+mc_85 <- stack(list.files("./data/climatic_vars/85bi70/miroc5(mc)",  pattern = ".asc$", full.names = TRUE))
+
+mg_85 <- stack(list.files("./data/climatic_vars/85bi70/mri-cgcm3(mg)",  pattern = ".asc$", full.names = TRUE))
+
+no_85 <- stack(list.files("./data/climatic_vars/85bi70/noresm1-m(no)",  pattern = ".asc$", full.names = TRUE))
+
+rcp_85 <- stack(bc_85, cc_85, gs_85, hd_85, he_85, ip_85, mi_85, mr_85, mc_85, mg_85, no_85)
+
+
+#sd of the variables----
+
+#map sd----
+
+#identifying areas of high heterogeneity between models using the quartile coeff----
+
+# absolute change, using thresholds----
+
+# correlation between predictions and Hierarchical cluster analysis----
