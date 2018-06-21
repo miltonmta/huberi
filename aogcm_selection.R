@@ -36,15 +36,27 @@ no_26 <- stack(list.files("./data/climatic_vars/26bi70/no26bi70",  pattern = ".t
 
 rcp_26 <- stack(bc_26, cc_26, gs_26, hd_26, he_26, ip_26, mi_26, mr_26, mc_26, mg_26, no_26)
 
-## plot variables
+rm(rcp_26)
+
+
+# crop raster - Neotropical (xmin, xmax, ymin, ymax) ----
+# shape by Löwenberg-Neto, P. (2014) Neotropical region: a shapefile of Morrone's (2014) biogeographical regionalisation. Zootaxa, 3802(2): 300-300. 
+# browseURL("http://purl.org/biochartis/neo2014shp")
+
+
+e <- extent(-85,-30,-60,15)
+rcp_26_e <- crop(rcp_26, e)
+plot(rcp_26_e[[1]])
+map(add=T)
+
+shape_neo <- shapefile("./data/shape/Lowenberg_Neto_2014_shapefile/Lowenberg_Neto_2014.shp")
+rcp_26_neot <- mask(crop(rcp_26_e, shape_neo), shape_neo) 
+
 dim(rcp_26)
 str(rcp_26)
-
-colores<- colorRampPalette (c("darkblue", "blue", "lightblue", 
-                              "white", "salmon", "red"))
-par (mar=c(0,0,0,0))
-plot (rcp_26, axes=F, box=F, col=colores(100), legend=F)
-
+dim(rcp_26_neo)
+str(rcp_26_neo)
+print(rcp_26)
 
 
 #sd of the variables----
@@ -89,6 +101,8 @@ no_45 <- stack(list.files("./data/climatic_vars/45bi70/no45bi70",  pattern = ".t
 
 rcp_45 <- stack(bc_45, cc_45, gs_45, hd_45, he_45, ip_45, mi_45, mr_45, mc_45, mg_45, no_45)
 
+# crop raster - Neotropical (xmin, xmax, ymin, ymax) ----
+
 #sd of the variables----
 
 #map sd----
@@ -127,6 +141,8 @@ mg_60 <- stack(list.files("./data/climatic_vars/60bi70/mg60bi70",  pattern = ".t
 no_60 <- stack(list.files("./data/climatic_vars/60bi70/no60bi70",  pattern = ".tif$", full.names = TRUE))
 
 rcp_60 <- stack(bc_60, cc_60, gs_60, hd_60, he_60, ip_60, mi_60, mr_60, mc_60, mg_60, no_60)
+
+# crop raster - Neotropical (xmin, xmax, ymin, ymax) ----
 
 #sd of the variables----
 
@@ -168,6 +184,8 @@ no_85 <- stack(list.files("./data/climatic_vars/85bi70/noresm1-m(no)",  pattern 
 
 rcp_85 <- stack(bc_85, cc_85, gs_85, hd_85, he_85, ip_85, mi_85, mr_85, mc_85, mg_85, no_85)
 
+
+# crop raster - Neotropical (xmin, xmax, ymin, ymax) ----
 
 #sd of the variables----
 
