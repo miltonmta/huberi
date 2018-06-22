@@ -1,10 +1,21 @@
+library (raster)
+library (rgdal)
+
 # Selecting AOGCMs - Cluster analysis####
 #####
 # Global Circulation Models (GCMs) selection through cluster analysis to reduce bias and improve uncertainty analysis.
-# At worldclim.com at the resolution of 2.5min we selected the only the variables that apper in all the Representative Concetration Pathways projetions (RCP26, RCP45, RCP60, RCP80). The codes of the GCMs utilized are: bc, cc, gs, hd, he, ip, mi, mr, mc, mg, no.
+# At worldclim.com at the resolution of 2.5min we selected the only the variables that apper in all the Representative Concetration Pathways projetions (RCP26, RCP45, RCP60, RCP80). The codes of the 11 GCMs utilized are: bc, cc, gs, hd, he, ip, mi, mr, mc, mg, no.
 
-library (raster)
-library (rgdal)
+
+# [optional] if you prefer to rename all the variables so you have a more direct understanding when comparing then with each other, see below:
+
+myPath <- './data/climatic_vars/60bi70/no60bi70'
+fileList <- dir(path = myPath, pattern = '*.tif')  # list of file names, not including their paths
+sapply(X = fileList, FUN = function(x) {
+  file.rename(paste0(myPath, x),     # paste0() the path and old name
+              paste0(myPath, 'bio', substring(x, first = 9))) })     # paste0() the path and new name
+
+# substring('hello world', first = 7) returns 'orld' (starting at number 7, all following characters are returned) it should indicate the maximum charatcter in the folder you want to change. For instance if in some point of the folder you had "hello 1world" if you leave "7" all of your files would be called "world". Changing it for "8" would rename of them to "orld".
 
 # A. RCP 26 ----
 ### read the variables ----
@@ -34,18 +45,26 @@ mg_26 <- stack(list.files("./data/climatic_vars/26bi70/mg26bi70",  pattern = ".t
 
 no_26 <- stack(list.files("./data/climatic_vars/26bi70/no26bi70",  pattern = ".tif$", full.names = TRUE))
 
+
 rcp_26 <- stack(bc_26, cc_26, gs_26, hd_26, he_26, ip_26, mi_26, mr_26, mc_26, mg_26, no_26)
 
-rm(rcp_26)
+# > print(raster(rcp_26))
+# class       : RasterLayer 
+# dimensions  : 3600, 8640, 31104000  (nrow, ncol, ncell)
+# resolution  : 0.04166667, 0.04166667  (x, y)
+# extent      : -180, 180, -60, 90  (xmin, xmax, ymin, ymax)
+# coord. ref. : +proj=longlat +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +no_defs 
 
 
 # crop raster - Neotropical (xmin, xmax, ymin, ymax) ----
 # shape by Löwenberg-Neto, P. (2014) Neotropical region: a shapefile of Morrone's (2014) biogeographical regionalisation. Zootaxa, 3802(2): 300-300. 
 # browseURL("http://purl.org/biochartis/neo2014shp")
 
+print(raster(rcp_26))
 
 e <- extent(-85,-30,-60,15)
 rcp_26_e <- crop(rcp_26, e)
+print(raster(rcp_26_e))
 plot(rcp_26_e[[1]])
 map(add=T)
 
@@ -160,32 +179,44 @@ rcp_60 <- stack(bc_60, cc_60, gs_60, hd_60, he_60, ip_60, mi_60, mr_60, mc_60, m
 #importing all 19 variables from each one of the 11 chossen  worldclim GCMs of RCP 85
 
 
-bc_85 <- stack(list.files("./data/climatic_vars/85bi70/bcc-csm1-1(bc)",  pattern = ".asc$", full.names = TRUE))
+bc_85 <- stack(list.files("./data/climatic_vars/85bi70/bc85bi70",  pattern = ".asc$", full.names = TRUE))
 
-cc_85 <- stack(list.files("./data/climatic_vars/85bi70/ccsm4(cc)",  pattern = ".asc$", full.names = TRUE))
+cc_85 <- stack(list.files("./data/climatic_vars/85bi70/cc85bi70",  pattern = ".asc$", full.names = TRUE))
 
-gs_85 <- stack(list.files("./data/climatic_vars/85bi70/giss-e2-r(gs)",  pattern = ".asc$", full.names = TRUE))
+gs_85 <- stack(list.files("./data/climatic_vars/85bi70/gs85bi70",  pattern = ".asc$", full.names = TRUE))
 
-hd_85 <- stack(list.files("./data/climatic_vars/85bi70/hadgem2-ao(hd)",  pattern = ".asc$", full.names = TRUE))
+hd_85 <- stack(list.files("./data/climatic_vars/85bi70/hd85bi70",  pattern = ".asc$", full.names = TRUE))
 
-he_85 <- stack(list.files("./data/climatic_vars/85bi70/hadgem2-es(he)",  pattern = ".asc$", full.names = TRUE))
+he_85 <- stack(list.files("./data/climatic_vars/85bi70/he85bi70",  pattern = ".asc$", full.names = TRUE))
 
-ip_85 <- stack(list.files("./data/climatic_vars/85bi70/ipsl-cm5a-lr(ip)",  pattern = ".asc$", full.names = TRUE))
+ip_85 <- stack(list.files("./data/climatic_vars/85bi70/ip85bi70",  pattern = ".asc$", full.names = TRUE))
 
-mr_85 <- stack(list.files("./data/climatic_vars/85bi70/miroc-esm(mr)",  pattern = ".asc$", full.names = TRUE))
+mr_85 <- stack(list.files("./data/climatic_vars/85bi70/mr85bi70",  pattern = ".asc$", full.names = TRUE))
 
-mi_85 <- stack(list.files("./data/climatic_vars/85bi70/miroc-esm-chem(mi)",  pattern = ".asc$", full.names = TRUE))
+mi_85 <- stack(list.files("./data/climatic_vars/85bi70/mi85bi70",  pattern = ".asc$", full.names = TRUE))
 
-mc_85 <- stack(list.files("./data/climatic_vars/85bi70/miroc5(mc)",  pattern = ".asc$", full.names = TRUE))
+mc_85 <- stack(list.files("./data/climatic_vars/85bi70/mc85bi70",  pattern = ".asc$", full.names = TRUE))
 
-mg_85 <- stack(list.files("./data/climatic_vars/85bi70/mri-cgcm3(mg)",  pattern = ".asc$", full.names = TRUE))
+mg_85 <- stack(list.files("./data/climatic_vars/85bi70/mg85bi70",  pattern = ".asc$", full.names = TRUE))
 
-no_85 <- stack(list.files("./data/climatic_vars/85bi70/noresm1-m(no)",  pattern = ".asc$", full.names = TRUE))
+no_85 <- stack(list.files("./data/climatic_vars/85bi70/no85bi70",  pattern = ".asc$", full.names = TRUE))
 
 rcp_85 <- stack(bc_85, cc_85, gs_85, hd_85, he_85, ip_85, mi_85, mr_85, mc_85, mg_85, no_85)
 
+print(raster(cc_26))
+print(raster(cc_85))
+print(raster(cc_45))
+
+
 
 # crop raster - Neotropical (xmin, xmax, ymin, ymax) ----
+e <- extent(-85,-30,-60,15)
+rcp_85_e <- crop(rcp_85, e)
+plot(rcp_26_e[[1]])
+map(add=T)
+print(raster(rcp_85_e))
+
+
 
 #sd of the variables----
 
