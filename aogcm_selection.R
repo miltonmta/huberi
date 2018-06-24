@@ -2,25 +2,23 @@ library (raster)
 library (rgdal)
 
 # Selecting AOGCMs - Cluster analysis####
-#####
 # Global Circulation Models (GCMs) selection through cluster analysis to reduce bias and improve uncertainty analysis.
 # At worldclim.com at the resolution of 2.5min we selected the only the variables that apper in all the Representative Concetration Pathways projetions (RCP26, RCP45, RCP60, RCP80). The codes of the 11 GCMs utilized are: bc, cc, gs, hd, he, ip, mi, mr, mc, mg, no.
 
+#####
+## [optional] renaming the variables from all GCMs at all for RCPs (bio1:bio19):
 
-# [optional] if you prefer to rename all the variables so you have a more direct understanding when comparing then with each other, see below:
-
-myPath <- './data/climatic_vars/60bi70/no60bi70'
-fileList <- dir(path = myPath, pattern = '*.tif')  # list of file names, not including their paths
-sapply(X = fileList, FUN = function(x) {
-  file.rename(paste0(myPath, x),     # paste0() the path and old name
-              paste0(myPath, 'bio', substring(x, first = 9))) })     # paste0() the path and new name
-
-# substring('hello world', first = 7) returns 'orld' (starting at number 7, all following characters are returned) it should indicate the maximum charatcter in the folder you want to change. For instance if in some point of the folder you had "hello 1world" if you leave "7" all of your files would be called "world". Changing it for "8" would rename of them to "orld".
+# myPath <- './data/climatic_vars/60bi70/no60bi70'
+# fileList <- dir(path = myPath, pattern = '*.tif')  # list of file names, not including their paths
+# sapply(X = fileList, FUN = function(x) {
+#   file.rename(paste0(myPath, x),     # paste0() the path and old name
+#               paste0(myPath, 'bio', substring(x, first = 9))) })     # paste0() the path and new name
+# substring('smaug', first = 2) returns 'aug' (starting at number 2, all following characters are returned) 
 
 # A. RCP 26 ----
 ### read the variables ----
 
-#importing all 19 variables from each one of the 11 GCMs of RCP 26
+##importing all 19 variables from each one of the 11 GCMs of RCP 26
 
 
 bc_26 <- stack(list.files("./data/climatic_vars/26bi70/bc26bi70",  pattern = ".tif$", full.names = TRUE))
@@ -56,39 +54,104 @@ rcp_26 <- stack(bc_26, cc_26, gs_26, hd_26, he_26, ip_26, mi_26, mr_26, mc_26, m
 # coord. ref. : +proj=longlat +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +no_defs 
 
 
-# crop raster - Neotropical (xmin, xmax, ymin, ymax) ----
+#### crop raster - Neotropical (xmin, xmax, ymin, ymax) ----
 # shape by Löwenberg-Neto, P. (2014) Neotropical region: a shapefile of Morrone's (2014) biogeographical regionalisation. Zootaxa, 3802(2): 300-300. 
 # browseURL("http://purl.org/biochartis/neo2014shp")
 
 print(raster(rcp_26))
 
-e <- extent(-85,-30,-60,15)
+e <- extent(-85,-30,-60,15) # check if this extent cover the the whole Neotropic area.
 rcp_26_e <- crop(rcp_26, e)
 print(raster(rcp_26_e))
 plot(rcp_26_e[[1]])
 map(add=T)
 
-shape_neo <- shapefile("./data/shape/Lowenberg_Neto_2014_shapefile/Lowenberg_Neto_2014.shp")
-rcp_26_neot <- mask(crop(rcp_26_e, shape_neo), shape_neo) 
+# croping with shapefile did not work. Here is the cosole error message:
+# "> rcp_26_neot <- mask(crop(rcp_26_e, shape_neot), shape_neot) Error in compareRaster(x, mask) : different CRS"
+# does the data and the .shp file have to be in the same extent?
 
-dim(rcp_26)
-str(rcp_26)
-dim(rcp_26_neo)
-str(rcp_26_neo)
-print(rcp_26)
+# shape_neot <- shapefile("./data/shape/Lowenberg_Neto_2014_shapefile/Lowenberg_Neto_2014.shp")
+# rcp_26_neot <- mask(crop(rcp_26_e, shape_neot), shape_neot) 
+# 
+# dim(rcp_26)
+# str(rcp_26)
+# dim(rcp_26_neot)
+# str(rcp_26_neot)
+# print(raster(rcp_26_e))
+
+## plot variables
 
 
-#sd of the variables----
+
+### Standard Deviation of the variables----
+
+## Extracting values from raster
+rcp_26_e_values <- values(rcp_26_e) # extracting values form the raster object to a new matrix is necessary to make any statistical analysis.
+rcp_26_e_values[1:5, ]
+nrow(rcp_26_e_values)
+
+bio1 <- rcp_26_e_values[ ,"bio1", ] # Error in rcp_26_e_values[, "bio1", ] : número incorreto de dimensões
+
+##  Testing normality of the data - Shapiro–Wilk test
+kk <- shapiro.test (bio1 [1,])
+no <- kk$p.value
+for (i in 2:dim (bio1)[1])
+{
+  kk<- shapiro.test (bio1 [i,])  
+  kkk<- kk$p.value
+  no<- c(no, kkk)
+}
+
+## Standard Deviation
+# I want to make to boxplots: one comparing all the climatic variables among each other; another comparing all 11 GCMs...
+# I'm not sure I'm in wigth path to do it...
+
+# Trying to make a for loop for calculating and recording the sd values between each corresponding climatic variable among all GCMs.
+sd_bio <- apply(bio1, 1, sd, na.rm = TRUE)
+for (i in 1:18)
+{
+  bio <- rcp_26_e_values [,4+i,]
+  sd_bio2 <- apply(bio, 1, sd, na.rm = TRUE)
+  sd_bio <- cbind (sd_bio, sd_bio2)
+}
 
 
+# determinig the quartile values (q1, q3)
+# bio1 <- rcp_26_e_values[ ,"bio1", ]
+mean_bio<- apply(bio1, 1, quantile, na.rm = TRUE)
+q3_bio<- mean_bio [4,]
+q1_bio<- mean_bio [2,]
 
-#map sd----
+for (i in 1:18)
+{
+  bio<- data [,4+i,]
+  mean_bio2<- apply(bio, 1, quantile, na.rm = TRUE)
+  q3_bio2<- mean_bio2 [4,]
+  q1_bio2<- mean_bio2 [2,]
+  q3_bio<- cbind (q3_bio, q3_bio2)
+  q1_bio<- cbind (q1_bio, q1_bio2)
+}
 
-#identifying areas of high heterogeneity between models using the quartile coeff----
+# determining the Quartile Coefficient of Deviation (qcd)
+qcd <- (q3_bio - q1_bio) / (q3_bio + q1_bio) 
+head (qcd)
 
-# absolute change, using thresholds----
+dif<- sd_bio/mean_bio
 
-# correlation between predictions and Hierarchical cluster analysis----
+### map sd -----
+
+
+### identifying areas of high heterogeneity between models---- 
+
+
+### absolute change, using thresholds----
+
+
+### Hierarchical cluster analysis----
+## euclidean clusters
+## read correlation between models to contruct clusters with the GCMs
+## correlation: Variables
+## correlation models
 
 
 # B. RCP 45 ----
@@ -124,14 +187,14 @@ rcp_45 <- stack(bc_45, cc_45, gs_45, hd_45, he_45, ip_45, mi_45, mr_45, mc_45, m
 
 #sd of the variables----
 
-#map sd----
-
-#identifying areas of high heterogeneity between models using the quartile coeff----
+#identifying areas of high heterogeneity between models---- 
+#...using the quartile coeff
 
 # absolute change, using thresholds----
 
-# correlation between predictions and Hierarchical cluster analysis----
+# correlation between predictions----
 
+#Hierarchical cluster analysis----
 
 # C. RCP 60 ----
 ### read the variables ----
@@ -165,13 +228,14 @@ rcp_60 <- stack(bc_60, cc_60, gs_60, hd_60, he_60, ip_60, mi_60, mr_60, mc_60, m
 
 #sd of the variables----
 
-#map sd----
-
-#identifying areas of high heterogeneity between models using the quartile coeff----
+#identifying areas of high heterogeneity between models---- 
+#...using the quartile coeff
 
 # absolute change, using thresholds----
 
-# correlation between predictions and Hierarchical cluster analysis----
+# correlation between predictions----
+
+#Hierarchical cluster analysis----
 
 # D. RCP 85 ----
 ### read the variables ----
@@ -218,12 +282,11 @@ print(raster(rcp_85_e))
 
 
 
-#sd of the variables----
-
-#map sd----
-
-#identifying areas of high heterogeneity between models using the quartile coeff----
+#identifying areas of high heterogeneity between models---- 
+#...using the quartile coeff
 
 # absolute change, using thresholds----
 
-# correlation between predictions and Hierarchical cluster analysis----
+# correlation between predictions----
+
+#Hierarchical cluster analysis----
