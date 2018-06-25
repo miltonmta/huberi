@@ -1,12 +1,16 @@
+
+# Selecting AOGCMs - Cluster analysis####
+
 library (raster)
 library (rgdal)
 
-# Selecting AOGCMs - Cluster analysis####
+# This script has an index table. If you are in RStudio go to Code > Show Document Outline (shift + command/clrt + o)
+
 # Global Circulation Models (GCMs) selection through cluster analysis to reduce bias and improve uncertainty analysis.
 # At worldclim.com at the resolution of 2.5min we selected the only the variables that apper in all the Representative Concetration Pathways projetions (RCP26, RCP45, RCP60, RCP80). The codes of the 11 GCMs utilized are: bc, cc, gs, hd, he, ip, mi, mr, mc, mg, no.
 
 #####
-## [optional] renaming the variables from all GCMs at all for RCPs (bio1:bio19):
+## [optional] renaming the variables from all GCMs at all four RCPs (bio1:bio19):
 
 # myPath <- './data/climatic_vars/60bi70/no60bi70'
 # fileList <- dir(path = myPath, pattern = '*.tif')  # list of file names, not including their paths
@@ -54,17 +58,24 @@ rcp_26 <- stack(bc_26, cc_26, gs_26, hd_26, he_26, ip_26, mi_26, mr_26, mc_26, m
 # coord. ref. : +proj=longlat +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +no_defs 
 
 
-#### crop raster - Neotropical (xmin, xmax, ymin, ymax) ----
-# shape by Löwenberg-Neto, P. (2014) Neotropical region: a shapefile of Morrone's (2014) biogeographical regionalisation. Zootaxa, 3802(2): 300-300. 
-# browseURL("http://purl.org/biochartis/neo2014shp")
-
+### crop raster to studied area (xmin, xmax, ymin, ymax) ----
 print(raster(rcp_26))
 
-e <- extent(-85,-30,-60,15) # check if this extent cover the the whole Neotropic area.
+e <- extent(-122, -18, -56, 14) 
 rcp_26_e <- crop(rcp_26, e)
 print(raster(rcp_26_e))
 plot(rcp_26_e[[1]])
 map(add=T)
+
+## Salving the stack of the GCMs at RCP26 cutted to studied area
+writeRaste("./data/climatic_vars/26bi70/", rcp_26_e, "stack_rcp26_extent" ,format = "raster")
+
+## Including the shapefile
+# shape by Löwenberg-Neto, P. (2014) Neotropical region: a shapefile of Morrone's (2014) biogeographical regionalisation. Zootaxa, 3802(2): 300-300. 
+# browseURL("http://purl.org/biochartis/neo2014shp")
+
+# another shape file 
+# brouseURL("https://www.naturalearthdata.com/downloads/110m-physical-vectors/")
 
 # croping with shapefile did not work. Here is the cosole error message:
 # "> rcp_26_neot <- mask(crop(rcp_26_e, shape_neot), shape_neot) Error in compareRaster(x, mask) : different CRS"
@@ -183,18 +194,27 @@ no_45 <- stack(list.files("./data/climatic_vars/45bi70/no45bi70",  pattern = ".t
 
 rcp_45 <- stack(bc_45, cc_45, gs_45, hd_45, he_45, ip_45, mi_45, mr_45, mc_45, mg_45, no_45)
 
-# crop raster - Neotropical (xmin, xmax, ymin, ymax) ----
+### crop raster to studied area (xmin, xmax, ymin, ymax) ----
+print(raster(rcp_45))
 
-#sd of the variables----
+# e <- extent(-122, -18, -56, 14) 
+rcp_26_e <- crop(rcp_45, e)
+print(raster(rcp_45_e))
+plot(rcp_45_e[[1]])
+map(add=T)
 
-#identifying areas of high heterogeneity between models---- 
-#...using the quartile coeff
+## Salving the stack of the GCMs at RCP45 cutted to studied area
+writeRaste("./data/climatic_vars/45bi70/", rcp_45_e, "stack_rcp45_extent" ,format = "raster")
 
-# absolute change, using thresholds----
+### Standard Deviation of the variables----
 
-# correlation between predictions----
+### identifying areas of high heterogeneity between models---- 
 
-#Hierarchical cluster analysis----
+### absolute change, using thresholds----
+
+### correlation between predictions----
+
+### Hierarchical cluster analysis----
 
 # C. RCP 60 ----
 ### read the variables ----
@@ -224,23 +244,33 @@ no_60 <- stack(list.files("./data/climatic_vars/60bi70/no60bi70",  pattern = ".t
 
 rcp_60 <- stack(bc_60, cc_60, gs_60, hd_60, he_60, ip_60, mi_60, mr_60, mc_60, mg_60, no_60)
 
-# crop raster - Neotropical (xmin, xmax, ymin, ymax) ----
 
-#sd of the variables----
+### crop raster to studied area (xmin, xmax, ymin, ymax) ----
+print(raster(rcp_60))
 
-#identifying areas of high heterogeneity between models---- 
-#...using the quartile coeff
+# e <- extent(-122, -18, -56, 14) 
+rcp_60_e <- crop(rcp_60, e)
+print(raster(rcp_60_e))
+plot(rcp_60_e[[1]])
+map(add=T)
 
-# absolute change, using thresholds----
+## Salving the stack of the GCMs at RCP60 cutted to studied area
+writeRaste("./data/climatic_vars/60bi70/", rcp_60_e, "stack_rcp60_extent" ,format = "raster")
 
-# correlation between predictions----
+### Standard Deviation of the variables----
 
-#Hierarchical cluster analysis----
+### identifying areas of high heterogeneity between models---- 
+
+### absolute change, using thresholds----
+
+### correlation between predictions----
+
+### Hierarchical cluster analysis----
 
 # D. RCP 85 ----
 ### read the variables ----
 
-#importing all 19 variables from each one of the 11 chossen  worldclim GCMs of RCP 85
+# importing all 19 variables from each one of the 11 chossen  worldclim GCMs of RCP 85
 
 
 bc_85 <- stack(list.files("./data/climatic_vars/85bi70/bc85bi70",  pattern = ".asc$", full.names = TRUE))
@@ -273,20 +303,22 @@ print(raster(cc_45))
 
 
 
-# crop raster - Neotropical (xmin, xmax, ymin, ymax) ----
-e <- extent(-85,-30,-60,15)
+### crop raster to studied area (xmin, xmax, ymin, ymax) ----
+e <- extent(-122, -18, -56, 14)
 rcp_85_e <- crop(rcp_85, e)
 plot(rcp_26_e[[1]])
 map(add=T)
 print(raster(rcp_85_e))
 
+## Salving the stack of the GCMs at RCP85 cutted to studied area
+writeRaste("./data/climatic_vars/85bi70/", rcp_85_e, "stack_rcp85_extent" ,format = "raster")
 
+### Standard Deviation of the variables----
 
-#identifying areas of high heterogeneity between models---- 
-#...using the quartile coeff
+### identifying areas of high heterogeneity between models---- 
 
-# absolute change, using thresholds----
+### absolute change, using thresholds----
 
-# correlation between predictions----
+### correlation between predictions----
 
-#Hierarchical cluster analysis----
+###Hierarchical cluster analysis----
