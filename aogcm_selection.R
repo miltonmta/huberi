@@ -1,8 +1,11 @@
 
 # Selecting AOGCMs - Cluster analysis####
 
-library (raster)
-library (rgdal)
+require(raster)
+require(rgdal)
+require(abind)
+require(amap)
+require(stats)
 
 # This script has an index table. If you are in RStudio go to Code > Show Document Outline (shift + command/clrt + o)
 
@@ -23,6 +26,8 @@ library (rgdal)
 ### read the variables ----
 
 ##importing all 19 variables from each one of the 11 GCMs of RCP 26
+
+get()
 
 
 bc_26 <- stack(list.files("./data/climatic_vars/26bi70/bc26bi70",  pattern = ".tif$", full.names = TRUE))
@@ -48,38 +53,29 @@ mg_26 <- stack(list.files("./data/climatic_vars/26bi70/mg26bi70",  pattern = ".t
 no_26 <- stack(list.files("./data/climatic_vars/26bi70/no26bi70",  pattern = ".tif$", full.names = TRUE))
 
 
-rcp_26 <- stack(bc_26, cc_26, gs_26, hd_26, he_26, ip_26, mi_26, mr_26, mc_26, mg_26, no_26)
-
-# > print(raster(rcp_26))
-# class       : RasterLayer 
-# dimensions  : 3600, 8640, 31104000  (nrow, ncol, ncell)
-# resolution  : 0.04166667, 0.04166667  (x, y)
-# extent      : -180, 180, -60, 90  (xmin, xmax, ymin, ymax)
-# coord. ref. : +proj=longlat +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +no_defs 
-
-
-### crop raster to studied area (xmin, xmax, ymin, ymax) ----
-print(raster(rcp_26))
-
+### cut raster to studied area (xmin, xmax, ymin, ymax) ----
 e <- extent(-122, -18, -56, 14) 
-rcp_26_e <- crop(rcp_26, e)
-print(raster(rcp_26_e))
-plot(rcp_26_e[[1]])
-map(add=T)
 
-## Salving the stack of the GCMs at RCP26 cutted to studied area
-writeRaste("./data/climatic_vars/26bi70/", rcp_26_e, "stack_rcp26_extent" ,format = "raster")
+bc_26_e <- crop (bc_26, e)
+cc_26_e <- crop (cc_26, e)
+gs_26_e <- crop (gs_26, e)
+hd_26_e <- crop (hd_26, e)
+he_26_e <- crop (he_26, e)
+ip_26_e <- crop (ip_26, e)
+mi_26_e <- crop (mi_26, e)
+mr_26_e <- crop (mr_26, e)
+mc_26_e <- crop (mc_26, e)
+mg_26_e <- crop (mg_26, e)
+no_26_e <- crop (no_26, e)
 
-## Including the shapefile
+# rm(bc_26_e, cc_26_e, gs_26_e, hd_26_e, he_26_e, ip_26_e, mi_26_e, mr_26_e, mc_26_e, mg_26_e, no_26_e)
+
+## Masking with the shapefile
 # shape by Löwenberg-Neto, P. (2014) Neotropical region: a shapefile of Morrone's (2014) biogeographical regionalisation. Zootaxa, 3802(2): 300-300. 
 # browseURL("http://purl.org/biochartis/neo2014shp")
 
 # another shape file 
 # brouseURL("https://www.naturalearthdata.com/downloads/110m-physical-vectors/")
-
-# croping with shapefile did not work. Here is the cosole error message:
-# "> rcp_26_neot <- mask(crop(rcp_26_e, shape_neot), shape_neot) Error in compareRaster(x, mask) : different CRS"
-# does the data and the .shp file have to be in the same extent?
 
 # shape_neot <- shapefile("./data/shape/Lowenberg_Neto_2014_shapefile/Lowenberg_Neto_2014.shp")
 # rcp_26_neot <- mask(crop(rcp_26_e, shape_neot), shape_neot) 
@@ -90,79 +86,157 @@ writeRaste("./data/climatic_vars/26bi70/", rcp_26_e, "stack_rcp26_extent" ,forma
 # str(rcp_26_neot)
 # print(raster(rcp_26_e))
 
+### extracting values from raster ----
+
+bc_26_val <- getValues(bc_26_e)
+coord_bc_26 <- xyFromCell( bc_26_e, 1:ncell(bc_26_e)) # retrieve the variables coordinates.
+bc_26_final <- cbind(coord_bc_26, bc_26_val) # merge coordinates with the extrated values data.
+bc_26_final <- na.omit(bc_26_final)
+
+cc_26_val <- values(cc_26_e)
+coord_cc_26 <- xyFromCell( cc_26_e, 1:ncell(cc_26_e)) 
+cc_26_final <- cbind(coord_cc_26, cc_26_val) 
+cc_26_final <- na.omit(cc_26_final)
+
+gs_26_val <- values(gs_26_e)
+coord_gs_26 <- xyFromCell( gs_26_e, 1:ncell(gs_26_e))
+gs_26_final <- cbind(coord_gs_26, gs_26_val) 
+gs_26_final <- na.omit(gs_26_final)
+
+hd_26_val <- values(hd_26_e)
+coord_hd_26 <- xyFromCell( hd_26_e, 1:ncell(hd_26_e))
+hd_26_final <- cbind(coord_hd_26, hd_26_val) 
+hd_26_final <- na.omit(hd_26_final)
+
+he_26_val <- values(he_26_e)
+coord_he_26 <- xyFromCell( he_26_e, 1:ncell(he_26_e))
+he_26_final <- cbind(coord_he_26, he_26_val) 
+he_26_final <- na.omit(he_26_final)
+
+ip_26_val <- values(ip_26_e)
+coord_ip_26 <- xyFromCell( ip_26_e, 1:ncell(ip_26_e))
+ip_26_final <- cbind(coord_ip_26, ip_26_val) 
+ip_26_final <- na.omit(ip_26_final)
+
+mi_26_val <- values(mi_26_e)
+coord_mi_26 <- xyFromCell( mi_26_e, 1:ncell(mi_26_e))
+mi_26_final <- cbind(coord_mi_26, mi_26_val) 
+mi_26_final <- na.omit(mi_26_final)
+
+mr_26_val <- values(mr_26_e)
+coord_mr_26 <- xyFromCell( mr_26_e, 1:ncell(mr_26_e))
+mr_26_final <- cbind(coord_mr_26, mr_26_val) 
+mr_26_final <- na.omit(mr_26_final)
+
+mc_26_val <- values(mc_26_e)
+coord_mc_26 <- xyFromCell( mc_26_e, 1:ncell(mc_26_e))
+mc_26_final <- cbind(coord_mc_26, mc_26_val) 
+mc_26_final <- na.omit(mc_26_final)
+
+mg_26_val <- values(mg_26_e)
+coord_mg_26 <- xyFromCell( mg_26_e, 1:ncell(mg_26_e))
+mg_26_final <- cbind(coord_mg_26, mg_26_val) 
+mg_26_final <- na.omit(mg_26_final)
+
+no_26_val <- values(no_26_e)
+coord_no_26 <- xyFromCell( no_26_e, 1:ncell(no_26_e))
+no_26_final <- cbind(coord_no_26, no_26_val) 
+no_26_final <- na.omit(no_26_final)
+
+## making array with abind 
+
+rcp_26 <- abind(bc_26_final, cc_26_final, gs_26_final, hd_26_final, he_26_final, ip_26_final, mi_26_final, mr_26_final, mc_26_final, mg_26_final, no_26_final, along = 3)
+
+print(rcp_26)
 ## plot variables
-
-
 
 ### Standard Deviation of the variables----
 
-## Extracting values from raster
-rcp_26_e_values <- values(rcp_26_e) # extracting values form the raster object to a new matrix is necessary to make any statistical analysis.
-rcp_26_e_values[1:5, ]
-nrow(rcp_26_e_values)
-
-bio1 <- rcp_26_e_values[ ,"bio1", ] # Error in rcp_26_e_values[, "bio1", ] : número incorreto de dimensões
-
-##  Testing normality of the data - Shapiro–Wilk test
-kk <- shapiro.test (bio1 [1,])
-no <- kk$p.value
-for (i in 2:dim (bio1)[1])
-{
-  kk<- shapiro.test (bio1 [i,])  
-  kkk<- kk$p.value
-  no<- c(no, kkk)
-}
-
-## Standard Deviation
-# I want to make to boxplots: one comparing all the climatic variables among each other; another comparing all 11 GCMs...
-# I'm not sure I'm in wigth path to do it...
-
-# Trying to make a for loop for calculating and recording the sd values between each corresponding climatic variable among all GCMs.
-sd_bio <- apply(bio1, 1, sd, na.rm = TRUE)
-for (i in 1:18)
-{
-  bio <- rcp_26_e_values [,4+i,]
-  sd_bio2 <- apply(bio, 1, sd, na.rm = TRUE)
-  sd_bio <- cbind (sd_bio, sd_bio2)
-}
-
-
-# determinig the quartile values (q1, q3)
-# bio1 <- rcp_26_e_values[ ,"bio1", ]
-mean_bio<- apply(bio1, 1, quantile, na.rm = TRUE)
-q3_bio<- mean_bio [4,]
-q1_bio<- mean_bio [2,]
-
-for (i in 1:18)
-{
-  bio<- data [,4+i,]
-  mean_bio2<- apply(bio, 1, quantile, na.rm = TRUE)
-  q3_bio2<- mean_bio2 [4,]
-  q1_bio2<- mean_bio2 [2,]
-  q3_bio<- cbind (q3_bio, q3_bio2)
-  q1_bio<- cbind (q1_bio, q1_bio2)
-}
-
 # determining the Quartile Coefficient of Deviation (qcd)
-qcd <- (q3_bio - q1_bio) / (q3_bio + q1_bio) 
-head (qcd)
-
-dif<- sd_bio/mean_bio
 
 ### map sd -----
 
-
 ### identifying areas of high heterogeneity between models---- 
-
 
 ### absolute change, using thresholds----
 
+### correlation between predictions and Hierarchical cluster analysis----
 
-### Hierarchical cluster analysis----
-## euclidean clusters
-## read correlation between models to contruct clusters with the GCMs
-## correlation: Variables
-## correlation models
+## Correlation between predictions
+# library (amap)
+
+head (bc_26_final)
+# > head (bc_26_final)
+# x        y bio1 bio10 bio11 bio12 bio13 bio14 bio15 bio16 bio17
+# [1,] -91.39583 13.97917  284   294   273  1455   408     1   101   837    11
+# [2,] -91.35417 13.97917  284   294   273  1472   409     1   101   844    11
+# [3,] -91.31250 13.97917  284   294   274  1485   410     1   100   849    12
+# [4,] -91.27083 13.97917  284   294   274  1502   410     2   100   855    11
+# [5,] -91.22917 13.97917  285   295   274  1510   410     2    99   856    11
+# [6,] -91.18750 13.97917  285   295   275  1511   408     2    99   855    11
+# bio18 bio19 bio2 bio3 bio4 bio5 bio6 bio7 bio8 bio9
+# [1,]   364    11  112   72  817  357  202  155  284  273
+# [2,]   368    11  112   72  812  357  203  154  284  273
+# [3,]   369    12  111   72  806  357  203  154  284  274
+# [4,]   374    11  111   72  804  356  203  153  284  274
+# [5,]   374    11  110   72  799  357  205  152  284  274
+# [6,]   374    11  110   72  791  357  205  151  285  275
+print(raster (bc_26_final))
+# > print(raster (bc_26_final))
+# class       : RasterLayer 
+# dimensions  : 912559, 21, 19163739  (nrow, ncol, ncell)
+# resolution  : 0.04761905, 1.09582e-06  (x, y)
+# extent      : 0, 1, 0, 1  (xmin, xmax, ymin, ymax)
+# coord. ref. : NA 
+# data source : in memory
+# names       : layer 
+# values      : -210, 11012  (min, max)
+
+# Here i'm attempting to  creat a cluster for only one aogcm. Them to this for all the 11. I'm not sure how to incorporate all the aogcm model names here. Since I imported them one by one, I do not have any object from witch I could extract it from.
+
+hc <- list()
+for (i in 1:19)
+{
+  row_data <- bc_26_final[ nrow = i, ncol = -2 ] # get only the varible data but not the lat and long (first tow col)
+  cor_bio <- hcluster (row_data, method = "correlation")
+  plot (cor_bio)
+  hc [[i]] <- cor_bio
+  
+}
+
+head (cor_bio)
+names (hc)<- c(paste ("BIO", c(1:19), sep=""))
+par (las = 1)
+for (i in 1:19)
+{
+  plot (hc[[i]])
+  mtext (names(hc)[i], side = 1, line = 2)
+}
+
+## Euclidean clusters
+# library (stats)
+
+hc_2 <- list()
+for (i in 1:19)
+{
+  row_data <- bc_26_final[ nrow = i, ncol = -2 ]
+  clust_bio <- hcluster (row_data, method = "euclidean")
+  hc2[[i]] <- clust_bio
+}
+
+names (hc2)<- c(paste ("BIO", c(1:19), sep=""))
+par (las = 1)
+for (i in 1:19)
+{
+  plot (hc2[[i]]) 
+  mtext (names(hc2)[i], side= 1, line=2)
+}
+
+dev.off()
+plot (hc[[4]])
+
+
+
 
 
 # B. RCP 45 ----
@@ -192,9 +266,10 @@ mg_45 <- stack(list.files("./data/climatic_vars/45bi70/mg45bi70",  pattern = ".t
 
 no_45 <- stack(list.files("./data/climatic_vars/45bi70/no45bi70",  pattern = ".tif$", full.names = TRUE))
 
+
 rcp_45 <- stack(bc_45, cc_45, gs_45, hd_45, he_45, ip_45, mi_45, mr_45, mc_45, mg_45, no_45)
 
-### crop raster to studied area (xmin, xmax, ymin, ymax) ----
+### cut raster to studied area (xmin, xmax, ymin, ymax) ----
 print(raster(rcp_45))
 
 # e <- extent(-122, -18, -56, 14) 
@@ -202,6 +277,23 @@ rcp_26_e <- crop(rcp_45, e)
 print(raster(rcp_45_e))
 plot(rcp_45_e[[1]])
 map(add=T)
+
+?array
+
+#extraindo valores do raster
+ccsm.0k.val <- values(ccsm.0k.ASr)
+ccsm.0k.val[1:5,]
+nrow(ccsm.0k.val)
+
+coord.AS <- xyFromCell(ccsm.0k.ASr, 1:ncell(ccsm.0k.ASr))
+coord.AS[1:5,]
+nrow(coord.AS)
+
+ccsm.0k.ASm <- cbind(coord.AS, ccsm.0k.val)
+ccsm.0k.ASm[1:5,]
+nrow(ccsm.0k.ASm)
+ccsm.0k.ASm <- na.omit(ccsm.0k.ASm)
+nrow(ccsm.0k.ASm)
 
 ## Salving the stack of the GCMs at RCP45 cutted to studied area
 writeRaste("./data/climatic_vars/45bi70/", rcp_45_e, "stack_rcp45_extent" ,format = "raster")
@@ -212,9 +304,9 @@ writeRaste("./data/climatic_vars/45bi70/", rcp_45_e, "stack_rcp45_extent" ,forma
 
 ### absolute change, using thresholds----
 
-### correlation between predictions----
+### correlation between predictions and Hierarchical cluster analysis----
 
-### Hierarchical cluster analysis----
+
 
 # C. RCP 60 ----
 ### read the variables ----
@@ -298,9 +390,9 @@ no_85 <- stack(list.files("./data/climatic_vars/85bi70/no85bi70",  pattern = ".a
 rcp_85 <- stack(bc_85, cc_85, gs_85, hd_85, he_85, ip_85, mi_85, mr_85, mc_85, mg_85, no_85)
 
 print(raster(cc_26))
-print(raster(cc_85))
+print(raster(bc_85))
 print(raster(cc_45))
-
+bc_85_e <- crop(bc_85, e)
 
 
 ### crop raster to studied area (xmin, xmax, ymin, ymax) ----
