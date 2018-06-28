@@ -9,6 +9,9 @@ require(stats)
 
 # This script has an index table. If you are in RStudio go to Code > Show Document Outline (shift + command/clrt + o)
 
+# All the data can be viewed and downloaded from OneDrive:
+browseURL(" https://1drv.ms/f/s!ApJZaitgpPr7gZtfS9n9mU9DDzXQMg")
+
 # Global Circulation Models (GCMs) selection through cluster analysis to reduce bias and improve uncertainty analysis.
 # At worldclim.com at the resolution of 2.5min we selected the only the variables that apper in all the Representative Concetration Pathways projetions (RCP26, RCP45, RCP60, RCP80). The codes of the 11 GCMs utilized are: bc, cc, gs, hd, he, ip, mi, mr, mc, mg, no.
 
@@ -22,13 +25,25 @@ require(stats)
 #               paste0(myPath, 'bio', substring(x, first = 9))) })     # paste0() the path and new name
 # substring('smaug', first = 2) returns 'aug' (starting at number 2, all following characters are returned) 
 
+## GCM	code----
+# browseURL("http://www.worldclim.org/cmip5_2.5m")
+
+# BCC-CSM1-1	      BC
+# CCSM4	            CC
+# GISS-E2-R	        GS
+# HadGEM2-AO	      HD
+# HadGEM2-ES        HE	
+# IPSL-CM5A-LR	    IP
+# MIROC-ESM-CHEM    MI
+# MIROC-ESM    	    MR
+# MIROC5            MC
+# MRI-CGCM3	        MG
+# NorESM1-M	        NO
+
 # A. RCP 26 ----
 ### read the variables ----
 
 ##importing all 19 variables from each one of the 11 GCMs of RCP 26
-
-get()
-
 
 bc_26 <- stack(list.files("./data/climatic_vars/26bi70/bc26bi70",  pattern = ".tif$", full.names = TRUE))
 
@@ -42,9 +57,9 @@ he_26 <- stack(list.files("./data/climatic_vars/26bi70/he26bi70",  pattern = ".t
 
 ip_26 <- stack(list.files("./data/climatic_vars/26bi70/ip26bi70",  pattern = ".tif$", full.names = TRUE))
 
-mr_26 <- stack(list.files("./data/climatic_vars/26bi70/mr26bi70",  pattern = ".tif$", full.names = TRUE))
-
 mi_26 <- stack(list.files("./data/climatic_vars/26bi70/mi26bi70",  pattern = ".tif$", full.names = TRUE))
+
+mr_26 <- stack(list.files("./data/climatic_vars/26bi70/mr26bi70",  pattern = ".tif$", full.names = TRUE))
 
 mc_26 <- stack(list.files("./data/climatic_vars/26bi70/mc26bi70",  pattern = ".tif$", full.names = TRUE))
 
@@ -147,6 +162,8 @@ no_26_final <- na.omit(no_26_final)
 
 rcp_26 <- abind(bc_26_final, cc_26_final, gs_26_final, hd_26_final, he_26_final, ip_26_final, mi_26_final, mr_26_final, mc_26_final, mg_26_final, no_26_final, along = 3)
 
+
+names(x) <- x 
 print(rcp_26)
 ## plot variables
 
@@ -160,88 +177,154 @@ print(rcp_26)
 
 ### absolute change, using thresholds----
 
-### correlation between predictions and Hierarchical cluster analysis----
 
-## Correlation between predictions
+### Correlation between predictions ----
 # library (amap)
 
-head (bc_26_final)
-# > head (bc_26_final)
-# x        y bio1 bio10 bio11 bio12 bio13 bio14 bio15 bio16 bio17
-# [1,] -91.39583 13.97917  284   294   273  1455   408     1   101   837    11
-# [2,] -91.35417 13.97917  284   294   273  1472   409     1   101   844    11
-# [3,] -91.31250 13.97917  284   294   274  1485   410     1   100   849    12
-# [4,] -91.27083 13.97917  284   294   274  1502   410     2   100   855    11
-# [5,] -91.22917 13.97917  285   295   274  1510   410     2    99   856    11
-# [6,] -91.18750 13.97917  285   295   275  1511   408     2    99   855    11
-# bio18 bio19 bio2 bio3 bio4 bio5 bio6 bio7 bio8 bio9
-# [1,]   364    11  112   72  817  357  202  155  284  273
-# [2,]   368    11  112   72  812  357  203  154  284  273
-# [3,]   369    12  111   72  806  357  203  154  284  274
-# [4,]   374    11  111   72  804  356  203  153  284  274
-# [5,]   374    11  110   72  799  357  205  152  284  274
-# [6,]   374    11  110   72  791  357  205  151  285  275
-print(raster (bc_26_final))
-# > print(raster (bc_26_final))
-# class       : RasterLayer 
-# dimensions  : 912559, 21, 19163739  (nrow, ncol, ncell)
-# resolution  : 0.04761905, 1.09582e-06  (x, y)
-# extent      : 0, 1, 0, 1  (xmin, xmax, ymin, ymax)
-# coord. ref. : NA 
-# data source : in memory
-# names       : layer 
-# values      : -210, 11012  (min, max)
 
-# Here i'm attempting to  creat a cluster for only one aogcm. Them to this for all the 11. I'm not sure how to incorporate all the aogcm model names here. Since I imported them one by one, I do not have any object from witch I could extract it from.
-
-hc <- list()
+model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC-ESM-CHEM", "MIROC-ESM", "MIROC5", "MRI-CGCM3", "NorESM1-M") # must be in the same order of the array object!
+hc_cor_rcp26 <- list()
 for (i in 1:19)
 {
-  row_data <- bc_26_final[ nrow = i, ncol = -2 ] # get only the varible data but not the lat and long (first tow col)
-  cor_bio <- hcluster (row_data, method = "correlation")
+  raw_data <- t(rcp_26[ , i+2, ]) # get the variable data except the first two columms (lat, long)
+  rownames (raw_data) <- model_names 
+  cor_bio <- hcluster (raw_data, method = "correlation")
+  # rect.hclust(raw_data, k=i, border = "gray") Erro: $ operator is invalid for atomic vectors
   plot (cor_bio)
-  hc [[i]] <- cor_bio
+  hc_cor_rcp26 [[i]] <- cor_bio
   
 }
 
-head (cor_bio)
-names (hc)<- c(paste ("BIO", c(1:19), sep=""))
+# head (cor_bio) 
+names (hc_cor_rcp26)<- c(paste ("BIO", c(1:19), sep=""))
 par (las = 1)
 for (i in 1:19)
 {
-  plot (hc[[i]])
+  plot (hc_cor_rcp26[[i]])
   mtext (names(hc)[i], side = 1, line = 2)
 }
 
-## Euclidean clusters
+
+### Euclidean clusters ----
 # library (stats)
 
-hc_2 <- list()
+hc_rcp26 <- list()
 for (i in 1:19)
 {
-  row_data <- bc_26_final[ nrow = i, ncol = -2 ]
-  clust_bio <- hcluster (row_data, method = "euclidean")
-  hc2[[i]] <- clust_bio
+  raw_data <- t(rcp_26[ , i+2, ])
+  rownames (raw_data) <- model_names 
+  cor_bio <- hcluster (raw_data, method = "euclidean")
+  hc_rcp26[[i]] <- cor_bio
 }
 
-names (hc2)<- c(paste ("BIO", c(1:19), sep=""))
+names (hc_rcp26)<- c(paste ("BIO", c(1:19), sep=""))
 par (las = 1)
 for (i in 1:19)
 {
-  plot (hc2[[i]]) 
-  mtext (names(hc2)[i], side= 1, line=2)
+  plot (hc_rcp26[[i]]) 
+  mtext (names(hc_rcp26)[i], side= 1, line=2)
+
 }
 
 dev.off()
-plot (hc[[4]])
+plot (hc_rcp26[[4]], 
+      main = "Cluster Dendrogram\n(RCP 2.6)")
 
 
+# cut by k means
+res_groups_rcp26_k<- NULL
+for (i in 1:19){
+  res_rcp26_k<- cutree(hc[[i]], k=4) 
+  res_groups_k<- rbind (res_groups_k, res_k)
+}
 
+rownames (res_groups_k)<- c(paste ("BIO", c(1:19), sep="")) 
+clust_categ_k<- hcluster (t(res_groups_k), method="euclidean")
+dev.off()
+plot (clust_categ_k, 
+      main = "Cluster Dendrogram\n(RCP 2.6)")
+t(res_groups_k)
+
+# > t(res_groups_k)
+#                  BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
+# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
+# CCSM4             1    2    1    1    2    2    2    2    1     2     2
+# GISS-EZ-R         2    2    2    1    2    2    2    1    1     2     3
+# HadGEM2-AO        2    2    2    2    1    2    3    1    2     3     3
+# HadGEM2-ES        2    2    2    2    1    2    2    1    2     3     3
+# IPSL-CM5A-LR      1    1    2    3    3    3    2    3    3     2     2
+# MIROC-ESM-CHEM    3    3    3    4    4    4    4    4    4     4     4
+# MIROC-ESM         4    3    4    2    2    4    4    2    4     4     4
+# MIROC5            2    2    2    2    2    2    2    2    2     2     4
+# MRI-CGCM3         1    4    1    2    1    1    2    1    1     2     2
+# NorESM1-M         1    2    1    1    2    2    2    2    1     2     3
+#                  BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
+# BCC-CSM1-1         1     1     1     1     1     1     1     1
+# CCSM4              1     1     1     2     1     1     1     1
+# GISS-EZ-R          1     1     1     2     1     1     2     2
+# HadGEM2-AO         1     2     2     3     2     2     2     1
+# HadGEM2-ES         1     2     2     3     2     2     1     1
+# IPSL-CM5A-LR       2     1     3     1     2     3     1     3
+# MIROC-ESM-CHEM     3     3     4     4     3     4     3     4
+# MIROC-ESM          4     3     4     4     3     4     4     4
+# MIROC5             1     4     1     2     3     1     1     2
+# MRI-CGCM3          1     1     1     3     4     1     4     1
+# NorESM1-M          1     4     1     2     1     1     1     1
+
+
+# cut by height
+res_groups_h<- NULL
+for (i in 1:19){
+  res_h<- cutree(hc[[i]], h = 0.2) 
+  res_groups_h<- rbind (res_groups_h, res_h)
+}
+
+rownames (res_groups_h)<- c(paste ("BIO", c(1:19), sep="")) 
+clust_categ_h<- hcluster (t(res_groups2), method="euclidean")
+# dev.off()
+plot (clust_categ_h)
+t(res_groups_h)
+
+# > t(res_groups_h)
+#                  BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
+# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
+# CCSM4             1    2    1    1    2    2    2    2    1     2     2
+# GISS-EZ-R         2    2    2    1    2    2    2    1    1     2     3
+# HadGEM2-AO        2    2    2    2    1    2    3    1    2     3     3
+# HadGEM2-ES        2    2    2    2    1    2    2    1    2     3     3
+# IPSL-CM5A-LR      1    1    2    3    3    3    2    3    3     2     2
+# MIROC-ESM-CHEM    3    3    3    4    4    4    4    4    4     4     4
+# MIROC-ESM         4    3    4    2    2    4    4    2    4     4     4
+# MIROC5            2    2    2    2    2    2    2    2    2     2     4
+# MRI-CGCM3         1    4    1    2    1    1    2    1    1     2     2
+# NorESM1-M         1    2    1    1    2    2    2    2    1     2     3
+#                  BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
+# BCC-CSM1-1         1     1     1     1     1     1     1     1
+# CCSM4              1     1     1     2     1     1     1     1
+# GISS-EZ-R          1     1     1     2     1     1     2     2
+# HadGEM2-AO         1     2     2     3     2     2     2     1
+# HadGEM2-ES         1     2     2     3     2     2     1     1
+# IPSL-CM5A-LR       2     1     3     1     2     3     1     3
+# MIROC-ESM-CHEM     3     3     4     4     3     4     3     4
+# MIROC-ESM          4     3     4     4     3     4     4     4
+# MIROC5             1     4     1     2     3     1     1     2
+# MRI-CGCM3          1     1     1     3     4     1     4     1
+# NorESM1-M          1     4     1     2     1     1     1     1
+# > 
+
+
+### ??? Construct clusters with the GCMs----
+# # read correlation between models to 
+# library (tree)
+# library (rpart)
+
+## correlation: Variables
+
+## correlation models
 
 
 # B. RCP 45 ----
 ### read the variables ----
-
 
 
 bc_45 <- stack(list.files("./data/climatic_vars/45bi70/bc45bi70",  pattern = ".tif$", full.names = TRUE))
@@ -266,37 +349,23 @@ mg_45 <- stack(list.files("./data/climatic_vars/45bi70/mg45bi70",  pattern = ".t
 
 no_45 <- stack(list.files("./data/climatic_vars/45bi70/no45bi70",  pattern = ".tif$", full.names = TRUE))
 
-
-rcp_45 <- stack(bc_45, cc_45, gs_45, hd_45, he_45, ip_45, mi_45, mr_45, mc_45, mg_45, no_45)
-
 ### cut raster to studied area (xmin, xmax, ymin, ymax) ----
-print(raster(rcp_45))
+e <- extent(-122, -18, -56, 14) 
 
-# e <- extent(-122, -18, -56, 14) 
-rcp_26_e <- crop(rcp_45, e)
-print(raster(rcp_45_e))
-plot(rcp_45_e[[1]])
-map(add=T)
+bc_26_e <- crop (bc_26, e)
+cc_26_e <- crop (cc_26, e)
+gs_26_e <- crop (gs_26, e)
+hd_26_e <- crop (hd_26, e)
+he_26_e <- crop (he_26, e)
+ip_26_e <- crop (ip_26, e)
+mi_26_e <- crop (mi_26, e)
+mr_26_e <- crop (mr_26, e)
+mc_26_e <- crop (mc_26, e)
+mg_26_e <- crop (mg_26, e)
+no_26_e <- crop (no_26, e)
 
-?array
 
-#extraindo valores do raster
-ccsm.0k.val <- values(ccsm.0k.ASr)
-ccsm.0k.val[1:5,]
-nrow(ccsm.0k.val)
 
-coord.AS <- xyFromCell(ccsm.0k.ASr, 1:ncell(ccsm.0k.ASr))
-coord.AS[1:5,]
-nrow(coord.AS)
-
-ccsm.0k.ASm <- cbind(coord.AS, ccsm.0k.val)
-ccsm.0k.ASm[1:5,]
-nrow(ccsm.0k.ASm)
-ccsm.0k.ASm <- na.omit(ccsm.0k.ASm)
-nrow(ccsm.0k.ASm)
-
-## Salving the stack of the GCMs at RCP45 cutted to studied area
-writeRaste("./data/climatic_vars/45bi70/", rcp_45_e, "stack_rcp45_extent" ,format = "raster")
 
 ### Standard Deviation of the variables----
 
