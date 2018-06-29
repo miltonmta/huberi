@@ -45,7 +45,7 @@ browseURL(" https://1drv.ms/f/s!ApJZaitgpPr7gZtfS9n9mU9DDzXQMg")
 
 ##importing all 19 variables from each one of the 11 GCMs of RCP 26
 
-
+## Working on a for loop for reading and preparing the aogcms for creating the array object.
 # directories <- list.dirs("./data/climatic_vars/26bi70", full.names = TRUE)
 # e <- extent(-122, -18, -56, 14) 
 # e_26 <- list()
@@ -238,7 +238,7 @@ names (hc_rcp26_2)<- c(paste ("BIO", c(1:19), sep=""))
 par (las = 1)
 for (i in 1:19)
 {
-  plot (hc2[[i]]) 
+  plot (hc_rcp26_2[[i]]) 
   mtext (names(hc_rcp26_2)[i], side= 1, line=2)
 
 }
@@ -340,6 +340,8 @@ t(res_groups_h_26)
 
 ## correlation models
 
+
+rm(list = ls())
 
 # B. RCP 45 ----
 ### read the variables ----
@@ -495,10 +497,11 @@ for (i in 1:19)
 }
 
 names (hc_rcp45_2)<- c(paste ("BIO", c(1:19), sep=""))
+
 par (las = 1)
 for (i in 1:19)
 {
-  plot (hc2[[i]]) 
+  plot (hc_rcp45_2[[i]]) 
   mtext (names(hc_rcp45_2)[i], side= 1, line=2)
   
 }
@@ -522,7 +525,31 @@ plot (clust_categ_k_45,
       main = "Cluster Dendrogram by k menans\n(RCP 4.5)")
 t(res_groups_k_45)
 
-
+# > t(res_groups_k_45)
+#                  BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
+# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
+# CCSM4             1    1    1    2    2    2    1    2    2     2     1
+# GISS-EZ-R         2    2    2    1    1    2    1    1    2     1     2
+# HadGEM2-AO        2    3    1    2    2    2    2    2    2     2     3
+# HadGEM2-ES        2    3    1    2    2    2    2    2    2     2     3
+# IPSL-CM5A-LR      1    1    1    3    3    1    3    3    1     3     2
+# MIROC5            3    4    3    4    4    3    4    4    3     4     4
+# MRI-CGCM3         4    4    4    4    4    3    4    4    3     4     4
+# MIROC-ESM-CHEM    2    3    2    2    2    4    4    4    4     1     4
+# MIROC-ESM         1    2    1    1    1    2    1    1    2     1     2
+# NorESM1-M         1    1    1    2    2    2    1    2    2     2     1
+#                  BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
+# BCC-CSM1-1         1     1     1     1     1     1     1     1
+# CCSM4              1     1     1     1     1     1     1     2
+# GISS-EZ-R          1     1     1     2     1     1     1     2
+# HadGEM2-AO         1     2     2     1     2     2     2     3
+# HadGEM2-ES         1     2     2     1     2     2     2     2
+# IPSL-CM5A-LR       2     1     2     3     3     2     3     1
+# MIROC5             3     3     3     4     1     3     3     4
+# MRI-CGCM3          4     3     3     4     1     4     3     4
+# MIROC-ESM-CHEM     1     4     4     1     1     1     1     2
+# MIROC-ESM          1     1     1     2     4     1     4     2
+# NorESM1-M          1     1     1     1     1     1     1     2
 
 # Response grouping by Height
 res_groups_h_45<- NULL
@@ -538,7 +565,33 @@ plot (clust_categ_h_45,
       main = "Cluster Dendrogram by Height\n(RCP 4.5)")
 t(res_groups_h_45)
 
+# > t(res_groups_h_45)
+#                  BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
+# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
+# CCSM4             1    1    1    1    1    1    1    1    1     1     1
+# GISS-EZ-R         1    1    1    1    1    1    1    1    1     1     1
+# HadGEM2-AO        1    1    1    1    1    1    1    1    1     1     1
+# HadGEM2-ES        1    1    1    1    1    1    1    1    1     1     1
+# IPSL-CM5A-LR      1    1    1    1    1    1    1    1    1     2     1
+# MIROC5            1    1    1    1    1    1    1    1    1     3     2
+# MRI-CGCM3         1    1    1    1    1    1    1    1    1     3     2
+# MIROC-ESM-CHEM    1    1    1    1    1    1    1    1    1     1     2
+# MIROC-ESM         1    1    1    1    1    1    1    1    1     1     1
+# NorESM1-M         1    1    1    1    1    1    1    1    1     1     1
+#                 BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
+# BCC-CSM1-1         1     1     1     1     1     1     1     1
+# CCSM4              1     1     1     1     1     1     1     1
+# GISS-EZ-R          1     1     1     1     1     1     1     1
+# HadGEM2-AO         1     1     1     1     1     1     1     1
+# HadGEM2-ES         1     1     1     1     1     1     1     1
+# IPSL-CM5A-LR       1     1     1     1     1     1     1     1
+# MIROC5             1     1     1     1     1     1     1     1
+# MRI-CGCM3          1     1     1     1     1     1     1     1
+# MIROC-ESM-CHEM     1     1     1     1     1     1     1     1
+# MIROC-ESM          1     1     1     1     1     1     1     1
+# NorESM1-M          1     1     1     1     1     1     1     1
 
+rm( list = ls())
 
 ### ??? Construct clusters with the GCMs----
 # # read correlation between models to 
@@ -678,11 +731,10 @@ for (i in 1:19)
   cor_bio <- hcluster (raw_data, method = "correlation")
   plot (cor_bio)
   hc_rcp60 [[i]] <- cor_bio
-  
 }
-
 # head (cor_bio) 
 names (hc_rcp60)<- c(paste ("BIO", c(1:19), sep=""))
+
 par (las = 1)
 for (i in 1:19)
 {
@@ -701,17 +753,16 @@ for (i in 1:19)
   cor_bio <- hcluster (raw_data, method = "euclidean")
   hc_rcp60_2[[i]] <- cor_bio
 }
-
 names (hc_rcp60_2)<- c(paste ("BIO", c(1:19), sep=""))
+
 par (las = 1)
 for (i in 1:19)
 {
-  plot (hc2[[i]]) 
+  plot (hc_rcp60_2[[i]]) 
   mtext (names(hc_rcp60_2)[i], side= 1, line=2)
   
 }
 
-# dev.off()
 plot (hc_rcp60[[4]], 
       main = "Cluster Dendrogram\n(RCP 2.6)")
 
@@ -730,6 +781,32 @@ plot (clust_categ_k_60,
       main = "Cluster Dendrogram by k menans\n(RCP 6.0)")
 t(res_groups_k_60)
 
+# > t(res_groups_k_60)
+#                  BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
+# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
+# CCSM4             1    2    1    1    1    1    2    2    1     2     1
+# GISS-EZ-R         2    2    2    2    1    1    1    3    1     1     2
+# HadGEM2-AO        3    3    3    1    2    1    1    1    2     2     1
+# HadGEM2-ES        3    3    3    1    2    1    1    1    2     2     1
+# IPSL-CM5A-LR      1    1    2    3    3    2    3    4    3     3     3
+# MIROC5            4    4    4    4    4    3    4    3    4     4     4
+# MRI-CGCM3         4    4    4    4    4    3    4    3    4     4     4
+# MIROC-ESM-CHEM    3    2    2    4    1    4    4    3    4     2     4
+# MIROC-ESM         3    2    2    4    1    1    1    3    1     2     2
+# NorESM1-M         1    2    1    1    2    4    2    2    2     2     1
+#                  BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
+# BCC-CSM1-1         1     1     1     1     1     1     1     1
+# CCSM4              1     2     1     1     1     1     2     1
+# GISS-EZ-R          1     1     1     1     2     1     3     1
+# HadGEM2-AO         1     2     2     1     2     2     3     1
+# HadGEM2-ES         1     2     2     1     2     2     2     1
+# IPSL-CM5A-LR       2     1     3     2     3     3     4     2
+# MIROC5             3     3     4     3     4     4     1     3
+# MRI-CGCM3          4     3     4     3     4     4     1     4
+# MIROC-ESM-CHEM     1     2     1     1     2     1     3     3
+# MIROC-ESM          1     4     1     4     2     1     1     1
+# NorESM1-M          1     2     1     1     1     1     2     1
+# > 
 
 # Response grouping by Height
 res_groups_h_60<- NULL
@@ -745,7 +822,32 @@ plot (clust_categ_h_60,
       main = "Cluster Dendrogram by Height\n(RCP 6.0)")
 t(res_groups_h_60)
 
-
+# > t(res_groups_h_60)
+#                  BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
+# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
+# CCSM4             1    1    1    1    1    1    1    1    1     2     1
+# GISS-EZ-R         1    1    1    1    1    1    1    1    1     1     2
+# HadGEM2-AO        1    1    1    1    1    1    1    1    1     2     1
+# HadGEM2-ES        1    1    1    1    1    1    1    1    1     2     1
+# IPSL-CM5A-LR      1    1    1    1    1    1    1    1    1     3     2
+# MIROC5            1    1    1    1    1    1    1    1    1     2     1
+# MRI-CGCM3         1    1    1    1    1    1    1    1    1     2     1
+# MIROC-ESM-CHEM    1    1    1    1    1    1    1    1    1     2     1
+# MIROC-ESM         1    1    1    1    1    1    1    1    1     2     2
+# NorESM1-M         1    1    1    1    1    1    1    1    1     2     1
+#                  BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
+# BCC-CSM1-1         1     1     1     1     1     1     1     1
+# CCSM4              1     1     1     1     1     1     1     1
+# GISS-EZ-R          1     1     1     1     1     1     1     1
+# HadGEM2-AO         1     1     1     1     1     1     1     1
+# HadGEM2-ES         1     1     1     1     1     1     1     1
+# IPSL-CM5A-LR       1     1     1     1     1     1     1     1
+# MIROC5             1     1     1     1     1     1     1     1
+# MRI-CGCM3          1     1     1     1     1     1     1     1
+# MIROC-ESM-CHEM     1     1     1     1     1     1     1     1
+# MIROC-ESM          1     1     1     1     1     1     1     1
+# NorESM1-M          1     1     1     1     1     1     1     1
+# 
 
 
 ### ??? Construct clusters with the GCMs----
@@ -756,6 +858,8 @@ t(res_groups_h_60)
 ## correlation: Variables
 
 ## correlation models
+
+rm( list = ls())
 
 # D. RCP 85 ----
 ### read the variables ----
@@ -891,9 +995,9 @@ for (i in 1:19)
   hc_rcp85 [[i]] <- cor_bio
   
 }
-
 # head (cor_bio) 
 names (hc_rcp85)<- c(paste ("BIO", c(1:19), sep=""))
+
 par (las = 1)
 for (i in 1:19)
 {
@@ -912,12 +1016,12 @@ for (i in 1:19)
   cor_bio <- hcluster (raw_data, method = "euclidean")
   hc_rcp85_2[[i]] <- cor_bio
 }
-
 names (hc_rcp85_2)<- c(paste ("BIO", c(1:19), sep=""))
+
 par (las = 1)
 for (i in 1:19)
 {
-  plot (hc2[[i]]) 
+  plot (hc_rcp85_2[[i]]) 
   mtext (names(hc_rcp85_2)[i], side= 1, line=2)
   
 }
@@ -941,6 +1045,31 @@ plot (clust_categ_k_85,
       main = "Cluster Dendrogram by k menans\n(RCP 8.5)")
 t(res_groups_k_85)
 
+# > t(res_groups_k_85)
+#                  BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
+# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
+# CCSM4             1    1    1    2    1    1    2    1    1     1     1
+# GISS-EZ-R         2    1    2    3    1    2    1    2    2     2     2
+# HadGEM2-AO        3    1    2    2    2    1    1    1    2     3     3
+# HadGEM2-ES        3    1    2    2    2    1    1    1    2     3     3
+# IPSL-CM5A-LR      1    2    3    4    3    3    3    3    3     4     4
+# MIROC5            4    3    4    1    1    4    4    4    4     1     1
+# MRI-CGCM3         4    3    4    1    1    4    4    4    4     1     1
+# MIROC-ESM-CHEM    1    1    1    1    1    4    2    1    4     1     1
+# MIROC-ESM         1    4    1    1    1    1    1    2    2     1     2
+# NorESM1-M         1    1    1    2    4    1    2    1    1     1     1
+#                  BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
+# BCC-CSM1-1         1     1     1     1     1     1     1     1
+# CCSM4              1     2     1     1     1     1     2     2
+# GISS-EZ-R          2     1     2     1     2     1     2     2
+# HadGEM2-AO         1     2     1     1     2     2     3     2
+# HadGEM2-ES         1     2     1     1     2     2     3     2
+# IPSL-CM5A-LR       3     1     2     2     3     3     1     3
+# MIROC5             4     3     3     3     4     4     4     4
+# MRI-CGCM3          4     3     3     3     4     4     4     4
+# MIROC-ESM-CHEM     1     2     1     1     1     1     2     2
+# MIROC-ESM          1     4     4     4     1     1     1     1
+# NorESM1-M          1     2     1     1     1     1     2     2
 
 
 # Response grouping by Height
@@ -957,7 +1086,31 @@ plot (clust_categ_h_85,
       main = "Cluster Dendrogram by Height\n(RCP 8.5)")
 t(res_groups_h_85)
 
-
+# > t(res_groups_h_85)
+#                  BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
+# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
+# CCSM4             1    1    1    1    1    1    1    1    1     1     1
+# GISS-EZ-R         1    1    1    1    1    1    1    2    1     2     2
+# HadGEM2-AO        1    1    1    1    2    1    1    1    1     3     1
+# HadGEM2-ES        1    1    1    1    2    1    1    1    1     3     1
+# IPSL-CM5A-LR      1    1    1    1    3    1    1    2    1     4     2
+# MIROC5            1    1    1    1    1    1    1    2    1     1     1
+# MRI-CGCM3         1    1    1    1    1    1    1    2    1     1     1
+# MIROC-ESM-CHEM    1    1    1    1    1    1    1    1    1     1     1
+# MIROC-ESM         1    1    1    1    1    1    1    2    1     1     2
+# NorESM1-M         1    1    1    1    4    1    1    1    1     1     1
+#                  BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
+# BCC-CSM1-1         1     1     1     1     1     1     1     1
+# CCSM4              1     1     1     1     1     1     1     1
+# GISS-EZ-R          1     1     1     1     1     1     1     1
+# HadGEM2-AO         1     1     1     1     1     1     1     1
+# HadGEM2-ES         1     1     1     1     1     1     1     1
+# IPSL-CM5A-LR       1     1     1     1     1     1     1     1
+# MIROC5             1     1     1     1     1     1     1     1
+# MRI-CGCM3          1     1     1     1     1     1     1     1
+# MIROC-ESM-CHEM     1     1     1     1     1     1     1     1
+# MIROC-ESM          1     1     1     1     1     1     1     1
+# NorESM1-M          1     1     1     1     1     1     1     1
 
 
 ### ??? Construct clusters with the GCMs----
@@ -968,3 +1121,5 @@ t(res_groups_h_85)
 ## correlation: Variables
 
 ## correlation models
+
+rm( list = ls())
