@@ -61,6 +61,9 @@ browseURL(" https://1drv.ms/f/s!ApJZaitgpPr7gZtfS9n9mU9DDzXQMg")
 #   models_26[[i]] <- cbind(coord_26[[i]], val_26[[i]])
 #   models_26[[i]] <- na.omit(models_26[[i]])
 # }
+#
+# rcp_26 <- abind(models_26, along = 3)
+# names(models_26) <- model_names
 
 
 bc_26 <- stack(list.files("./data/climatic_vars/26bi70/bc26bi70",  pattern = ".tif$", full.names = TRUE))
@@ -245,7 +248,8 @@ plot (hc_rcp26[[4]],
       main = "Cluster Dendrogram\n(RCP 2.6)")
 
 
-# cut by k means
+# Response grouping by k means
+
 res_groups_k_26<- NULL
 for (i in 1:19){
   res_k<- cutree(hc_rcp26[[i]], k=4) 
@@ -256,7 +260,7 @@ rownames (res_groups_k_26)<- c(paste ("BIO", c(1:19), sep=""))
 clust_categ_k_26<- hcluster (t(res_groups_k_26), method="euclidean")
 # dev.off()
 plot (clust_categ_k_26, 
-      main = "Cluster Dendrogram\n(RCP 2.6)")
+      main = "Cluster Dendrogram by K means\n(RCP 2.6)")
 t(res_groups_k_26)
 
 
@@ -286,7 +290,45 @@ t(res_groups_k_26)
 # MRI-CGCM3          1     1     1     3     4     1     4     1
 # NorESM1-M          1     4     1     2     1     1     1     1
 
+# Response grouping by Height
+res_groups_h_26<- NULL
+for (i in 1:19){
+  res_h<- cutree(hc_rcp26[[i]], h=0.2) 
+  res_groups_h_26<- rbind (res_groups_h_26, res_h)
+}
 
+rownames (res_groups_h_26)<- c(paste ("BIO", c(1:19), sep="")) 
+res_groups_h_26
+clust_categ_h_26<- hcluster (t(res_groups_h_26), method="euclidean")
+plot (clust_categ_h_26,
+      main = "Cluster Dendrogram by Height\n(RCP 2.6)")
+t(res_groups_h_26)
+
+# > t(res_groups_h_26)
+#                  BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
+# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
+# CCSM4             1    1    1    1    1    1    1    1    1     2     1
+# GISS-EZ-R         1    1    1    1    1    1    1    1    1     2     1
+# HadGEM2-AO        1    1    1    1    1    1    1    1    1     2     1
+# HadGEM2-ES        1    1    1    1    1    1    1    1    1     2     1
+# IPSL-CM5A-LR      1    1    1    1    1    1    1    1    1     2     1
+# MIROC5            1    1    1    1    1    1    1    1    1     2     2
+# MRI-CGCM3         1    1    1    1    1    1    1    1    1     2     2
+# MIROC-ESM-CHEM    1    1    1    1    1    1    1    1    1     2     2
+# MIROC-ESM         1    1    1    1    1    1    1    1    1     2     1
+# NorESM1-M         1    1    1    1    1    1    1    1    1     2     1
+#                 BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
+# BCC-CSM1-1         1     1     1     1     1     1     1     1
+# CCSM4              1     1     1     1     1     1     1     1
+# GISS-EZ-R          1     1     1     1     1     1     1     1
+# HadGEM2-AO         1     1     1     1     1     1     1     1
+# HadGEM2-ES         1     1     1     1     1     1     1     1
+# IPSL-CM5A-LR       1     1     1     1     1     1     1     1
+# MIROC5             1     1     1     1     1     1     1     1
+# MRI-CGCM3          1     1     1     1     1     1     1     1
+# MIROC-ESM-CHEM     1     1     1     1     1     1     1     1
+# MIROC-ESM          1     1     1     1     1     1     1     1
+# NorESM1-M          1     1     1     1     1     1     1     1
 
 
 ### ??? Construct clusters with the GCMs----
@@ -466,7 +508,7 @@ plot (hc_rcp45[[4]],
       main = "Cluster Dendrogram\n(RCP 2.6)")
 
 
-# cut by k means
+# Response grouping by k means
 res_groups_k_45<- NULL
 for (i in 1:19){
   res_k<- cutree(hc_rcp45[[i]], k=4) 
@@ -477,12 +519,24 @@ rownames (res_groups_k_45)<- c(paste ("BIO", c(1:19), sep=""))
 clust_categ_k_45<- hcluster (t(res_groups_k_45), method="euclidean")
 # dev.off()
 plot (clust_categ_k_45, 
-      main = "Cluster Dendrogram\n(RCP 2.6)")
+      main = "Cluster Dendrogram by k menans\n(RCP 4.5)")
 t(res_groups_k_45)
 
 
 
+# Response grouping by Height
+res_groups_h_45<- NULL
+for (i in 1:19){
+  res_h<- cutree(hc_rcp45[[i]], h=0.2) 
+  res_groups_h_45<- rbind (res_groups_h_45, res_h)
+}
 
+rownames (res_groups_h_45)<- c(paste ("BIO", c(1:19), sep="")) 
+res_groups_h_45
+clust_categ_h_45<- hcluster (t(res_groups_h_45), method="euclidean")
+plot (clust_categ_h_45,
+      main = "Cluster Dendrogram by Height\n(RCP 4.5)")
+t(res_groups_h_45)
 
 
 
@@ -662,7 +716,7 @@ plot (hc_rcp60[[4]],
       main = "Cluster Dendrogram\n(RCP 2.6)")
 
 
-# cut by k means
+# Response grouping by k means
 res_groups_k_60<- NULL
 for (i in 1:19){
   res_k<- cutree(hc_rcp60[[i]], k=4) 
@@ -673,11 +727,23 @@ rownames (res_groups_k_60)<- c(paste ("BIO", c(1:19), sep=""))
 clust_categ_k_60<- hcluster (t(res_groups_k_60), method="euclidean")
 # dev.off()
 plot (clust_categ_k_60, 
-      main = "Cluster Dendrogram\n(RCP 2.6)")
+      main = "Cluster Dendrogram by k menans\n(RCP 6.0)")
 t(res_groups_k_60)
 
 
+# Response grouping by Height
+res_groups_h_60<- NULL
+for (i in 1:19){
+  res_h<- cutree(hc_rcp60[[i]], h=0.2) 
+  res_groups_h_60<- rbind (res_groups_h_60, res_h)
+}
 
+rownames (res_groups_h_60)<- c(paste ("BIO", c(1:19), sep="")) 
+res_groups_h_60
+clust_categ_h_60<- hcluster (t(res_groups_h_60), method="euclidean")
+plot (clust_categ_h_60,
+      main = "Cluster Dendrogram by Height\n(RCP 6.0)")
+t(res_groups_h_60)
 
 
 
@@ -861,7 +927,7 @@ plot (hc_rcp85[[4]],
       main = "Cluster Dendrogram\n(RCP 2.6)")
 
 
-# cut by k means
+# Response grouping by K means
 res_groups_k_85<- NULL
 for (i in 1:19){
   res_k<- cutree(hc_rcp85[[i]], k=4) 
@@ -872,11 +938,24 @@ rownames (res_groups_k_85)<- c(paste ("BIO", c(1:19), sep=""))
 clust_categ_k_85<- hcluster (t(res_groups_k_85), method="euclidean")
 # dev.off()
 plot (clust_categ_k_85, 
-      main = "Cluster Dendrogram\n(RCP 2.6)")
+      main = "Cluster Dendrogram by k menans\n(RCP 8.5)")
 t(res_groups_k_85)
 
 
 
+# Response grouping by Height
+res_groups_h_85<- NULL
+for (i in 1:19){
+  res_h<- cutree(hc_rcp85[[i]], h=0.2) 
+  res_groups_h_85<- rbind (res_groups_h_85, res_h)
+}
+
+rownames (res_groups_h_85)<- c(paste ("BIO", c(1:19), sep="")) 
+res_groups_h_85
+clust_categ_h_85<- hcluster (t(res_groups_h_85), method="euclidean")
+plot (clust_categ_h_85,
+      main = "Cluster Dendrogram by Height\n(RCP 8.5)")
+t(res_groups_h_85)
 
 
 
