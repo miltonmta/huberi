@@ -7,6 +7,8 @@ require(abind)
 require(amap)
 require(stats)
 
+# Valeu bruno.. Está rodando aqui. Obrigado boa viagem. Volto a te procurar depois do dia 9, ok?
+
 # This script has an index table. If you are in RStudio go to Code > Show Document Outline (shift + command/clrt + o)
 
 # All the data can be viewed and downloaded from OneDrive:
@@ -14,15 +16,19 @@ browseURL(" https://1drv.ms/f/s!ApJZaitgpPr7gZtfS9n9mU9DDzXQMg")
 
 # Global Circulation Models (GCMs) selection through cluster analysis to reduce bias and improve uncertainty analysis.
 # At worldclim.com at the resolution of 2.5min we selected the only the variables that apper in all the Representative Concetration Pathways projetions (RCP26, RCP45, RCP60, RCP80). The codes of the 11 GCMs utilized are: bc, cc, gs, hd, he, ip, mi, mr, mc, mg, no.
-
+?substring
 #####
-## [optional] renaming the variables from all GCMs at all four RCPs (bio1:bio19):
+## [optional] renaming the variables from all GCMs (bio1:bio19):
 
-# myPath <- './data/climatic_vars/60bi70/no60bi70'
+# myPath <- './data/climatic_vars/85bi70/cc85bi70/'
 # fileList <- dir(path = myPath, pattern = '*.tif')  # list of file names, not including their paths
-# sapply(X = fileList, FUN = function(x) {
+# 
+# sapply(X = fileList, FUN = function(x)
+# {
 #   file.rename(paste0(myPath, x),     # paste0() the path and old name
-#               paste0(myPath, 'bio', substring(x, first = 9))) })     # paste0() the path and new name
+#               paste0(myPath, 'bio', substring(x, first = 9)))
+# }
+# )
 # substring('smaug', first = 2) returns 'aug' (starting at number 2, all following characters are returned) 
 
 ## GCM	code----
@@ -39,32 +45,78 @@ browseURL(" https://1drv.ms/f/s!ApJZaitgpPr7gZtfS9n9mU9DDzXQMg")
 # MIROC-ESM-CHEM    MI
 # MIROC-ESM    	    MR
 # NorESM1-M	        NO
+# model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM", "NorESM1-M")# naming must be in the same reading order of the directory.
 
 # A. RCP 26 ----
 ### read the variables ----
 
 ##importing all 19 variables from each one of the 11 GCMs of RCP 26
 
-## Working on a for loop for reading and preparing the aogcms for creating the array object.
-# directories <- list.dirs("./data/climatic_vars/26bi70", full.names = TRUE)
-# e <- extent(-122, -18, -56, 14) 
-# e_26 <- list()
-# val_26 <- list()
-# coord_26 <- list()
-# models_26 <- list()
-# model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM", "NorESM1-M") # must be in the same order of the directories. 
-# for (i in 1:length(directories)) 
-# {
-#   e_26 [[i]] <- crop(stack(list.files ( directories[i], pattern = ".tif$", full.names = TRUE) , e ))
-#   val_26 [[i]] <- values (e_26[[i]])
-#   coord_26[[i]] <- xyFromCell(val_26[[i]], 1:ncell(e_26[[i]]))
-#   models_26[[i]] <- cbind(coord_26[[i]], val_26[[i]])
-#   models_26[[i]] <- na.omit(models_26[[i]])
-# }
-#
-# rcp_26 <- abind(models_26, along = 3)
-# names(models_26) <- model_names
 
+
+# function for creating the RCP array
+# Running but prodicing a diferrent cluster result (see uploaded plot "Cluster_RCP26_ToothFairy")
+
+ToothFairy_do.call <- function (x)
+{
+  directories <- list.dirs( x, full.names = TRUE)[-1]
+  e <- extent(-122, -18, -56, 14)
+  rcp <- NULL
+  
+  for (i in 1:length(directories))
+  {
+    models_raw <- stack(list.files(directories[i],pattern = ".tif$", full.names = TRUE))
+    models_e <- crop( models_raw , e ) 
+    val <- values (models_e)
+    coord <- xyFromCell(models_e, 1:ncell(models_e))
+    models <- cbind(coord, val)
+    models <- na.omit(models)
+    rcp <- abind (rcp, models, along = 3)
+  }
+  
+  return(rcp) 
+} 
+
+rcp_26_do.call <- ToothFairy( x = "./data/climatic_vars/26bi70/")
+
+rm(rcp_26_do.call)
+rcp_45 <- ToothFairy( dir = "./data/climatic_vars/45bi70/")
+rcp_60 <- ToothFairy( dir = "./data/climatic_vars/60bi70/")
+rcp_85 <- ToothFairy( dir = "./data/climatic_vars/85bi70/")
+
+# model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM", "NorESM1-M")# naming must be in the same reading order of the directory.
+# names(rcp) <- model_names
+
+## Working in progress: Another option for importing and preparing models.
+TinkerBell <- function(x)
+{
+  model_raw <- stack(list.files(x,  pattern = ".tif$", full.names = TRUE))
+  e <- extent(-122, -18, -56, 14)
+  model_e <- crop(model_raw, e)
+  model_val <- getValues(model_e)
+  coord_model <- xyFromCell(model_e, 1:ncell(model_e))
+  model <- cbind(coord_model, model_val)
+  model <- na.omit(model)
+  return(model)
+}
+
+x <- list.dirs("./data/climatic_vars/26bi70/", full.names = TRUE)[-1]
+
+model_list <- lapply(x, TinkerBell)
+
+rcp_26_TinkerBell <- do.call(abind, model_list, args = list(along = 3))
+
+# by running rcp_26_TinkerBell <- do.call(abind, model_list) I manage to creat the objetc but it did not contair 3 layers. So I've been trying do add "along = 3" somehow at the do.call parametres.
+# Not running yet
+# Error in if (quote) args <- lapply(args, enquote) : 
+#   argumento não é interpretável como lógico
+# Além disso: Warning message:
+#   In if (quote) args <- lapply(args, enquote) :
+#   a condição tem comprimento > 1 e somente o primeiro elemento será usado
+# > 
+
+
+###################################
 
 bc_26 <- stack(list.files("./data/climatic_vars/26bi70/bc26bi70",  pattern = ".tif$", full.names = TRUE))
 
@@ -104,7 +156,12 @@ mc_26_e <- crop (mc_26, e)
 mg_26_e <- crop (mg_26, e)
 no_26_e <- crop (no_26, e)
 
+# rm(bc_26, cc_26, gs_26, hd_26, he_26, ip_26, mi_26, mr_26, mc_26, mg_26, no_26)
+# 
+# 
 # rm(bc_26_e, cc_26_e, gs_26_e, hd_26_e, he_26_e, ip_26_e, mi_26_e, mr_26_e, mc_26_e, mg_26_e, no_26_e)
+# 
+
 
 ## Masking with the shapefile
 # shape by Löwenberg-Neto, P. (2014) Neotropical region: a shapefile of Morrone's (2014) biogeographical regionalisation. Zootaxa, 3802(2): 300-300. 
@@ -181,7 +238,7 @@ no_26_final <- na.omit(no_26_final)
 
 ## making array with abind 
 
-rcp_26 <- abind(bc_26_final, cc_26_final, gs_26_final, hd_26_final, he_26_final, ip_26_final, mi_26_final, mr_26_final, mc_26_final, mg_26_final, no_26_final, along = 3)
+rcp_26_no_function <- abind(bc_26_final, cc_26_final, gs_26_final, hd_26_final, he_26_final, ip_26_final, mi_26_final, mr_26_final, mc_26_final, mg_26_final, no_26_final, along = 3)
 
 
 ## plot variables
@@ -203,7 +260,7 @@ model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES",
 hc_rcp26 <- list()
 for (i in 1:19)
 {
-  raw_data <- t(rcp_26[ , i+2, ]) # get the variable data except the first two columms (lat, long)
+  raw_data <- t(rcp_26_TinkerBell[ , i+2, ]) # get the variable data except the first two columms (lat, long)
   rownames (raw_data) <- model_names 
   cor_bio <- hcluster (raw_data, method = "correlation")
   # rect.hclust(raw_data, k=i, border = "gray") Erro: $ operator is invalid for atomic vectors
@@ -228,7 +285,7 @@ for (i in 1:19)
 hc_rcp26_2 <- list()
 for (i in 1:19)
 {
-  raw_data <- t(rcp_26[ , i+2, ])
+  raw_data <- t(rcp_26_TinkerBell[ , i+2, ])
   rownames (raw_data) <- model_names 
   cor_bio <- hcluster (raw_data, method = "euclidean")
   hc_rcp26_2[[i]] <- cor_bio
@@ -260,7 +317,7 @@ rownames (res_groups_k_26)<- c(paste ("BIO", c(1:19), sep=""))
 clust_categ_k_26<- hcluster (t(res_groups_k_26), method="euclidean")
 # dev.off()
 plot (clust_categ_k_26, 
-      main = "Cluster Dendrogram by K means\n(RCP 2.6)")
+      main = "Cluster Dendrogram by K means\n(RCP 2.6)\nTooth Fairy")
 t(res_groups_k_26)
 
 
@@ -289,6 +346,33 @@ t(res_groups_k_26)
 # MIROC5             1     4     1     2     3     1     1     2
 # MRI-CGCM3          1     1     1     3     4     1     4     1
 # NorESM1-M          1     4     1     2     1     1     1     1
+
+# Result with the function ToothFairy
+# > t(res_groups_k_26)
+# BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
+# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
+# CCSM4             1    2    1    1    2    2    2    2    1     2     2
+# GISS-EZ-R         2    2    2    1    2    2    2    1    1     2     3
+# HadGEM2-AO        2    2    2    2    1    2    3    1    2     3     3
+# HadGEM2-ES        2    2    2    2    1    2    2    1    2     3     3
+# IPSL-CM5A-LR      1    1    2    3    3    3    2    3    3     2     2
+# MIROC5            2    2    2    2    2    2    2    2    2     2     4
+# MRI-CGCM3         1    3    1    2    1    1    2    1    1     2     2
+# MIROC-ESM-CHEM    3    4    3    4    4    4    4    4    4     4     4
+# MIROC-ESM         4    4    4    2    2    4    4    2    4     4     4
+# NorESM1-M         1    2    1    1    2    2    2    2    1     2     3
+# BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
+# BCC-CSM1-1         1     1     1     1     1     1     1     1
+# CCSM4              1     1     1     2     1     1     1     1
+# GISS-EZ-R          1     1     1     2     1     1     2     2
+# HadGEM2-AO         1     2     2     3     2     2     2     1
+# HadGEM2-ES         1     2     2     3     2     2     1     1
+# IPSL-CM5A-LR       2     1     3     1     2     3     1     3
+# MIROC5             1     3     1     2     3     1     1     2
+# MRI-CGCM3          1     1     1     3     4     1     3     1
+# MIROC-ESM-CHEM     3     4     4     4     3     4     4     4
+# MIROC-ESM          4     4     4     4     3     4     3     4
+# NorESM1-M          1     3     1     2     1     1     1     1
 
 # Response grouping by Height
 res_groups_h_26<- NULL
@@ -518,7 +602,7 @@ for (i in 1:19){
   res_groups_k_45<- rbind (res_groups_k_45, res_k)
 }
 
-rownames (res_groups_k_45)<- c(paste ("BIO", c(1:19), sep="")) 
+rownames (res_groups_k_45) <- c(paste ("BIO", c(1:19), sep="")) 
 clust_categ_k_45<- hcluster (t(res_groups_k_45), method="euclidean")
 # dev.off()
 plot (clust_categ_k_45, 
