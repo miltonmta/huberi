@@ -34,7 +34,7 @@ browseURL(" https://1drv.ms/f/s!ApJZaitgpPr7gZtfS9n9mU9DDzXQMg")
 ### read the variables ----
 
 # function for creating the RCP array
-# Running but resulting in diferrent clusters result (see uploaded plot "Cluster_RCP26_ToothFairy")
+# I've got the same cluster results running both functions over and over again (see uploaded plot "Cluster_RCP26_TinkerBell", "Cluster_RCP_TinkerBell", also tables of results). But this results are different form the ones I have found while running the long way, one model at the time ("Cluster_RCP26", "Cluster_RCP45").
 
 ToothFairy <- function (x)
 {
@@ -78,17 +78,26 @@ TinkerBell <- function(x)
   return(model)
 }
 
+apn <- function(...) abind(..., along=3) # empty function for set par to main function
+
 x <- list.dirs("./data/climatic_vars/26bi70/", full.names = TRUE)[-1]
 model_list <- lapply(x, TinkerBell)
-apn <- function(...) abind(..., along=3)
-
 rcp_26 <- do.call("apn", model_list)
-rcp_45 <- do.call("apn", model_list)
+
+x <- list.dirs("./data/climatic_vars/45bi70/", full.names = TRUE)[-1]
+model_list <- lapply(x, TinkerBell)
+rcp_45_TinkerBell <- do.call("apn", model_list)
+
+x <- list.dirs("./data/climatic_vars/60bi70/", full.names = TRUE)[-1]
+model_list <- lapply(x, TinkerBell)
 rcp_60 <- do.call("apn", model_list)
+
+x <- list.dirs("./data/climatic_vars/85bi70/", full.names = TRUE)[-1]
+model_list <- lapply(x, TinkerBell)
 rcp_85 <- do.call("apn", model_list)
 
 
-######### Both functiong returned the same cluster model. Which is different from the one produced the long way by importing and processing one by one.
+
 
 # Processing models one by one----
 
@@ -234,7 +243,7 @@ model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES",
 hc_rcp26 <- list()
 for (i in 1:19)
 {
-  raw_data <- t(scenario[ , i+2, ]) # get the variable data except the first two columms (lat, long)
+  raw_data <- t(rcp_26[ , i+2, ]) # get the variable data except the first two columms (lat, long)
   rownames (raw_data) <- model_names 
   cor_bio <- hcluster (raw_data, method = "correlation")
   # rect.hclust(raw_data, k=i, border = "gray") Erro: $ operator is invalid for atomic vectors
@@ -566,7 +575,7 @@ for (i in 1:19)
 
 # dev.off()
 plot (hc_rcp45[[4]], 
-      main = "Cluster Dendrogram\n(RCP 2.6)")
+      main = "Cluster Dendrogram\n(RCP 45)")
 
 
 # Response grouping by k means
@@ -580,7 +589,7 @@ rownames (res_groups_k_45) <- c(paste ("BIO", c(1:19), sep=""))
 clust_categ_k_45<- hcluster (t(res_groups_k_45), method="euclidean")
 # dev.off()
 plot (clust_categ_k_45, 
-      main = "Cluster Dendrogram by k menans\n(RCP 4.5)")
+      main = "Cluster Dendrogram by k menans\n(RCP 45)\nTinkerBell")
 t(res_groups_k_45)
 
 # > t(res_groups_k_45)
@@ -762,7 +771,7 @@ no_60_final <- na.omit(no_60_final)
 
 ## making array with abind 
 
-rcp_60 <- abind(bc_60_final, cc_60_final, gs_60_final, hd_60_final, he_60_final, ip_60_final, mi_60_final, mr_60_final, mc_60_final, mg_60_final, no_60_final, along = 3)
+rcp_60_hand_work <- abind(bc_60_final, cc_60_final, gs_60_final, hd_60_final, he_60_final, ip_60_final, mi_60_final, mr_60_final, mc_60_final, mg_60_final, no_60_final, along = 3)
 
 
 ## plot variables
