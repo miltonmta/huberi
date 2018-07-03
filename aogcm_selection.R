@@ -1,4 +1,3 @@
-
 # Selecting AOGCMs - Cluster analysis####
 
 require(raster)
@@ -14,8 +13,8 @@ browseURL(" https://1drv.ms/f/s!ApJZaitgpPr7gZtfS9n9mU9DDzXQMg")
 
 # At worldclim.com at the resolution of 2.5min we selected  only the variables that apper in all the Representative Concetration Pathways projetions (RCP26, RCP45, RCP60, RCP80). The codes of the 11 GCMs utilized are: bc, cc, gs, hd, he, ip, mi, mr, mc, mg, no.
 
-## GCM	code----
-# browseURL("http://www.worldclim.org/cmip5_2.5m")
+## Wolrdclim GCM	code----
+browseURL("http://www.worldclim.org/cmip5_2.5m")
 
 # BCC-CSM1-1	      BC
 # CCSM4	            CC
@@ -30,12 +29,13 @@ browseURL(" https://1drv.ms/f/s!ApJZaitgpPr7gZtfS9n9mU9DDzXQMg")
 # NorESM1-M	        NO
 # model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM", "NorESM1-M")# naming must be in the same reading order of the directory.
 
-# A. RCP 26 ----
-### read the variables ----
 
-# function for creating the RCP array
-# I've got the same cluster results running both functions over and over again (see uploaded plot "Cluster_RCP26_TinkerBell", "Cluster_RCP_TinkerBell", also tables of results). But this results are different form the ones I have found while running the long way, one model at the time ("Cluster_RCP26", "Cluster_RCP45").
+### Read the variables ----
+# Tow options of functions for creating the RCP array
 
+# "I've got the same cluster results running both functions over and over again (see uploaded plot "Cluster_RCP26_TinkerBell", "Cluster_RCP_TinkerBell", also tables of results). But this results are different form the ones I have found while running the long way, one model at the time ("Cluster_RCP26", "Cluster_RCP45")."
+
+## Option 1 ----
 ToothFairy <- function (x)
 {
   directories <- list.dirs( x, full.names = TRUE)[-1]
@@ -62,7 +62,7 @@ rcp_45 <- ToothFairy( x = "./data/climatic_vars/45bi70/")
 rcp_60 <- ToothFairy( x = "./data/climatic_vars/60bi70/")
 rcp_85 <- ToothFairy( x = "./data/climatic_vars/85bi70/")
 
-
+## Option 2 ----
 ## Its ill-advised to grow complex objects like arrays in a loop. So here is a more elegant solution.
 
 TinkerBell <- function(x)
@@ -86,7 +86,8 @@ rcp_26 <- do.call("apn", model_list)
 
 x <- list.dirs("./data/climatic_vars/45bi70/", full.names = TRUE)[-1]
 model_list <- lapply(x, TinkerBell)
-rcp_45_TinkerBell <- do.call("apn", model_list)
+rcp_45 <- do.call("apn", model_list)
+rm(rcp_45_TinkerBell)
 
 x <- list.dirs("./data/climatic_vars/60bi70/", full.names = TRUE)[-1]
 model_list <- lapply(x, TinkerBell)
@@ -99,7 +100,397 @@ rcp_85 <- do.call("apn", model_list)
 
 
 
-# Processing models one by one----
+## plot variables
+
+### Standard Deviation of the variables
+
+# determining the Quartile Coefficient of Deviation (qcd)
+
+### map sd
+
+### identifying areas of high heterogeneity between models
+
+### absolute change, using thresholds
+
+
+### Correlation between predictions----
+# library (amap)
+model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM", "NorESM1-M") # must be in the same order of the directories. 
+hc <- list()
+for (i in 1:19)
+{
+  raw_data <- t(rcp_45[ , i+2, ]) # get the variable data except the first two columms (lat, long)
+  rownames (raw_data) <- model_names 
+  cor_bio <- hcluster (raw_data, method = "correlation")
+  # rect.hclust(raw_data, k=i, border = "gray") Erro: $ operator is invalid for atomic vectors
+  plot (cor_bio)
+  hc [[i]] <- cor_bio
+  
+}
+
+# head (cor_bio) 
+names (hc)<- c(paste ("BIO", c(1:19), sep=""))
+par (las = 1)
+for (i in 1:19)
+{
+  plot (hc[[i]])
+  mtext (names(hc)[i], side = 1, line = 2)
+}
+
+
+### Euclidean clusters ----
+# library (stats)
+
+hc_2 <- list()
+for (i in 1:19)
+{
+  raw_data <- t(rcp_45[ , i+2, ])
+  rownames (raw_data) <- model_names 
+  cor_bio <- hcluster (raw_data, method = "euclidean")
+  hc_2[[i]] <- cor_bio
+}
+
+names (hc_2)<- c(paste ("BIO", c(1:19), sep=""))
+par (las = 1)
+for (i in 1:19)
+{
+  plot (hc_2[[i]]) 
+  mtext (names(hc_2)[i], side= 1, line=2)
+
+}
+
+# dev.off()
+plot (hc[[4]], 
+      main = "Cluster Dendrogram\n(RCP 45)")
+
+
+## Response grouping by k means
+
+res_k_45<- NULL
+for (i in 1:19){
+  res<- cutree(hc[[i]], k=4) 
+  res_k_45<- rbind (res_k_45, res)
+}
+
+# Write the RCP cluster and the results table
+rownames (res_k_45)<- c(paste ("BIO", c(1:19), sep="")) 
+hc_k_45<- hcluster (t(res_k_45), method="euclidean")
+plot (hc_k_45, 
+      main = "Cluster Dendrogram by K means\n(RCP 45)")
+t(res_k_45)
+
+## Response grouping by Height
+res_h_26<- NULL
+for (i in 1:19){
+  res<- cutree(hc[[i]], h=0.2) 
+  res_h_26<- rbind (res_h_26, res)
+}
+
+# Write the RCP cluster and the results table
+rownames (res_h_26)<- c(paste ("BIO", c(1:19), sep="")) 
+hc_h_26<- hcluster (t(res_h_26), method="euclidean")
+plot (hc_h_26,
+      main = "Cluster Dendrogram by Height\n(RCP 2.6)")
+t(res_h_26)
+
+
+# Tables of cluster results ####
+
+#### rcp 26 ####
+
+# > t(res_groups_k_26)
+#                  BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
+# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
+# CCSM4             1    2    1    1    2    2    2    2    1     2     2
+# GISS-EZ-R         2    2    2    1    2    2    2    1    1     2     3
+# HadGEM2-AO        2    2    2    2    1    2    3    1    2     3     3
+# HadGEM2-ES        2    2    2    2    1    2    2    1    2     3     3
+# IPSL-CM5A-LR      1    1    2    3    3    3    2    3    3     2     2
+# MIROC-ESM-CHEM    3    3    3    4    4    4    4    4    4     4     4
+# MIROC-ESM         4    3    4    2    2    4    4    2    4     4     4
+# MIROC5            2    2    2    2    2    2    2    2    2     2     4
+# MRI-CGCM3         1    4    1    2    1    1    2    1    1     2     2
+# NorESM1-M         1    2    1    1    2    2    2    2    1     2     3
+#                  BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
+# BCC-CSM1-1         1     1     1     1     1     1     1     1
+# CCSM4              1     1     1     2     1     1     1     1
+# GISS-EZ-R          1     1     1     2     1     1     2     2
+# HadGEM2-AO         1     2     2     3     2     2     2     1
+# HadGEM2-ES         1     2     2     3     2     2     1     1
+# IPSL-CM5A-LR       2     1     3     1     2     3     1     3
+# MIROC-ESM-CHEM     3     3     4     4     3     4     3     4
+# MIROC-ESM          4     3     4     4     3     4     4     4
+# MIROC5             1     4     1     2     3     1     1     2
+# MRI-CGCM3          1     1     1     3     4     1     4     1
+# NorESM1-M          1     4     1     2     1     1     1     1
+
+# Result with the function ToothFairy
+# > t(res_groups_k_26)
+# BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
+# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
+# CCSM4             1    2    1    1    2    2    2    2    1     2     2
+# GISS-EZ-R         2    2    2    1    2    2    2    1    1     2     3
+# HadGEM2-AO        2    2    2    2    1    2    3    1    2     3     3
+# HadGEM2-ES        2    2    2    2    1    2    2    1    2     3     3
+# IPSL-CM5A-LR      1    1    2    3    3    3    2    3    3     2     2
+# MIROC5            2    2    2    2    2    2    2    2    2     2     4
+# MRI-CGCM3         1    3    1    2    1    1    2    1    1     2     2
+# MIROC-ESM-CHEM    3    4    3    4    4    4    4    4    4     4     4
+# MIROC-ESM         4    4    4    2    2    4    4    2    4     4     4
+# NorESM1-M         1    2    1    1    2    2    2    2    1     2     3
+# BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
+# BCC-CSM1-1         1     1     1     1     1     1     1     1
+# CCSM4              1     1     1     2     1     1     1     1
+# GISS-EZ-R          1     1     1     2     1     1     2     2
+# HadGEM2-AO         1     2     2     3     2     2     2     1
+# HadGEM2-ES         1     2     2     3     2     2     1     1
+# IPSL-CM5A-LR       2     1     3     1     2     3     1     3
+# MIROC5             1     3     1     2     3     1     1     2
+# MRI-CGCM3          1     1     1     3     4     1     3     1
+# MIROC-ESM-CHEM     3     4     4     4     3     4     4     4
+# MIROC-ESM          4     4     4     4     3     4     3     4
+# NorESM1-M          1     3     1     2     1     1     1     1
+
+
+# > t(res_groups_h_26)
+#                  BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
+# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
+# CCSM4             1    1    1    1    1    1    1    1    1     2     1
+# GISS-EZ-R         1    1    1    1    1    1    1    1    1     2     1
+# HadGEM2-AO        1    1    1    1    1    1    1    1    1     2     1
+# HadGEM2-ES        1    1    1    1    1    1    1    1    1     2     1
+# IPSL-CM5A-LR      1    1    1    1    1    1    1    1    1     2     1
+# MIROC5            1    1    1    1    1    1    1    1    1     2     2
+# MRI-CGCM3         1    1    1    1    1    1    1    1    1     2     2
+# MIROC-ESM-CHEM    1    1    1    1    1    1    1    1    1     2     2
+# MIROC-ESM         1    1    1    1    1    1    1    1    1     2     1
+# NorESM1-M         1    1    1    1    1    1    1    1    1     2     1
+#                 BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
+# BCC-CSM1-1         1     1     1     1     1     1     1     1
+# CCSM4              1     1     1     1     1     1     1     1
+# GISS-EZ-R          1     1     1     1     1     1     1     1
+# HadGEM2-AO         1     1     1     1     1     1     1     1
+# HadGEM2-ES         1     1     1     1     1     1     1     1
+# IPSL-CM5A-LR       1     1     1     1     1     1     1     1
+# MIROC5             1     1     1     1     1     1     1     1
+# MRI-CGCM3          1     1     1     1     1     1     1     1
+# MIROC-ESM-CHEM     1     1     1     1     1     1     1     1
+# MIROC-ESM          1     1     1     1     1     1     1     1
+# NorESM1-M          1     1     1     1     1     1     1     1
+
+
+#### rcp 45 -----
+
+# > t(res_groups_k_45)
+#                  BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
+# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
+# CCSM4             1    1    1    2    2    2    1    2    2     2     1
+# GISS-EZ-R         2    2    2    1    1    2    1    1    2     1     2
+# HadGEM2-AO        2    3    1    2    2    2    2    2    2     2     3
+# HadGEM2-ES        2    3    1    2    2    2    2    2    2     2     3
+# IPSL-CM5A-LR      1    1    1    3    3    1    3    3    1     3     2
+# MIROC5            3    4    3    4    4    3    4    4    3     4     4
+# MRI-CGCM3         4    4    4    4    4    3    4    4    3     4     4
+# MIROC-ESM-CHEM    2    3    2    2    2    4    4    4    4     1     4
+# MIROC-ESM         1    2    1    1    1    2    1    1    2     1     2
+# NorESM1-M         1    1    1    2    2    2    1    2    2     2     1
+#                  BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
+# BCC-CSM1-1         1     1     1     1     1     1     1     1
+# CCSM4              1     1     1     1     1     1     1     2
+# GISS-EZ-R          1     1     1     2     1     1     1     2
+# HadGEM2-AO         1     2     2     1     2     2     2     3
+# HadGEM2-ES         1     2     2     1     2     2     2     2
+# IPSL-CM5A-LR       2     1     2     3     3     2     3     1
+# MIROC5             3     3     3     4     1     3     3     4
+# MRI-CGCM3          4     3     3     4     1     4     3     4
+# MIROC-ESM-CHEM     1     4     4     1     1     1     1     2
+# MIROC-ESM          1     1     1     2     4     1     4     2
+# NorESM1-M          1     1     1     1     1     1     1     2
+
+# > t(res_k_45) # feito com a função TinkerBell
+# BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
+# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
+# CCSM4             1    2    1    1    2    2    2    2    1     2     2
+# GISS-EZ-R         2    2    2    1    2    2    2    1    1     2     3
+# HadGEM2-AO        2    2    2    2    1    2    3    1    2     3     3
+# HadGEM2-ES        2    2    2    2    1    2    2    1    2     3     3
+# IPSL-CM5A-LR      1    1    2    3    3    3    2    3    3     2     2
+# MIROC5            2    2    2    2    2    2    2    2    2     2     4
+# MRI-CGCM3         1    3    1    2    1    1    2    1    1     2     2
+# MIROC-ESM-CHEM    3    4    3    4    4    4    4    4    4     4     4
+# MIROC-ESM         4    4    4    2    2    4    4    2    4     4     4
+# NorESM1-M         1    2    1    1    2    2    2    2    1     2     3
+# BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
+# BCC-CSM1-1         1     1     1     1     1     1     1     1
+# CCSM4              1     1     1     2     1     1     1     1
+# GISS-EZ-R          1     1     1     2     1     1     2     2
+# HadGEM2-AO         1     2     2     3     2     2     2     1
+# HadGEM2-ES         1     2     2     3     2     2     1     1
+# IPSL-CM5A-LR       2     1     3     1     2     3     1     3
+# MIROC5             1     3     1     2     3     1     1     2
+# MRI-CGCM3          1     1     1     3     4     1     3     1
+# MIROC-ESM-CHEM     3     4     4     4     3     4     4     4
+# MIROC-ESM          4     4     4     4     3     4     3     4
+# NorESM1-M          1     3     1     2     1     1     1     1
+# > 
+
+# > t(res_groups_h_45)
+#                  BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
+# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
+# CCSM4             1    1    1    1    1    1    1    1    1     1     1
+# GISS-EZ-R         1    1    1    1    1    1    1    1    1     1     1
+# HadGEM2-AO        1    1    1    1    1    1    1    1    1     1     1
+# HadGEM2-ES        1    1    1    1    1    1    1    1    1     1     1
+# IPSL-CM5A-LR      1    1    1    1    1    1    1    1    1     2     1
+# MIROC5            1    1    1    1    1    1    1    1    1     3     2
+# MRI-CGCM3         1    1    1    1    1    1    1    1    1     3     2
+# MIROC-ESM-CHEM    1    1    1    1    1    1    1    1    1     1     2
+# MIROC-ESM         1    1    1    1    1    1    1    1    1     1     1
+# NorESM1-M         1    1    1    1    1    1    1    1    1     1     1
+#                 BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
+# BCC-CSM1-1         1     1     1     1     1     1     1     1
+# CCSM4              1     1     1     1     1     1     1     1
+# GISS-EZ-R          1     1     1     1     1     1     1     1
+# HadGEM2-AO         1     1     1     1     1     1     1     1
+# HadGEM2-ES         1     1     1     1     1     1     1     1
+# IPSL-CM5A-LR       1     1     1     1     1     1     1     1
+# MIROC5             1     1     1     1     1     1     1     1
+# MRI-CGCM3          1     1     1     1     1     1     1     1
+# MIROC-ESM-CHEM     1     1     1     1     1     1     1     1
+# MIROC-ESM          1     1     1     1     1     1     1     1
+# NorESM1-M          1     1     1     1     1     1     1     1
+
+#### rcp 60 ----
+
+# > t(res_groups_k_60)
+#                  BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
+# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
+# CCSM4             1    2    1    1    1    1    2    2    1     2     1
+# GISS-EZ-R         2    2    2    2    1    1    1    3    1     1     2
+# HadGEM2-AO        3    3    3    1    2    1    1    1    2     2     1
+# HadGEM2-ES        3    3    3    1    2    1    1    1    2     2     1
+# IPSL-CM5A-LR      1    1    2    3    3    2    3    4    3     3     3
+# MIROC5            4    4    4    4    4    3    4    3    4     4     4
+# MRI-CGCM3         4    4    4    4    4    3    4    3    4     4     4
+# MIROC-ESM-CHEM    3    2    2    4    1    4    4    3    4     2     4
+# MIROC-ESM         3    2    2    4    1    1    1    3    1     2     2
+# NorESM1-M         1    2    1    1    2    4    2    2    2     2     1
+#                  BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
+# BCC-CSM1-1         1     1     1     1     1     1     1     1
+# CCSM4              1     2     1     1     1     1     2     1
+# GISS-EZ-R          1     1     1     1     2     1     3     1
+# HadGEM2-AO         1     2     2     1     2     2     3     1
+# HadGEM2-ES         1     2     2     1     2     2     2     1
+# IPSL-CM5A-LR       2     1     3     2     3     3     4     2
+# MIROC5             3     3     4     3     4     4     1     3
+# MRI-CGCM3          4     3     4     3     4     4     1     4
+# MIROC-ESM-CHEM     1     2     1     1     2     1     3     3
+# MIROC-ESM          1     4     1     4     2     1     1     1
+# NorESM1-M          1     2     1     1     1     1     2     1
+# > 
+
+
+# > t(res_groups_h_60)
+#                  BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
+# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
+# CCSM4             1    1    1    1    1    1    1    1    1     2     1
+# GISS-EZ-R         1    1    1    1    1    1    1    1    1     1     2
+# HadGEM2-AO        1    1    1    1    1    1    1    1    1     2     1
+# HadGEM2-ES        1    1    1    1    1    1    1    1    1     2     1
+# IPSL-CM5A-LR      1    1    1    1    1    1    1    1    1     3     2
+# MIROC5            1    1    1    1    1    1    1    1    1     2     1
+# MRI-CGCM3         1    1    1    1    1    1    1    1    1     2     1
+# MIROC-ESM-CHEM    1    1    1    1    1    1    1    1    1     2     1
+# MIROC-ESM         1    1    1    1    1    1    1    1    1     2     2
+# NorESM1-M         1    1    1    1    1    1    1    1    1     2     1
+#                  BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
+# BCC-CSM1-1         1     1     1     1     1     1     1     1
+# CCSM4              1     1     1     1     1     1     1     1
+# GISS-EZ-R          1     1     1     1     1     1     1     1
+# HadGEM2-AO         1     1     1     1     1     1     1     1
+# HadGEM2-ES         1     1     1     1     1     1     1     1
+# IPSL-CM5A-LR       1     1     1     1     1     1     1     1
+# MIROC5             1     1     1     1     1     1     1     1
+# MRI-CGCM3          1     1     1     1     1     1     1     1
+# MIROC-ESM-CHEM     1     1     1     1     1     1     1     1
+# MIROC-ESM          1     1     1     1     1     1     1     1
+# NorESM1-M          1     1     1     1     1     1     1     1
+# 
+
+#### rcp 85 ----
+
+# > t(res_groups_k_85)
+#                  BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
+# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
+# CCSM4             1    1    1    2    1    1    2    1    1     1     1
+# GISS-EZ-R         2    1    2    3    1    2    1    2    2     2     2
+# HadGEM2-AO        3    1    2    2    2    1    1    1    2     3     3
+# HadGEM2-ES        3    1    2    2    2    1    1    1    2     3     3
+# IPSL-CM5A-LR      1    2    3    4    3    3    3    3    3     4     4
+# MIROC5            4    3    4    1    1    4    4    4    4     1     1
+# MRI-CGCM3         4    3    4    1    1    4    4    4    4     1     1
+# MIROC-ESM-CHEM    1    1    1    1    1    4    2    1    4     1     1
+# MIROC-ESM         1    4    1    1    1    1    1    2    2     1     2
+# NorESM1-M         1    1    1    2    4    1    2    1    1     1     1
+#                  BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
+# BCC-CSM1-1         1     1     1     1     1     1     1     1
+# CCSM4              1     2     1     1     1     1     2     2
+# GISS-EZ-R          2     1     2     1     2     1     2     2
+# HadGEM2-AO         1     2     1     1     2     2     3     2
+# HadGEM2-ES         1     2     1     1     2     2     3     2
+# IPSL-CM5A-LR       3     1     2     2     3     3     1     3
+# MIROC5             4     3     3     3     4     4     4     4
+# MRI-CGCM3          4     3     3     3     4     4     4     4
+# MIROC-ESM-CHEM     1     2     1     1     1     1     2     2
+# MIROC-ESM          1     4     4     4     1     1     1     1
+# NorESM1-M          1     2     1     1     1     1     2     2
+
+
+
+# > t(res_groups_h_85)
+#                  BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
+# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
+# CCSM4             1    1    1    1    1    1    1    1    1     1     1
+# GISS-EZ-R         1    1    1    1    1    1    1    2    1     2     2
+# HadGEM2-AO        1    1    1    1    2    1    1    1    1     3     1
+# HadGEM2-ES        1    1    1    1    2    1    1    1    1     3     1
+# IPSL-CM5A-LR      1    1    1    1    3    1    1    2    1     4     2
+# MIROC5            1    1    1    1    1    1    1    2    1     1     1
+# MRI-CGCM3         1    1    1    1    1    1    1    2    1     1     1
+# MIROC-ESM-CHEM    1    1    1    1    1    1    1    1    1     1     1
+# MIROC-ESM         1    1    1    1    1    1    1    2    1     1     2
+# NorESM1-M         1    1    1    1    4    1    1    1    1     1     1
+#                  BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
+# BCC-CSM1-1         1     1     1     1     1     1     1     1
+# CCSM4              1     1     1     1     1     1     1     1
+# GISS-EZ-R          1     1     1     1     1     1     1     1
+# HadGEM2-AO         1     1     1     1     1     1     1     1
+# HadGEM2-ES         1     1     1     1     1     1     1     1
+# IPSL-CM5A-LR       1     1     1     1     1     1     1     1
+# MIROC5             1     1     1     1     1     1     1     1
+# MRI-CGCM3          1     1     1     1     1     1     1     1
+# MIROC-ESM-CHEM     1     1     1     1     1     1     1     1
+# MIROC-ESM          1     1     1     1     1     1     1     1
+# NorESM1-M          1     1     1     1     1     1     1     1
+
+
+### ??? Construct clusters with the GCMs---- 
+# Is't this what I just did above?
+
+
+# # read correlation between models to 
+# library (tree)
+# library (rpart)
+
+## correlation: Variables
+
+## correlation models
+
+
+rm(list = ls())
+
+# A. RCP 26 ----
+# read the variables manually----
 
 bc_26 <- stack(list.files("./data/climatic_vars/26bi70/bc26bi70",  pattern = ".tif$", full.names = TRUE))
 
@@ -223,195 +614,8 @@ no_26_final <- na.omit(no_26_final)
 
 rcp_26_no_function <- abind(bc_26_final, cc_26_final, gs_26_final, hd_26_final, he_26_final, ip_26_final, mi_26_final, mr_26_final, mc_26_final, mg_26_final, no_26_final, along = 3)
 
-
-## plot variables
-
-### Standard Deviation of the variables
-
-# determining the Quartile Coefficient of Deviation (qcd)
-
-### map sd
-
-### identifying areas of high heterogeneity between models
-
-### absolute change, using thresholds
-
-
-### Correlation between predictions----
-# library (amap)
-model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM", "NorESM1-M") # must be in the same order of the directories. 
-hc_rcp26 <- list()
-for (i in 1:19)
-{
-  raw_data <- t(rcp_26[ , i+2, ]) # get the variable data except the first two columms (lat, long)
-  rownames (raw_data) <- model_names 
-  cor_bio <- hcluster (raw_data, method = "correlation")
-  # rect.hclust(raw_data, k=i, border = "gray") Erro: $ operator is invalid for atomic vectors
-  plot (cor_bio)
-  hc_rcp26 [[i]] <- cor_bio
-  
-}
-
-# head (cor_bio) 
-names (hc_rcp26)<- c(paste ("BIO", c(1:19), sep=""))
-par (las = 1)
-for (i in 1:19)
-{
-  plot (hc_rcp26[[i]])
-  mtext (names(hc_rcp26)[i], side = 1, line = 2)
-}
-
-
-### Euclidean clusters ----
-# library (stats)
-
-hc_rcp26_2 <- list()
-for (i in 1:19)
-{
-  raw_data <- t(scenario[ , i+2, ])
-  rownames (raw_data) <- model_names 
-  cor_bio <- hcluster (raw_data, method = "euclidean")
-  hc_rcp26_2[[i]] <- cor_bio
-}
-
-names (hc_rcp26_2)<- c(paste ("BIO", c(1:19), sep=""))
-par (las = 1)
-for (i in 1:19)
-{
-  plot (hc_rcp26_2[[i]]) 
-  mtext (names(hc_rcp26_2)[i], side= 1, line=2)
-
-}
-
-# dev.off()
-plot (hc_rcp26[[4]], 
-      main = "Cluster Dendrogram\n(RCP 2.6)")
-
-
-# Response grouping by k means
-
-res_groups_k_26<- NULL
-for (i in 1:19){
-  res_k<- cutree(hc_rcp26[[i]], k=4) 
-  res_groups_k_26<- rbind (res_groups_k_26, res_k)
-}
-
-rownames (res_groups_k_26)<- c(paste ("BIO", c(1:19), sep="")) 
-clust_categ_k_26<- hcluster (t(res_groups_k_26), method="euclidean")
-# dev.off()
-plot (clust_categ_k_26, 
-      main = "Cluster Dendrogram by K means\n(RCP 2.6)")
-t(res_groups_k_26)
-
-
-# > t(res_groups_k_26)
-#                  BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
-# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
-# CCSM4             1    2    1    1    2    2    2    2    1     2     2
-# GISS-EZ-R         2    2    2    1    2    2    2    1    1     2     3
-# HadGEM2-AO        2    2    2    2    1    2    3    1    2     3     3
-# HadGEM2-ES        2    2    2    2    1    2    2    1    2     3     3
-# IPSL-CM5A-LR      1    1    2    3    3    3    2    3    3     2     2
-# MIROC-ESM-CHEM    3    3    3    4    4    4    4    4    4     4     4
-# MIROC-ESM         4    3    4    2    2    4    4    2    4     4     4
-# MIROC5            2    2    2    2    2    2    2    2    2     2     4
-# MRI-CGCM3         1    4    1    2    1    1    2    1    1     2     2
-# NorESM1-M         1    2    1    1    2    2    2    2    1     2     3
-#                  BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
-# BCC-CSM1-1         1     1     1     1     1     1     1     1
-# CCSM4              1     1     1     2     1     1     1     1
-# GISS-EZ-R          1     1     1     2     1     1     2     2
-# HadGEM2-AO         1     2     2     3     2     2     2     1
-# HadGEM2-ES         1     2     2     3     2     2     1     1
-# IPSL-CM5A-LR       2     1     3     1     2     3     1     3
-# MIROC-ESM-CHEM     3     3     4     4     3     4     3     4
-# MIROC-ESM          4     3     4     4     3     4     4     4
-# MIROC5             1     4     1     2     3     1     1     2
-# MRI-CGCM3          1     1     1     3     4     1     4     1
-# NorESM1-M          1     4     1     2     1     1     1     1
-
-# Result with the function ToothFairy
-# > t(res_groups_k_26)
-# BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
-# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
-# CCSM4             1    2    1    1    2    2    2    2    1     2     2
-# GISS-EZ-R         2    2    2    1    2    2    2    1    1     2     3
-# HadGEM2-AO        2    2    2    2    1    2    3    1    2     3     3
-# HadGEM2-ES        2    2    2    2    1    2    2    1    2     3     3
-# IPSL-CM5A-LR      1    1    2    3    3    3    2    3    3     2     2
-# MIROC5            2    2    2    2    2    2    2    2    2     2     4
-# MRI-CGCM3         1    3    1    2    1    1    2    1    1     2     2
-# MIROC-ESM-CHEM    3    4    3    4    4    4    4    4    4     4     4
-# MIROC-ESM         4    4    4    2    2    4    4    2    4     4     4
-# NorESM1-M         1    2    1    1    2    2    2    2    1     2     3
-# BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
-# BCC-CSM1-1         1     1     1     1     1     1     1     1
-# CCSM4              1     1     1     2     1     1     1     1
-# GISS-EZ-R          1     1     1     2     1     1     2     2
-# HadGEM2-AO         1     2     2     3     2     2     2     1
-# HadGEM2-ES         1     2     2     3     2     2     1     1
-# IPSL-CM5A-LR       2     1     3     1     2     3     1     3
-# MIROC5             1     3     1     2     3     1     1     2
-# MRI-CGCM3          1     1     1     3     4     1     3     1
-# MIROC-ESM-CHEM     3     4     4     4     3     4     4     4
-# MIROC-ESM          4     4     4     4     3     4     3     4
-# NorESM1-M          1     3     1     2     1     1     1     1
-
-# Response grouping by Height
-res_groups_h_26<- NULL
-for (i in 1:19){
-  res_h<- cutree(hc_rcp26[[i]], h=0.2) 
-  res_groups_h_26<- rbind (res_groups_h_26, res_h)
-}
-
-rownames (res_groups_h_26)<- c(paste ("BIO", c(1:19), sep="")) 
-res_groups_h_26
-clust_categ_h_26<- hcluster (t(res_groups_h_26), method="euclidean")
-plot (clust_categ_h_26,
-      main = "Cluster Dendrogram by Height\n(RCP 2.6)")
-t(res_groups_h_26)
-
-# > t(res_groups_h_26)
-#                  BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
-# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
-# CCSM4             1    1    1    1    1    1    1    1    1     2     1
-# GISS-EZ-R         1    1    1    1    1    1    1    1    1     2     1
-# HadGEM2-AO        1    1    1    1    1    1    1    1    1     2     1
-# HadGEM2-ES        1    1    1    1    1    1    1    1    1     2     1
-# IPSL-CM5A-LR      1    1    1    1    1    1    1    1    1     2     1
-# MIROC5            1    1    1    1    1    1    1    1    1     2     2
-# MRI-CGCM3         1    1    1    1    1    1    1    1    1     2     2
-# MIROC-ESM-CHEM    1    1    1    1    1    1    1    1    1     2     2
-# MIROC-ESM         1    1    1    1    1    1    1    1    1     2     1
-# NorESM1-M         1    1    1    1    1    1    1    1    1     2     1
-#                 BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
-# BCC-CSM1-1         1     1     1     1     1     1     1     1
-# CCSM4              1     1     1     1     1     1     1     1
-# GISS-EZ-R          1     1     1     1     1     1     1     1
-# HadGEM2-AO         1     1     1     1     1     1     1     1
-# HadGEM2-ES         1     1     1     1     1     1     1     1
-# IPSL-CM5A-LR       1     1     1     1     1     1     1     1
-# MIROC5             1     1     1     1     1     1     1     1
-# MRI-CGCM3          1     1     1     1     1     1     1     1
-# MIROC-ESM-CHEM     1     1     1     1     1     1     1     1
-# MIROC-ESM          1     1     1     1     1     1     1     1
-# NorESM1-M          1     1     1     1     1     1     1     1
-
-
-### ??? Construct clusters with the GCMs----
-# # read correlation between models to 
-# library (tree)
-# library (rpart)
-
-## correlation: Variables
-
-## correlation models
-
-
-rm(list = ls())
-
-# B. RCP 45 ----
-### read the variables ----
+# B. RCP 45  ----
+### read the variables manually ----
 
 
 bc_45 <- stack(list.files("./data/climatic_vars/45bi70/bc45bi70",  pattern = ".tif$", full.names = TRUE))
@@ -515,162 +719,10 @@ no_45_final <- na.omit(no_45_final)
 rcp_45 <- abind(bc_45_final, cc_45_final, gs_45_final, hd_45_final, he_45_final, ip_45_final, mi_45_final, mr_45_final, mc_45_final, mg_45_final, no_45_final, along = 3)
 
 
-## plot variables
 
-### Standard Deviation of the variables
-
-# determining the Quartile Coefficient of Deviation (qcd)
-
-### map sd
-
-### identifying areas of high heterogeneity between models
-
-### absolute change, using thresholds
-
-
-### Correlation between predictions----
-# library (amap)
-model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM", "NorESM1-M") # must be in the same order of the directories. 
-hc_rcp45 <- list()
-for (i in 1:19)
-{
-  raw_data <- t(rcp_45[ , i+2, ]) 
-  rownames (raw_data) <- model_names 
-  cor_bio <- hcluster (raw_data, method = "correlation")
-  plot (cor_bio)
-  hc_rcp45 [[i]] <- cor_bio
-  
-}
-
-# head (cor_bio) 
-names (hc_rcp45)<- c(paste ("BIO", c(1:19), sep=""))
-par (las = 1)
-for (i in 1:19)
-{
-  plot (hc_rcp45[[i]])
-  mtext (names(hc_rcp45)[i], side = 1, line = 2)
-}
-
-
-### Euclidean clusters ----
-# library (stats)
-hc_rcp45_2 <- list()
-for (i in 1:19)
-{
-  raw_data <- t(rcp_45[ , i+2, ])
-  rownames (raw_data) <- model_names 
-  cor_bio <- hcluster (raw_data, method = "euclidean")
-  hc_rcp45_2[[i]] <- cor_bio
-}
-
-names (hc_rcp45_2)<- c(paste ("BIO", c(1:19), sep=""))
-
-par (las = 1)
-for (i in 1:19)
-{
-  plot (hc_rcp45_2[[i]]) 
-  mtext (names(hc_rcp45_2)[i], side= 1, line=2)
-  
-}
-
-# dev.off()
-plot (hc_rcp45[[4]], 
-      main = "Cluster Dendrogram\n(RCP 45)")
-
-
-# Response grouping by k means
-res_groups_k_45<- NULL
-for (i in 1:19){
-  res_k<- cutree(hc_rcp45[[i]], k=4) 
-  res_groups_k_45<- rbind (res_groups_k_45, res_k)
-}
-
-rownames (res_groups_k_45) <- c(paste ("BIO", c(1:19), sep="")) 
-clust_categ_k_45<- hcluster (t(res_groups_k_45), method="euclidean")
-# dev.off()
-plot (clust_categ_k_45, 
-      main = "Cluster Dendrogram by k menans\n(RCP 45)\nTinkerBell")
-t(res_groups_k_45)
-
-# > t(res_groups_k_45)
-#                  BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
-# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
-# CCSM4             1    1    1    2    2    2    1    2    2     2     1
-# GISS-EZ-R         2    2    2    1    1    2    1    1    2     1     2
-# HadGEM2-AO        2    3    1    2    2    2    2    2    2     2     3
-# HadGEM2-ES        2    3    1    2    2    2    2    2    2     2     3
-# IPSL-CM5A-LR      1    1    1    3    3    1    3    3    1     3     2
-# MIROC5            3    4    3    4    4    3    4    4    3     4     4
-# MRI-CGCM3         4    4    4    4    4    3    4    4    3     4     4
-# MIROC-ESM-CHEM    2    3    2    2    2    4    4    4    4     1     4
-# MIROC-ESM         1    2    1    1    1    2    1    1    2     1     2
-# NorESM1-M         1    1    1    2    2    2    1    2    2     2     1
-#                  BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
-# BCC-CSM1-1         1     1     1     1     1     1     1     1
-# CCSM4              1     1     1     1     1     1     1     2
-# GISS-EZ-R          1     1     1     2     1     1     1     2
-# HadGEM2-AO         1     2     2     1     2     2     2     3
-# HadGEM2-ES         1     2     2     1     2     2     2     2
-# IPSL-CM5A-LR       2     1     2     3     3     2     3     1
-# MIROC5             3     3     3     4     1     3     3     4
-# MRI-CGCM3          4     3     3     4     1     4     3     4
-# MIROC-ESM-CHEM     1     4     4     1     1     1     1     2
-# MIROC-ESM          1     1     1     2     4     1     4     2
-# NorESM1-M          1     1     1     1     1     1     1     2
-
-# Response grouping by Height
-res_groups_h_45<- NULL
-for (i in 1:19){
-  res_h<- cutree(hc_rcp45[[i]], h=0.2) 
-  res_groups_h_45<- rbind (res_groups_h_45, res_h)
-}
-
-rownames (res_groups_h_45)<- c(paste ("BIO", c(1:19), sep="")) 
-res_groups_h_45
-clust_categ_h_45<- hcluster (t(res_groups_h_45), method="euclidean")
-plot (clust_categ_h_45,
-      main = "Cluster Dendrogram by Height\n(RCP 4.5)")
-t(res_groups_h_45)
-
-# > t(res_groups_h_45)
-#                  BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
-# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
-# CCSM4             1    1    1    1    1    1    1    1    1     1     1
-# GISS-EZ-R         1    1    1    1    1    1    1    1    1     1     1
-# HadGEM2-AO        1    1    1    1    1    1    1    1    1     1     1
-# HadGEM2-ES        1    1    1    1    1    1    1    1    1     1     1
-# IPSL-CM5A-LR      1    1    1    1    1    1    1    1    1     2     1
-# MIROC5            1    1    1    1    1    1    1    1    1     3     2
-# MRI-CGCM3         1    1    1    1    1    1    1    1    1     3     2
-# MIROC-ESM-CHEM    1    1    1    1    1    1    1    1    1     1     2
-# MIROC-ESM         1    1    1    1    1    1    1    1    1     1     1
-# NorESM1-M         1    1    1    1    1    1    1    1    1     1     1
-#                 BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
-# BCC-CSM1-1         1     1     1     1     1     1     1     1
-# CCSM4              1     1     1     1     1     1     1     1
-# GISS-EZ-R          1     1     1     1     1     1     1     1
-# HadGEM2-AO         1     1     1     1     1     1     1     1
-# HadGEM2-ES         1     1     1     1     1     1     1     1
-# IPSL-CM5A-LR       1     1     1     1     1     1     1     1
-# MIROC5             1     1     1     1     1     1     1     1
-# MRI-CGCM3          1     1     1     1     1     1     1     1
-# MIROC-ESM-CHEM     1     1     1     1     1     1     1     1
-# MIROC-ESM          1     1     1     1     1     1     1     1
-# NorESM1-M          1     1     1     1     1     1     1     1
-
-rm( list = ls())
-
-### ??? Construct clusters with the GCMs----
-# # read correlation between models to 
-# library (tree)
-# library (rpart)
-
-## correlation: Variables
-
-## correlation models
 
 # C. RCP 60 ----
-### read the variables ----
+### read the variables manually----
 
 
 bc_60 <- stack(list.files("./data/climatic_vars/60bi70/bc60bi70",  pattern = ".tif$", full.names = TRUE))
@@ -774,164 +826,12 @@ no_60_final <- na.omit(no_60_final)
 rcp_60_hand_work <- abind(bc_60_final, cc_60_final, gs_60_final, hd_60_final, he_60_final, ip_60_final, mi_60_final, mr_60_final, mc_60_final, mg_60_final, no_60_final, along = 3)
 
 
-## plot variables
-
-### Standard Deviation of the variables
-
-# determining the Quartile Coefficient of Deviation (qcd)
-
-### map sd
-
-### identifying areas of high heterogeneity between models
-
-### absolute change, using thresholds
 
 
-### Correlation between predictions----
-# library (amap)
-model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM", "NorESM1-M") # must be in the same order of the directories. 
-hc_rcp60 <- list()
-for (i in 1:19)
-{
-  raw_data <- t(rcp_60[ , i+2, ]) 
-  rownames (raw_data) <- model_names 
-  cor_bio <- hcluster (raw_data, method = "correlation")
-  plot (cor_bio)
-  hc_rcp60 [[i]] <- cor_bio
-}
-# head (cor_bio) 
-names (hc_rcp60)<- c(paste ("BIO", c(1:19), sep=""))
 
-par (las = 1)
-for (i in 1:19)
-{
-  plot (hc_rcp60[[i]])
-  mtext (names(hc_rcp60)[i], side = 1, line = 2)
-}
-
-
-### Euclidean clusters ----
-# library (stats)
-hc_rcp60_2 <- list()
-for (i in 1:19)
-{
-  raw_data <- t(rcp_60[ , i+2, ])
-  rownames (raw_data) <- model_names 
-  cor_bio <- hcluster (raw_data, method = "euclidean")
-  hc_rcp60_2[[i]] <- cor_bio
-}
-names (hc_rcp60_2)<- c(paste ("BIO", c(1:19), sep=""))
-
-par (las = 1)
-for (i in 1:19)
-{
-  plot (hc_rcp60_2[[i]]) 
-  mtext (names(hc_rcp60_2)[i], side= 1, line=2)
-  
-}
-
-plot (hc_rcp60[[4]], 
-      main = "Cluster Dendrogram\n(RCP 2.6)")
-
-
-# Response grouping by k means
-res_groups_k_60<- NULL
-for (i in 1:19){
-  res_k<- cutree(hc_rcp60[[i]], k=4) 
-  res_groups_k_60<- rbind (res_groups_k_60, res_k)
-}
-
-rownames (res_groups_k_60)<- c(paste ("BIO", c(1:19), sep="")) 
-clust_categ_k_60<- hcluster (t(res_groups_k_60), method="euclidean")
-# dev.off()
-plot (clust_categ_k_60, 
-      main = "Cluster Dendrogram by k menans\n(RCP 6.0)")
-t(res_groups_k_60)
-
-# > t(res_groups_k_60)
-#                  BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
-# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
-# CCSM4             1    2    1    1    1    1    2    2    1     2     1
-# GISS-EZ-R         2    2    2    2    1    1    1    3    1     1     2
-# HadGEM2-AO        3    3    3    1    2    1    1    1    2     2     1
-# HadGEM2-ES        3    3    3    1    2    1    1    1    2     2     1
-# IPSL-CM5A-LR      1    1    2    3    3    2    3    4    3     3     3
-# MIROC5            4    4    4    4    4    3    4    3    4     4     4
-# MRI-CGCM3         4    4    4    4    4    3    4    3    4     4     4
-# MIROC-ESM-CHEM    3    2    2    4    1    4    4    3    4     2     4
-# MIROC-ESM         3    2    2    4    1    1    1    3    1     2     2
-# NorESM1-M         1    2    1    1    2    4    2    2    2     2     1
-#                  BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
-# BCC-CSM1-1         1     1     1     1     1     1     1     1
-# CCSM4              1     2     1     1     1     1     2     1
-# GISS-EZ-R          1     1     1     1     2     1     3     1
-# HadGEM2-AO         1     2     2     1     2     2     3     1
-# HadGEM2-ES         1     2     2     1     2     2     2     1
-# IPSL-CM5A-LR       2     1     3     2     3     3     4     2
-# MIROC5             3     3     4     3     4     4     1     3
-# MRI-CGCM3          4     3     4     3     4     4     1     4
-# MIROC-ESM-CHEM     1     2     1     1     2     1     3     3
-# MIROC-ESM          1     4     1     4     2     1     1     1
-# NorESM1-M          1     2     1     1     1     1     2     1
-# > 
-
-# Response grouping by Height
-res_groups_h_60<- NULL
-for (i in 1:19){
-  res_h<- cutree(hc_rcp60[[i]], h=0.2) 
-  res_groups_h_60<- rbind (res_groups_h_60, res_h)
-}
-
-rownames (res_groups_h_60)<- c(paste ("BIO", c(1:19), sep="")) 
-res_groups_h_60
-clust_categ_h_60<- hcluster (t(res_groups_h_60), method="euclidean")
-plot (clust_categ_h_60,
-      main = "Cluster Dendrogram by Height\n(RCP 6.0)")
-t(res_groups_h_60)
-
-# > t(res_groups_h_60)
-#                  BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
-# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
-# CCSM4             1    1    1    1    1    1    1    1    1     2     1
-# GISS-EZ-R         1    1    1    1    1    1    1    1    1     1     2
-# HadGEM2-AO        1    1    1    1    1    1    1    1    1     2     1
-# HadGEM2-ES        1    1    1    1    1    1    1    1    1     2     1
-# IPSL-CM5A-LR      1    1    1    1    1    1    1    1    1     3     2
-# MIROC5            1    1    1    1    1    1    1    1    1     2     1
-# MRI-CGCM3         1    1    1    1    1    1    1    1    1     2     1
-# MIROC-ESM-CHEM    1    1    1    1    1    1    1    1    1     2     1
-# MIROC-ESM         1    1    1    1    1    1    1    1    1     2     2
-# NorESM1-M         1    1    1    1    1    1    1    1    1     2     1
-#                  BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
-# BCC-CSM1-1         1     1     1     1     1     1     1     1
-# CCSM4              1     1     1     1     1     1     1     1
-# GISS-EZ-R          1     1     1     1     1     1     1     1
-# HadGEM2-AO         1     1     1     1     1     1     1     1
-# HadGEM2-ES         1     1     1     1     1     1     1     1
-# IPSL-CM5A-LR       1     1     1     1     1     1     1     1
-# MIROC5             1     1     1     1     1     1     1     1
-# MRI-CGCM3          1     1     1     1     1     1     1     1
-# MIROC-ESM-CHEM     1     1     1     1     1     1     1     1
-# MIROC-ESM          1     1     1     1     1     1     1     1
-# NorESM1-M          1     1     1     1     1     1     1     1
-# 
-
-
-### ??? Construct clusters with the GCMs----
-# # read correlation between models to 
-# library (tree)
-# library (rpart)
-
-## correlation: Variables
-
-## correlation models
-
-rm( list = ls())
 
 # D. RCP 85 ----
-### read the variables ----
-
-# importing all 19 variables from each one of the 11 chossen  worldclim GCMs of RCP 85
+### read the variables manually ----
 
 
 
@@ -1036,157 +936,5 @@ no_85_final <- na.omit(no_85_final)
 rcp_85 <- abind(bc_85_final, cc_85_final, gs_85_final, hd_85_final, he_85_final, ip_85_final, mi_85_final, mr_85_final, mc_85_final, mg_85_final, no_85_final, along = 3)
 
 
-## plot variables
-
-### Standard Deviation of the variables
-
-# determining the Quartile Coefficient of Deviation (qcd)
-
-### map sd
-
-### identifying areas of high heterogeneity between models
-
-### absolute change, using thresholds
 
 
-### Correlation between predictions----
-# library (amap)
-model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM", "NorESM1-M") # must be in the same order of the directories. 
-hc_rcp85 <- list()
-for (i in 1:19)
-{
-  raw_data <- t(rcp_85[ , i+2, ]) 
-  rownames (raw_data) <- model_names 
-  cor_bio <- hcluster (raw_data, method = "correlation")
-  plot (cor_bio)
-  hc_rcp85 [[i]] <- cor_bio
-  
-}
-# head (cor_bio) 
-names (hc_rcp85)<- c(paste ("BIO", c(1:19), sep=""))
-
-par (las = 1)
-for (i in 1:19)
-{
-  plot (hc_rcp85[[i]])
-  mtext (names(hc_rcp85)[i], side = 1, line = 2)
-}
-
-
-### Euclidean clusters ----
-# library (stats)
-hc_rcp85_2 <- list()
-for (i in 1:19)
-{
-  raw_data <- t(rcp_85[ , i+2, ])
-  rownames (raw_data) <- model_names 
-  cor_bio <- hcluster (raw_data, method = "euclidean")
-  hc_rcp85_2[[i]] <- cor_bio
-}
-names (hc_rcp85_2)<- c(paste ("BIO", c(1:19), sep=""))
-
-par (las = 1)
-for (i in 1:19)
-{
-  plot (hc_rcp85_2[[i]]) 
-  mtext (names(hc_rcp85_2)[i], side= 1, line=2)
-  
-}
-
-# dev.off()
-plot (hc_rcp85[[4]], 
-      main = "Cluster Dendrogram\n(RCP 2.6)")
-
-
-# Response grouping by K means
-res_groups_k_85<- NULL
-for (i in 1:19){
-  res_k<- cutree(hc_rcp85[[i]], k=4) 
-  res_groups_k_85<- rbind (res_groups_k_85, res_k)
-}
-
-rownames (res_groups_k_85)<- c(paste ("BIO", c(1:19), sep="")) 
-clust_categ_k_85<- hcluster (t(res_groups_k_85), method="euclidean")
-# dev.off()
-plot (clust_categ_k_85, 
-      main = "Cluster Dendrogram by k menans\n(RCP 8.5)")
-t(res_groups_k_85)
-
-# > t(res_groups_k_85)
-#                  BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
-# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
-# CCSM4             1    1    1    2    1    1    2    1    1     1     1
-# GISS-EZ-R         2    1    2    3    1    2    1    2    2     2     2
-# HadGEM2-AO        3    1    2    2    2    1    1    1    2     3     3
-# HadGEM2-ES        3    1    2    2    2    1    1    1    2     3     3
-# IPSL-CM5A-LR      1    2    3    4    3    3    3    3    3     4     4
-# MIROC5            4    3    4    1    1    4    4    4    4     1     1
-# MRI-CGCM3         4    3    4    1    1    4    4    4    4     1     1
-# MIROC-ESM-CHEM    1    1    1    1    1    4    2    1    4     1     1
-# MIROC-ESM         1    4    1    1    1    1    1    2    2     1     2
-# NorESM1-M         1    1    1    2    4    1    2    1    1     1     1
-#                  BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
-# BCC-CSM1-1         1     1     1     1     1     1     1     1
-# CCSM4              1     2     1     1     1     1     2     2
-# GISS-EZ-R          2     1     2     1     2     1     2     2
-# HadGEM2-AO         1     2     1     1     2     2     3     2
-# HadGEM2-ES         1     2     1     1     2     2     3     2
-# IPSL-CM5A-LR       3     1     2     2     3     3     1     3
-# MIROC5             4     3     3     3     4     4     4     4
-# MRI-CGCM3          4     3     3     3     4     4     4     4
-# MIROC-ESM-CHEM     1     2     1     1     1     1     2     2
-# MIROC-ESM          1     4     4     4     1     1     1     1
-# NorESM1-M          1     2     1     1     1     1     2     2
-
-
-# Response grouping by Height
-res_groups_h_85<- NULL
-for (i in 1:19){
-  res_h<- cutree(hc_rcp85[[i]], h=0.2) 
-  res_groups_h_85<- rbind (res_groups_h_85, res_h)
-}
-
-rownames (res_groups_h_85)<- c(paste ("BIO", c(1:19), sep="")) 
-res_groups_h_85
-clust_categ_h_85<- hcluster (t(res_groups_h_85), method="euclidean")
-plot (clust_categ_h_85,
-      main = "Cluster Dendrogram by Height\n(RCP 8.5)")
-t(res_groups_h_85)
-
-# > t(res_groups_h_85)
-#                  BIO1 BIO2 BIO3 BIO4 BIO5 BIO6 BIO7 BIO8 BIO9 BIO10 BIO11
-# BCC-CSM1-1        1    1    1    1    1    1    1    1    1     1     1
-# CCSM4             1    1    1    1    1    1    1    1    1     1     1
-# GISS-EZ-R         1    1    1    1    1    1    1    2    1     2     2
-# HadGEM2-AO        1    1    1    1    2    1    1    1    1     3     1
-# HadGEM2-ES        1    1    1    1    2    1    1    1    1     3     1
-# IPSL-CM5A-LR      1    1    1    1    3    1    1    2    1     4     2
-# MIROC5            1    1    1    1    1    1    1    2    1     1     1
-# MRI-CGCM3         1    1    1    1    1    1    1    2    1     1     1
-# MIROC-ESM-CHEM    1    1    1    1    1    1    1    1    1     1     1
-# MIROC-ESM         1    1    1    1    1    1    1    2    1     1     2
-# NorESM1-M         1    1    1    1    4    1    1    1    1     1     1
-#                  BIO12 BIO13 BIO14 BIO15 BIO16 BIO17 BIO18 BIO19
-# BCC-CSM1-1         1     1     1     1     1     1     1     1
-# CCSM4              1     1     1     1     1     1     1     1
-# GISS-EZ-R          1     1     1     1     1     1     1     1
-# HadGEM2-AO         1     1     1     1     1     1     1     1
-# HadGEM2-ES         1     1     1     1     1     1     1     1
-# IPSL-CM5A-LR       1     1     1     1     1     1     1     1
-# MIROC5             1     1     1     1     1     1     1     1
-# MRI-CGCM3          1     1     1     1     1     1     1     1
-# MIROC-ESM-CHEM     1     1     1     1     1     1     1     1
-# MIROC-ESM          1     1     1     1     1     1     1     1
-# NorESM1-M          1     1     1     1     1     1     1     1
-
-
-### ??? Construct clusters with the GCMs----
-# # read correlation between models to 
-# library (tree)
-# library (rpart)
-
-## correlation: Variables
-
-## correlation models
-
-rm( list = ls())
