@@ -40,8 +40,7 @@ ToothFairy <- function (x)
 {
   directories <- list.dirs( x, full.names = TRUE)[-1]
   e <- extent(-122, -18, -56, 14)
-  # rcp <- NULL
-  models <- NULL
+  rcp <- NULL
   
   for (i in 1:length(directories))
   {
@@ -89,7 +88,7 @@ rcp_60 <- do.call("apn", model_list)
 rcp_85 <- do.call("apn", model_list)
 
 
-## Both functiong Returned the same cluster model. Which is different from the one produced the long way by importing and processing one by one.
+######### Both functiong returned the same cluster model. Which is different from the one produced the long way by importing and processing one by one.
 
 # Processing models one by one----
 
@@ -292,7 +291,7 @@ rownames (res_groups_k_26)<- c(paste ("BIO", c(1:19), sep=""))
 clust_categ_k_26<- hcluster (t(res_groups_k_26), method="euclidean")
 # dev.off()
 plot (clust_categ_k_26, 
-      main = "Cluster Dendrogram by K means\n(RCP 2.6)\nTinkerBell")
+      main = "Cluster Dendrogram by K means\n(RCP 2.6)")
 t(res_groups_k_26)
 
 
