@@ -7,29 +7,12 @@ require(abind)
 require(amap)
 require(stats)
 
-# Valeu bruno.. Está rodando aqui. Obrigado boa viagem. Volto a te procurar depois do dia 9, ok?
-
 # This script has an index table. If you are in RStudio go to Code > Show Document Outline (shift + command/clrt + o)
 
-# All the data can be viewed and downloaded from OneDrive:
+# The directories with the variables utilized here can be viewed and downloaded from OneDrive:
 browseURL(" https://1drv.ms/f/s!ApJZaitgpPr7gZtfS9n9mU9DDzXQMg")
 
-# Global Circulation Models (GCMs) selection through cluster analysis to reduce bias and improve uncertainty analysis.
-# At worldclim.com at the resolution of 2.5min we selected the only the variables that apper in all the Representative Concetration Pathways projetions (RCP26, RCP45, RCP60, RCP80). The codes of the 11 GCMs utilized are: bc, cc, gs, hd, he, ip, mi, mr, mc, mg, no.
-?substring
-#####
-## [optional] renaming the variables from all GCMs (bio1:bio19):
-
-# myPath <- './data/climatic_vars/85bi70/cc85bi70/'
-# fileList <- dir(path = myPath, pattern = '*.tif')  # list of file names, not including their paths
-# 
-# sapply(X = fileList, FUN = function(x)
-# {
-#   file.rename(paste0(myPath, x),     # paste0() the path and old name
-#               paste0(myPath, 'bio', substring(x, first = 9)))
-# }
-# )
-# substring('smaug', first = 2) returns 'aug' (starting at number 2, all following characters are returned) 
+# At worldclim.com at the resolution of 2.5min we selected  only the variables that apper in all the Representative Concetration Pathways projetions (RCP26, RCP45, RCP60, RCP80). The codes of the 11 GCMs utilized are: bc, cc, gs, hd, he, ip, mi, mr, mc, mg, no.
 
 ## GCM	code----
 # browseURL("http://www.worldclim.org/cmip5_2.5m")
@@ -50,18 +33,15 @@ browseURL(" https://1drv.ms/f/s!ApJZaitgpPr7gZtfS9n9mU9DDzXQMg")
 # A. RCP 26 ----
 ### read the variables ----
 
-##importing all 19 variables from each one of the 11 GCMs of RCP 26
-
-
-
 # function for creating the RCP array
-# Running but prodicing a diferrent cluster result (see uploaded plot "Cluster_RCP26_ToothFairy")
+# Running but resulting in diferrent clusters result (see uploaded plot "Cluster_RCP26_ToothFairy")
 
-ToothFairy_do.call <- function (x)
+ToothFairy <- function (x)
 {
   directories <- list.dirs( x, full.names = TRUE)[-1]
   e <- extent(-122, -18, -56, 14)
-  rcp <- NULL
+  # rcp <- NULL
+  models <- NULL
   
   for (i in 1:length(directories))
   {
@@ -71,23 +51,21 @@ ToothFairy_do.call <- function (x)
     coord <- xyFromCell(models_e, 1:ncell(models_e))
     models <- cbind(coord, val)
     models <- na.omit(models)
+    # models <- rasterToPoints(model) # suggested by R. Hijimans at SO
     rcp <- abind (rcp, models, along = 3)
   }
   
   return(rcp) 
 } 
 
-rcp_26_do.call <- ToothFairy( x = "./data/climatic_vars/26bi70/")
+rcp_26 <- ToothFairy( x = "./data/climatic_vars/26bi70/")
+rcp_45 <- ToothFairy( x = "./data/climatic_vars/45bi70/")
+rcp_60 <- ToothFairy( x = "./data/climatic_vars/60bi70/")
+rcp_85 <- ToothFairy( x = "./data/climatic_vars/85bi70/")
 
-rm(rcp_26_do.call)
-rcp_45 <- ToothFairy( dir = "./data/climatic_vars/45bi70/")
-rcp_60 <- ToothFairy( dir = "./data/climatic_vars/60bi70/")
-rcp_85 <- ToothFairy( dir = "./data/climatic_vars/85bi70/")
 
-# model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM", "NorESM1-M")# naming must be in the same reading order of the directory.
-# names(rcp) <- model_names
+## Its ill-advised to grow complex objects like arrays in a loop. So here is a more elegant solution.
 
-## Working in progress: Another option for importing and preparing models.
 TinkerBell <- function(x)
 {
   model_raw <- stack(list.files(x,  pattern = ".tif$", full.names = TRUE))
@@ -97,26 +75,23 @@ TinkerBell <- function(x)
   coord_model <- xyFromCell(model_e, 1:ncell(model_e))
   model <- cbind(coord_model, model_val)
   model <- na.omit(model)
+  # model <- rasterToPoints(model) # suggested by R. Hijimans at SO
   return(model)
 }
 
 x <- list.dirs("./data/climatic_vars/26bi70/", full.names = TRUE)[-1]
-
 model_list <- lapply(x, TinkerBell)
+apn <- function(...) abind(..., along=3)
 
-rcp_26_TinkerBell <- do.call(abind, model_list, args = list(along = 3))
-
-# by running rcp_26_TinkerBell <- do.call(abind, model_list) I manage to creat the objetc but it did not contair 3 layers. So I've been trying do add "along = 3" somehow at the do.call parametres.
-# Not running yet
-# Error in if (quote) args <- lapply(args, enquote) : 
-#   argumento não é interpretável como lógico
-# Além disso: Warning message:
-#   In if (quote) args <- lapply(args, enquote) :
-#   a condição tem comprimento > 1 e somente o primeiro elemento será usado
-# > 
+rcp_26 <- do.call("apn", model_list)
+rcp_45 <- do.call("apn", model_list)
+rcp_60 <- do.call("apn", model_list)
+rcp_85 <- do.call("apn", model_list)
 
 
-###################################
+## Both functiong Returned the same cluster model. Which is different from the one produced the long way by importing and processing one by one.
+
+# Processing models one by one----
 
 bc_26 <- stack(list.files("./data/climatic_vars/26bi70/bc26bi70",  pattern = ".tif$", full.names = TRUE))
 
@@ -260,7 +235,7 @@ model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES",
 hc_rcp26 <- list()
 for (i in 1:19)
 {
-  raw_data <- t(rcp_26_TinkerBell[ , i+2, ]) # get the variable data except the first two columms (lat, long)
+  raw_data <- t(scenario[ , i+2, ]) # get the variable data except the first two columms (lat, long)
   rownames (raw_data) <- model_names 
   cor_bio <- hcluster (raw_data, method = "correlation")
   # rect.hclust(raw_data, k=i, border = "gray") Erro: $ operator is invalid for atomic vectors
@@ -285,7 +260,7 @@ for (i in 1:19)
 hc_rcp26_2 <- list()
 for (i in 1:19)
 {
-  raw_data <- t(rcp_26_TinkerBell[ , i+2, ])
+  raw_data <- t(scenario[ , i+2, ])
   rownames (raw_data) <- model_names 
   cor_bio <- hcluster (raw_data, method = "euclidean")
   hc_rcp26_2[[i]] <- cor_bio
@@ -317,7 +292,7 @@ rownames (res_groups_k_26)<- c(paste ("BIO", c(1:19), sep=""))
 clust_categ_k_26<- hcluster (t(res_groups_k_26), method="euclidean")
 # dev.off()
 plot (clust_categ_k_26, 
-      main = "Cluster Dendrogram by K means\n(RCP 2.6)\nTooth Fairy")
+      main = "Cluster Dendrogram by K means\n(RCP 2.6)\nTinkerBell")
 t(res_groups_k_26)
 
 
