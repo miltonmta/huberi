@@ -6,6 +6,7 @@ require(abind)
 require(amap)
 require(stats)
 
+
 # This script has an index table. If you are in RStudio go to Code > Show Document Outline (shift + command/clrt + o)
 
 # The directories with the variables utilized here can be viewed and downloaded from OneDrive:
@@ -36,7 +37,7 @@ browseURL("http://www.worldclim.org/cmip5_2.5m")
 # "I've got the same cluster results running both functions over and over again (see uploaded plot "Cluster_RCP26_TinkerBell", "Cluster_RCP_TinkerBell", also tables of results). But this results are different form the ones I have found while running the long way, one model at the time ("Cluster_RCP26", "Cluster_RCP45")."
 
 ## Option 1 ----
-ToothFairy <- function (x)
+tooth_fairy <- function (x)
 {
   directories <- list.dirs( x, full.names = TRUE)[-1]
   e <- extent(-122, -18, -56, 14)
@@ -65,7 +66,7 @@ rcp_85 <- ToothFairy( x = "./data/climatic_vars/85bi70/")
 ## Option 2 ----
 ## Its ill-advised to grow complex objects like arrays in a loop. So here is a more elegant solution.
 
-TinkerBell <- function(x)
+tinker_bell <- function(x)
 {
   model_raw <- stack(list.files(x,  pattern = ".tif$", full.names = TRUE))
   e <- extent(-122, -18, -56, 14)
@@ -78,26 +79,29 @@ TinkerBell <- function(x)
   return(model)
 }
 
-apn <- function(...) abind(..., along=3) # empty function for set par to main function
+# append function
+apn <- function(...) abind(..., along = 3)  # empty function for setting appending par to main function
 
+# Models from RCP 26
 x <- list.dirs("./data/climatic_vars/26bi70/", full.names = TRUE)[-1]
 model_list <- lapply(x, TinkerBell)
 rcp_26 <- do.call("apn", model_list)
 
+# Models from RCP 45
 x <- list.dirs("./data/climatic_vars/45bi70/", full.names = TRUE)[-1]
 model_list <- lapply(x, TinkerBell)
 rcp_45 <- do.call("apn", model_list)
 rm(rcp_45_TinkerBell)
 
+# Models from RCP 60
 x <- list.dirs("./data/climatic_vars/60bi70/", full.names = TRUE)[-1]
 model_list <- lapply(x, TinkerBell)
 rcp_60 <- do.call("apn", model_list)
 
+# Models from RCP 85
 x <- list.dirs("./data/climatic_vars/85bi70/", full.names = TRUE)[-1]
 model_list <- lapply(x, TinkerBell)
 rcp_85 <- do.call("apn", model_list)
-
-
 
 
 ## plot variables
@@ -111,7 +115,6 @@ rcp_85 <- do.call("apn", model_list)
 ### identifying areas of high heterogeneity between models
 
 ### absolute change, using thresholds
-
 
 ### Correlation between predictions----
 # library (amap)

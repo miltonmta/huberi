@@ -1,71 +1,128 @@
-# " -----------------------------------------------
-# packages####
-#rm(list=ls())
 require(raster)
 require(maps)
 #library(psych)
 require(vegan)
-library(dismo)
+require(dismo)
 require(kernlab)
+require(rgdal)
+require(amap)
+require(stats)
 #install.packages(mask)
 dyn.load('/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home/jre/lib/server/libjvm.dylib')
-library(rJava)
-#"--------------------------------------------------
-
-# 01. Preparing for variables selection####
-#Here we will import and prepare only the worldclim varibles for current conditions (~1960-1990) to proceed them for varimax selection. Once, selected throug the loadings, we'll make use of the same varible number in each future GCMs.
-#variable rastering and stacking
+require(rJava)
 
 
+# 01. read aogcms models####
 
-now_bio_1 <- raster("./data/climatic_vars/vars_present/bio1.asc")
-now_bio_2 <- raster("./data/climatic_vars/vars_present/bio2.asc")
-now_bio_3 <- raster("./data/climatic_vars/vars_present/bio3.asc")
-now_bio_4 <- raster("./data/climatic_vars/vars_present/bio4.asc")
-now_bio_5 <- raster("./data/climatic_vars/vars_present/bio5.asc")
-now_bio_6 <- raster("./data/climatic_vars/vars_present/bio6.asc")
-now_bio_7 <- raster("./data/climatic_vars/vars_present/bio7.asc")
-now_bio_8 <- raster("./data/climatic_vars/vars_present/bio8.asc")
-now_bio_9 <- raster("./data/climatic_vars/vars_present/bio9.asc")
-now_bio_10 <- raster("./data/climatic_vars/vars_present/bio10.asc")
-now_bio_11 <- raster("./data/climatic_vars/vars_present/bio11.asc")
-now_bio_12 <- raster("./data/climatic_vars/vars_present/bio12.asc")
-now_bio_13 <- raster("./data/climatic_vars/vars_present/bio13.asc")
-now_bio_14 <- raster("./data/climatic_vars/vars_present/bio14.asc")
-now_bio_15 <- raster("./data/climatic_vars/vars_present/bio15.asc")
-now_bio_16 <- raster("./data/climatic_vars/vars_present/bio16.asc")
-now_bio_17 <- raster("./data/climatic_vars/vars_present/bio17.asc")
-now_bio_18 <- raster("./data/climatic_vars/vars_present/bio18.asc")
-now_bio_19 <- raster("./data/climatic_vars/vars_present/bio19.asc")
+#?? Here we will import and process only the worldclim varibles for current conditions (~1960-1990).We'll submmit them to a varimax selection procedure. Once, selected throug the loadings, we'll make use of the same varible number in each future model acroos the RCPs
 
+# Current Model ----
+nuala <- function (dir)
+{
+  model_raw <- stack(list.files(dir,  pattern = ".bil$", full.names = TRUE)) 
+  e <- extent(-122, -18, -56, 14) 
+  model_e <- crop(model_raw, e) 
+  val <- getValues(model_e) 
+  coord <- xyFromCell(model_e, 1:ncell(model_e))
+  model <- cbind(coord, val)
+  model <- na.omit(model)
+  return(model)
+}
 
-clima_now <- stack(now_bio_1, now_bio_2, now_bio_3, now_bio_4, now_bio_5, now_bio_6, now_bio_7, now_bio_8, now_bio_9, now_bio_10, now_bio_11, now_bio_12, now_bio_13, now_bio_14, now_bio_15, now_bio_16, now_bio_17, now_bio_18, h=T) 
+current <- nuala( dir = "./data/climatic_vars/current")
+current [1:5, ]
+nrow(current)
 
-# Here we delimit the working extent for South America (sa) so we do not analyse the whole world extent of the original worldclim variables
-e <- extent(-100,-35,-60,25)
-clima_now_sa <- crop(clima_now, e)
+# RCPs Models ----
 
-#extracting raster values
-clima_now_val <- values(clima_now_sa)
-clima_now_val[1:5,] # bio 19 missing?
-nrow(clima_now_val)
+# based on the cluster analysis we'll import only the selected variables at each RCP scenario.
 
-coord_sa <- xyFromCell(clima_now_sa, 1:ncell(clima_now_sa))
-coord_sa[1:5,]
-nrow(coord_sa)
+tinker_bell <- function(x)
+{
+  model_raw <- stack(list.files(x,  pattern = ".tif$", full.names = TRUE))
+  e <- extent(-122, -18, -56, 14)
+  model_e <- crop(model_raw, e)
+  model_val <- getValues(model_e)
+  coord_model <- xyFromCell(model_e, 1:ncell(model_e))
+  model <- cbind(coord_model, model_val)
+  model <- na.omit(model)
+  # model <- rasterToPoints(model) # suggested by R. Hijimans at SO
+  return(model)
+}
 
-clima_now_coord_val <- cbind(coord_sa, clima_now_val)
-clima_now_coord_val[1:5,]
-nrow(clima_now_coord_val)
-clima_now_coord_val <- na.omit(clima_now_coord_val)
-nrow(clima_now_coord_val)
+# append function
+apn <- function(...) abind(..., along = 3) # empty function for setting appending par to main function
+
+# Models from RCP 26
+x <- list.dirs("./data/climatic_vars/selected_rcps/26bi70/", full.names = TRUE)[-1]
+model_list <- lapply(x, tinker_bell)
+rcp_26 <- do.call("apn", model_list)
+
+# Models from RCP 45
+x <- list.dirs("./data/climatic_vars/selected_rcps/45bi70/", full.names = TRUE)[-1]
+model_list <- lapply(x, tinker_bell)
+rcp_45 <- do.call("apn", model_list)
+rm(rcp_45_tinker_bell)
+
+# Models from RCP 60
+x <- list.dirs("./data/climatic_vars/selected_rcps/60bi70/", full.names = TRUE)[-1]
+model_list <- lapply(x, tinker_bell)
+rcp_60 <- do.call("apn", model_list)
+
+# Models from RCP 85
+x <- list.dirs("./data/climatic_vars/selected_rcps/85bi70/", full.names = TRUE)[-1]
+model_list <- lapply(x, tinker_bell)
+rcp_85 <- do.call("apn", model_list)
+
+## Bioclimatic Variables Description ----
+
+#BIO1 = Annual Mean Temperature
+#BIO2 = Mean Diurnal Range (Mean of monthly (max temp - min temp))
+#BIO3 = Isothermality (BIO2/BIO7) (* 100)
+#BIO4 = Temperature Seasonality (standard deviation *100)
+#BIO5 = Max Temperature of Warmest Month
+#BIO6 = Min Temperature of Coldest Month
+#BIO7 = Temperature Annual Range (BIO5-BIO6)
+#BIO8 = Mean Temperature of Wettest Quarter
+#BIO9 = Mean Temperature of Driest Quarter
+#BIO10 = Mean Temperature of Warmest Quarter
+#BIO11 = Mean Temperature of Coldest Quarter
+#BIO12 = Annual Precipitation
+#BIO13 = Precipitation of Wettest Month
+#BIO14 = Precipitation of Driest Month
+#BIO15 = Precipitation Seasonality (Coefficient of Variation)
+#BIO16 = Precipitation of Wettest Quarter
+#BIO17 = Precipitation of Driest Quarter
+#BIO18 = Precipitation of Warmest Quarter
+#BIO19 = Precipitation of Coldest Quarter
+
+## Wolrdclim GCM code----
+browseURL("http://www.worldclim.org/cmip5_2.5m")
+
+# BCC-CSM1-1	      BC
+# CCSM4	            CC
+# GISS-E2-R	        GS
+# HadGEM2-AO	      HD
+# HadGEM2-ES        HE	
+# IPSL-CM5A-LR	    IP
+# MIROC5            MC
+# MRI-CGCM3	        MG
+# MIROC-ESM-CHEM    MI
+# MIROC-ESM    	    MR
+# NorESM1-M	        NO
+
+model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM", "NorESM1-M")# naming must be in the same directory reading order.
+
 
 # 02. Varimax variable selection####
-library(psych)
 
-fa.parallel(clima_now_coord_val[,-c(1:2)], fa='fa') #screen plot
-clima_now_fa <- fa(clima_now_val[,-c(1:2)], nfactors= 5, rotate= 'varimax')
-clima_now_loadings <- loadings(clima_now_fa)
+fa.parallel(current[ , -c(1:2)], fa = 'fa') #scree plot
+current_fa <- fa(current[ , -c(1:2)], nfactors = 5, rotate = 'varimax')
+current_loadings <- loadings(current_fa)
+?fa.p
+# fa.parallel(clima_now_coord_val[,-c(1:2)], fa='fa') #screen plot
+# clima_now_fa <- fa(clima_now_val[,-c(1:2)], nfactors= 5, rotate= 'varimax')
+# clima_now_loadings <- loadings(clima_now_fa)
 # Where is bio1, bio2, and bio19?
 # Loadings:
 #   MR1    MR3    MR2    MR4    MR5   
@@ -92,29 +149,9 @@ clima_now_loadings <- loadings(clima_now_fa)
 # Cumulative Var 0.301 0.544 0.732 0.900 0.921
 
 
-#BIO1 = Annual Mean Temperature
-#BIO2 = Mean Diurnal Range (Mean of monthly (max temp - min temp))
-#BIO3 = Isothermality (BIO2/BIO7) (* 100)
-#BIO4 = Temperature Seasonality (standard deviation *100)
-#BIO5 = Max Temperature of Warmest Month
-#BIO6 = Min Temperature of Coldest Month
-#BIO7 = Temperature Annual Range (BIO5-BIO6)
-#BIO8 = Mean Temperature of Wettest Quarter
-#BIO9 = Mean Temperature of Driest Quarter
-#BIO10 = Mean Temperature of Warmest Quarter
-#BIO11 = Mean Temperature of Coldest Quarter
-#BIO12 = Annual Precipitation
-#BIO13 = Precipitation of Wettest Month
-#BIO14 = Precipitation of Driest Month
-#BIO15 = Precipitation Seasonality (Coefficient of Variation)
-#BIO16 = Precipitation of Wettest Quarter
-#BIO17 = Precipitation of Driest Quarter
-#BIO18 = Precipitation of Warmest Quarter
-#BIO19 = Precipitation of Coldest Quarter
-
 # 03. Saving selected variables####
 
-# Now we have selected the variables bio... from the current GMC (worldclim v 1.4 at 2,5"), we'll take the same variable number from all 17 future projections at RCP +8.5 and save them (current + 17 future) at "./data/climatic_vars" as a .grd file.
+# Now we have selected the variables bio... from the current GMC (worldclim v 1.4 at 2,5"), we'll take the same variable number from the selected models of the each one of the four RCP scenarious  and save them  at "./data/climatic_vars" as a .grd file.
 
 # 04. Background Sampling####
 
