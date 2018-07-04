@@ -1,6 +1,6 @@
 require(raster)
 require(maps)
-#library(psych)
+library(psych)
 require(vegan)
 require(dismo)
 require(kernlab)
@@ -8,9 +8,14 @@ require(rgdal)
 require(amap)
 require(stats)
 #install.packages(mask)
+#install.packages("rJava)
 dyn.load('/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home/jre/lib/server/libjvm.dylib')
 require(rJava)
 
+# Problems loading Rjava ( necessary package for running Maxent)? 
+# 1. Check if JDK is installed going to the path below. If not:
+# browseURL("http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html")
+# brouseURL ("https://stackoverflow.com/questions/30738974/rjava-load-error-in-rstudio-r-after-upgrading-to-osx-yosemite")
 
 # 01. read aogcms models####
 
