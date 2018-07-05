@@ -1,10 +1,10 @@
 require(raster)
-require(maps)
-library(psych)
+require(rgdal)
+require(psych)
 require(vegan)
 require(dismo)
 require(kernlab)
-require(rgdal)
+require(maps)
 require(amap)
 require(stats)
 #install.packages(mask)
@@ -34,7 +34,7 @@ nuala <- function (dir)
   return(model)
 }
 
-current <- nuala( dir = "./data/climatic_vars/current")
+current <- nuala(dir = "./data/climatic_vars/current")
 current [1:5, ]
 nrow(current)
 
@@ -102,6 +102,7 @@ rcp_85 <- do.call("apn", model_list)
 #BIO19 = Precipitation of Coldest Quarter
 
 ## Wolrdclim GCM code----
+# At worldclim.com by the resolution of 2.5min we selected  only the variables that apper simultaneously in all the Representative Concetration Pathways projetions (RCP26, RCP45, RCP60, RCP80). The codes of the 11 GCMs utilized are: bc, cc, gs, hd, he, ip, mi, mr, mc, mg, no.
 browseURL("http://www.worldclim.org/cmip5_2.5m")
 
 # BCC-CSM1-1	      BC
@@ -117,12 +118,21 @@ browseURL("http://www.worldclim.org/cmip5_2.5m")
 # NorESM1-M	        NO
 
 model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM", "NorESM1-M")# naming must be in the same directory reading order.
-
+?fa
 
 # 02. Varimax variable selection####
 
 fa.parallel(current[ , -c(1:2)], fa = 'fa') #scree plot
 current_fa <- fa(current[ , -c(1:2)], nfactors = 5, rotate = 'varimax')
+# The estimated weights for the factor scores are probably incorrect.  Try a different factor extraction method.
+# In factor.scores, the correlation matrix is singular, an approximation is used
+# Parallel analysis suggests that the number of factors =  5  and the number of components =  NA 
+# Warning messages:
+#   1: In cor.smooth(R) : Matrix was not positive definite, smoothing was done
+# 2: In cor.smooth(R) : Matrix was not positive definite, smoothing was done
+# 3: In cor.smooth(R) : Matrix was not positive definite, smoothing was done
+# 4: In cor.smooth(r) : Matrix was not positive definite, smoothing was done
+# 5: In cor.smooth(r) : Matrix was not positive definite, smoothing was done
 current_loadings <- loadings(current_fa)
 ?fa.p
 # fa.parallel(clima_now_coord_val[,-c(1:2)], fa='fa') #screen plot
