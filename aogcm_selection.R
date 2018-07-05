@@ -12,7 +12,7 @@ require(stats)
 # The directories with the variables utilized here can be viewed and downloaded from OneDrive:
 browseURL(" https://1drv.ms/f/s!ApJZaitgpPr7gZtfS9n9mU9DDzXQMg")
 
-# At worldclim.com at the resolution of 2.5min we selected  only the variables that apper in all the Representative Concetration Pathways projetions (RCP26, RCP45, RCP60, RCP80). The codes of the 11 GCMs utilized are: bc, cc, gs, hd, he, ip, mi, mr, mc, mg, no.
+# At worldclim.com at the resolution of 2.5min we selected  only the variables that apper simultaneously in all the Representative Concetration Pathways projetions (RCP26, RCP45, RCP60, RCP80). The codes of the 11 GCMs utilized are: bc, cc, gs, hd, he, ip, mi, mr, mc, mg, no.
 
 ## Wolrdclim GCM	code----
 browseURL("http://www.worldclim.org/cmip5_2.5m")
@@ -84,23 +84,23 @@ apn <- function(...) abind(..., along = 3)  # empty function for setting appendi
 
 # Models from RCP 26
 x <- list.dirs("./data/climatic_vars/26bi70/", full.names = TRUE)[-1]
-model_list <- lapply(x, TinkerBell)
+model_list <- lapply(x, tinker_bell)
 rcp_26 <- do.call("apn", model_list)
 
 # Models from RCP 45
 x <- list.dirs("./data/climatic_vars/45bi70/", full.names = TRUE)[-1]
-model_list <- lapply(x, TinkerBell)
+model_list <- lapply(x, tinker_bell)
 rcp_45 <- do.call("apn", model_list)
 rm(rcp_45_TinkerBell)
 
 # Models from RCP 60
 x <- list.dirs("./data/climatic_vars/60bi70/", full.names = TRUE)[-1]
-model_list <- lapply(x, TinkerBell)
+model_list <- lapply(x, tinker_bell)
 rcp_60 <- do.call("apn", model_list)
 
 # Models from RCP 85
 x <- list.dirs("./data/climatic_vars/85bi70/", full.names = TRUE)[-1]
-model_list <- lapply(x, TinkerBell)
+model_list <- lapply(x, tinker_bell)
 rcp_85 <- do.call("apn", model_list)
 
 
@@ -122,7 +122,7 @@ model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES",
 hc <- list()
 for (i in 1:19)
 {
-  raw_data <- t(rcp_45[ , i+2, ]) # get the variable data except the first two columms (lat, long)
+  raw_data <- t(rcp_26_no_function[ , i+2, ]) # get the variable data except the first two columms (lat, long)
   rownames (raw_data) <- model_names 
   cor_bio <- hcluster (raw_data, method = "correlation")
   # rect.hclust(raw_data, k=i, border = "gray") Erro: $ operator is invalid for atomic vectors
@@ -147,7 +147,7 @@ for (i in 1:19)
 hc_2 <- list()
 for (i in 1:19)
 {
-  raw_data <- t(rcp_45[ , i+2, ])
+  raw_data <- t(rcp_26_no_function[ , i+2, ])
   rownames (raw_data) <- model_names 
   cor_bio <- hcluster (raw_data, method = "euclidean")
   hc_2[[i]] <- cor_bio
@@ -164,23 +164,23 @@ for (i in 1:19)
 
 # dev.off()
 plot (hc[[4]], 
-      main = "Cluster Dendrogram\n(RCP 45)")
+      main = "Cluster Dendrogram\n(RCP 26)")
 
 
 ## Response grouping by k means
 
-res_k_45<- NULL
+res_k_26<- NULL
 for (i in 1:19){
   res<- cutree(hc[[i]], k=4) 
-  res_k_45<- rbind (res_k_45, res)
+  res_k_26<- rbind (res_k_26, res)
 }
 
 # Write the RCP cluster and the results table
-rownames (res_k_45)<- c(paste ("BIO", c(1:19), sep="")) 
-hc_k_45<- hcluster (t(res_k_45), method="euclidean")
-plot (hc_k_45, 
-      main = "Cluster Dendrogram by K means\n(RCP 45)")
-t(res_k_45)
+rownames (res_k_26)<- c(paste ("BIO", c(1:19), sep="")) 
+hc_k_26<- hcluster (t(res_k_26), method="euclidean")
+plot (hc_k_26, 
+      main = "Cluster Dendrogram by K means\n(RCP 26)")
+t(res_k_26)
 
 ## Response grouping by Height
 res_h_26<- NULL
