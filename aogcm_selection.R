@@ -42,6 +42,7 @@ tooth_fairy <- function (x)
   directories <- list.dirs( x, full.names = TRUE)[-1]
   e <- extent(-122, -18, -56, 14)
   rcp <- NULL
+  # models <- list()
   
   for (i in 1:length(directories))
   {
@@ -56,7 +57,7 @@ tooth_fairy <- function (x)
   }
   
   return(rcp) 
-} 
+}
 
 rcp_26 <- ToothFairy( x = "./data/climatic_vars/26bi70/")
 rcp_45 <- ToothFairy( x = "./data/climatic_vars/45bi70/")
@@ -64,7 +65,7 @@ rcp_60 <- ToothFairy( x = "./data/climatic_vars/60bi70/")
 rcp_85 <- ToothFairy( x = "./data/climatic_vars/85bi70/")
 
 ## Option 2 ----
-## Its ill-advised to grow complex objects like arrays in a loop. So here is a more elegant solution.
+## Its ill-advised to grow complex objects like arrays in a loop. So here is another solution.
 
 tinker_bell <- function(x)
 {
@@ -122,7 +123,7 @@ model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES",
 hc <- list()
 for (i in 1:19)
 {
-  raw_data <- t(rcp_26_no_function[ , i+2, ]) # get the variable data except the first two columms (lat, long)
+  raw_data <- t(rcp_85[ , i+2, ]) # get the variable data except the first two columms (lat, long)
   rownames (raw_data) <- model_names 
   cor_bio <- hcluster (raw_data, method = "correlation")
   # rect.hclust(raw_data, k=i, border = "gray") Erro: $ operator is invalid for atomic vectors
@@ -147,7 +148,7 @@ for (i in 1:19)
 hc_2 <- list()
 for (i in 1:19)
 {
-  raw_data <- t(rcp_26_no_function[ , i+2, ])
+  raw_data <- t(rcp_85[ , i+2, ])
   rownames (raw_data) <- model_names 
   cor_bio <- hcluster (raw_data, method = "euclidean")
   hc_2[[i]] <- cor_bio
@@ -164,37 +165,37 @@ for (i in 1:19)
 
 # dev.off()
 plot (hc[[4]], 
-      main = "Cluster Dendrogram\n(RCP 26)")
+      main = "Cluster Dendrogram\n(RCP 85)")
 
 
 ## Response grouping by k means
 
-res_k_26<- NULL
+res_k_85<- NULL
 for (i in 1:19){
   res<- cutree(hc[[i]], k=4) 
-  res_k_26<- rbind (res_k_26, res)
+  res_k_85<- rbind (res_k_85, res)
 }
 
 # Write the RCP cluster and the results table
-rownames (res_k_26)<- c(paste ("BIO", c(1:19), sep="")) 
-hc_k_26<- hcluster (t(res_k_26), method="euclidean")
-plot (hc_k_26, 
-      main = "Cluster Dendrogram by K means\n(RCP 26)")
-t(res_k_26)
+rownames (res_k_85)<- c(paste ("BIO", c(1:19), sep="")) 
+hc_k_85<- hcluster (t(res_k_85), method="euclidean")
+plot (hc_k_85, 
+      main = "Cluster Dendrogram by K means\n(RCP 85 tinker bell)")
+t(res_k_85)
 
 ## Response grouping by Height
-res_h_26<- NULL
+res_h_85<- NULL
 for (i in 1:19){
   res<- cutree(hc[[i]], h=0.2) 
-  res_h_26<- rbind (res_h_26, res)
+  res_h_85<- rbind (res_h_85, res)
 }
 
 # Write the RCP cluster and the results table
-rownames (res_h_26)<- c(paste ("BIO", c(1:19), sep="")) 
-hc_h_26<- hcluster (t(res_h_26), method="euclidean")
-plot (hc_h_26,
-      main = "Cluster Dendrogram by Height\n(RCP 2.6)")
-t(res_h_26)
+rownames (res_h_85)<- c(paste ("BIO", c(1:19), sep="")) 
+hc_h_85<- hcluster (t(res_h_85), method="euclidean")
+plot (hc_h_85,
+      main = "Cluster Dendrogram by Height\n(RCP  tinker bell)")
+t(res_h_85)
 
 
 # Tables of cluster results ####
