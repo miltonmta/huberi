@@ -177,11 +177,11 @@ write.table(current[,c("x", "y" )], "./data/climatic_vars/selected/current.txt",
 # write.table(current[,c("x", "y")], "clima_AS.csv", row.names=F, sep=",")
 
 # saving as raster
-writeRaster(ccsm.0k.ASr$bio, "./data/climatic_vars/selected/bio_current.grd", format = "raster")
-writeRaster(ccsm.0k.ASr$bio, "./data/climatic_vars/selected/bio_current.grd", format = "raster")
-writeRaster(ccsm.0k.ASr$bio, "./data/climatic_vars/selected/bio_current.grd", format = "raster")
-writeRaster(ccsm.0k.ASr$bio, "./data/climatic_vars/selected/bio_current.grd", format = "raster")
-writeRaster(ccsm.0k.ASr$bio, "./data/climatic_vars/selected/bio_current.grd", format = "raster")
+writeRaster(current$bio, "./data/climatic_vars/selected/bio_current.grd", format = "raster")
+writeRaster(current$bio, "./data/climatic_vars/selected/bio_current.grd", format = "raster")
+writeRaster(current$bio, "./data/climatic_vars/selected/bio_current.grd", format = "raster")
+writeRaster(current$bio, "./data/climatic_vars/selected/bio_current.grd", format = "raster")
+writeRaster(current$bio, "./data/climatic_vars/selected/bio_current.grd", format = "raster")
 
 # reading selected variables raster files
 bio <- raster("./data/climatic_vars/selected/bio_current.grd")
@@ -224,13 +224,13 @@ huberi <- read.table("./data/ocurrencies/huberi.txt", h = T)
 huberi [1:5, ]
 huberi <- huberi[, -1]
 
-host_plant <- read.table("./data/ocurrencies/host-plant-species.txt", h = T)
-host_plant [1:5, ]
-host_plant <- host_plant[, -1]
+host_plants <- read.table("./data/ocurrencies/host-plants-species.txt", h = T)
+host_plants [1:5, ]
+host_plants <- host_plants[, -1]
 
 plot(current_select$bio1)
 points(huberi[,"long"], huberi[,"lat"], pch = 20)
-points(host_plant[,"long"], host_plant[,"lat"], pch = 20)
+points(host_plants[,"long"], host_plants[,"lat"], pch = 20)
 
 
 # extracting variables from ocurrencies data cells
@@ -239,16 +239,14 @@ duplicated(huberi_cell)
 huberi_cell <- unique(huberi_cell)
 huberi_var <- extract(current_select, huberi_cell)
 
-host_plant_cell <- cellFromXY(current_select, host_plant)
-duplicated(host_plant_cell)
-host_plant_cell <- unique(host_plant_cell)
-host_plant_var <- extract(current_select, host_plant_cell)
+host_plants_cell <- cellFromXY(current_select, host_plants)
+duplicated(host_plantss_cell)
+host_plants_cell <- unique(host_plants_cell)
+host_plants_var <- extract(current_select, host_plants_cell)
 
 
-# saving as a table
 write.table(huberi_var, "./data/ocurrencies/huberi-var.txt", row.names = F, sep = " ") 
-
-write.table(host_plant_var, "./data/ocurrencies/host-plant-var.txt", row.names = F, sep = " ") 
+write.table(host_plants_var, "./data/ocurrencies/host-plants-var.txt", row.names = F, sep = " ") 
 
 
 ## 05. Background Sampling####
@@ -266,111 +264,101 @@ back_huberi_c <- neot_c[back_id_huberi, ]
 points(back_huberi_c[, "x"], back_huberi_c[, "y"], pch = 20, col = 'red')
 
 # sampling with host plants
-back_id_plant <- sample(1:nrow(neot_c), nrow(host_plant_var))
-back_plant_c <- neot_c[back_id_plant, ]
-points(back_plant_c[, "x"], back_plant_c[, "y"], pch = 20, col = 'blue')
+back_id_plants <- sample(1:nrow(neot_c), nrow(host_plants_var))
+back_plants_c <- neot_c[back_id_plants, ]
+points(back_plants_c[, "x"], back_plants_c[, "y"], pch = 20, col = 'blue')
 
-write.table(back_huberi, "./data/ocurrencies/Background-random-huberi-current.txt", row.names = F, sep = " ") 
-write.table(back_plant, "./data/ocurrencies/Background-random-plant-current.txt", row.names = F, sep = " ") 
-
-## RCP26
-# creating the background with the Neotropic study area
-neot_rcp26 <- extract(rcp26_select, 1:ncell(rcp26_select))
-neot_rcp26.coords <- xyFromCell(rcp26_select, 1:ncell(rcp26_select)) 
-neot_rcp26 <- cbind(neot_rcp26.coords, cells = 1:ncell(rcp26_select), neot_rcp26)
-neot_rcp26 <- na.omit(neot_rcp26)
-
-# sampling with huberi
-back_id_huberi <- sample(1:nrow(neot_rcp26), nrow(huberi_var))
-back_huberi_rcp26 <- neot_rcp26[back_id_huberi, ]
-points(back_huberi_rcp26[, "x"], back_huberi_rcp26[, "y"], pch = 20, col = 'red')
-
-# sampling with host plants
-back_id_plant <- sample(1:nrow(neot_rcp26), nrow(host_plant_var))
-back_plant_rcp26 <- neot_rcp26[back_id_plant, ]
-points(back_plant_rcp26[, "x"], back_plant_rcp26[, "y"], pch = 20, col = 'blue')
-
-write.table(back_huberi_rcp26, "./data/ocurrencies/Background-random-huberi-rcp26.txt", row.names = F, sep = " ") 
-write.table(back_plant_rcp26, "./data/ocurrencies/Background-random-plant-rcp26.txt", row.names = F, sep = " ") 
-
-## RCP45
-# creating the background with the Neotropic study area
-neot_rcp45 <- extract(rcp45_select, 1:ncell(rcp45_select))
-neot_rcp45.coords <- xyFromCell(rcp45_select, 1:ncell(rcp45_select)) 
-neot_rcp45 <- cbind(neot_rcp45.coords, cells = 1:ncell(rcp45_select), neot_rcp45)
-neot_rcp45 <- na.omit(neot_rcp45)
-
-# sampling with huberi
-back_id_huberi <- sample(1:nrow(neot_rcp45), nrow(huberi_var))
-back_huberi_rcp45 <- neot_rcp45[back_id_huberi, ]
-points(back_huberi_rcp45[, "x"], back_huberi_rcp45[, "y"], pch = 20, col = 'red')
-
-# sampling with host plants
-back_id_plant <- sample(1:nrow(neot_rcp45), nrow(host_plant_var))
-back_plant_rcp45 <- neot_rcp45[back_id_plant, ]
-points(back_plant_rcp45[, "x"], back_plant_rcp45[, "y"], pch = 20, col = 'blue')
-
-write.table(back_huberi_rcp45, "./data/ocurrencies/Background-random-huberi-rcp45.txt", row.names = F, sep = " ") 
-write.table(back_plant_rcp45, "./data/ocurrencies/Background-random-plant-rcp45.txt", row.names = F, sep = " ") 
-
-## RCP60
-# creating the background with the Neotropic study area
-neot_rcp60 <- extract(rcp60_select, 1:ncell(rcp60_select))
-neot_rcp60.coords <- xyFromCell(rcp60_select, 1:ncell(rcp60_select)) 
-neot_rcp60 <- cbind(neot_rcp60.coords, cells = 1:ncell(rcp60_select), neot_rcp60)
-neot_rcp60 <- na.omit(neot_rcp60)
-
-# sampling with huberi
-back_id_huberi <- sample(1:nrow(neot_rcp60), nrow(huberi_var))
-back_huberi_rcp60 <- neot_rcp60[back_id_huberi, ]
-points(back_huberi_rcp60[, "x"], back_huberi_rcp60[, "y"], pch = 20, col = 'red')
-
-# sampling with host plants
-back_id_plant <- sample(1:nrow(neot_rcp60), nrow(host_plant_var))
-back_plant_rcp60 <- neot_rcp60[back_id_plant, ]
-points(back_plant_rcp60[, "x"], back_plant_rcp60[, "y"], pch = 20, col = 'blue')
-
-write.table(back_huberi_rcp60, "./data/ocurrencies/Background-random-huberi-rcp60.txt", row.names = F, sep = " ") 
-write.table(back_plant_rcp60, "./data/ocurrencies/Background-random-plant-rcp60.txt", row.names = F, sep = " ") 
+# saving background files
+write.table(back_huberi, "./data/ocurrencies/Background-random-huberi.txt", row.names = F, sep = " ") 
+write.table(back_plants, "./data/ocurrencies/Background-random-plants.txt", row.names = F, sep = " ")
 
 
-## RCP85
-# creating the background with the Neotropic study area
-neot_rcp85 <- extract(rcp85_select, 1:ncell(rcp85_select))
-neot_rcp85.coords <- xyFromCell(rcp85_select, 1:ncell(rcp85_select)) 
-neot_rcp85 <- cbind(neot_rcp85.coords, cells = 1:ncell(rcp85_select), neot_rcp85)
-neot_rcp85 <- na.omit(neot_rcp85)
-
-# sampling with huberi
-back_id_huberi <- sample(1:nrow(neot_rcp85), nrow(huberi_var))
-back_huberi_rcp85 <- neot_rcp85[back_id_huberi, ]
-points(back_huberi_rcp85[, "x"], back_huberi_rcp85[, "y"], pch = 20, col = 'red')
-
-# sampling with host plants
-back_id_plant <- sample(1:nrow(neot_rcp85), nrow(host_plant_var))
-back_plant_rcp85 <- neot_rcp85[back_id_plant, ]
-points(back_plant_rcp85[, "x"], back_plant_rcp85[, "y"], pch = 20, col = 'blue')
-
-write.table(back_huberi_rcp85, "./data/ocurrencies/Background-random-huberi-rcp85.txt", row.names = F, sep = " ") 
-write.table(back_plant_rcp85, "./data/ocurrencies/Background-random-plant-rcp85.txt", row.names = F, sep = " ") 
-
+rm(list = ls())
 
 # 06. Modelling Adequability Predictions####
 
-output_current <- NULL
-output_rcp26 <- NULL
-output_rcp45 <- NULL
-output_rcp60 <- NULL
-output_rcp85 <- NULL
-model_names
-for (j in model_names)
+require(raster)
+require(dismo)
+require(kernlab)
+require()
+
+
+fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "...", background_huberi = "...", background_plants = "...", cross_validation = ...)
 {
-  aogcm_current_huberi <- paste("huberi_var", j, "back_huberi", sep = "")
-  aogcm_current_plant <- paste("host_plant_var", j, "back_plant", sep = "")
+  ## Loop AOGCMs ####
+  AOGCMs <- model_names
   
+  ## loading occurrency and backgound data.
+  occur_h <- read.table(occurrency_huberi, h = T)
+  occur_p <- read.table(occurrency_plants, h = T)
+  back_h <- read.table(background_huberi, h = T)
+  back_p <- read.talbe(background_plants, h = T)
   
+  ## Creating empty objects for saving results from all AOGCMs
+  output_current <- output_rcp26 <- output_rcp45 <- output_rcp60 <- output_rcp85 <- NULL
+  
+  for (j in AOGCMs)
+  {
+    ## Reading the climatic files
+    # ???----
+    # I know I must creat a loop here for iteranting througt the aogcm  of my selected models at all RCPs
+    # how?
+    AOGCM_CURRENT <- j # only one model here.
+    AOGCM_RCP26 <- j
+    AOGCM_RCP45 <- j
+    AOGCM_RCP60 <- j
+    AOGCM_RCP85 <- j
+    
+    ## Creating objects for saving partial results for each cross validation loop.
+    bioclim_c <- gower_c <- maha_c <- maxent_c <- SVM_c <- GLM_c <- stack()
+    bioclim_rcp26 <- gower_rcp26 <- maha_rcp26 <- maxent_rcp26 <- SVM_rcp26 <- GLM_rcp26 <- stack() # abind??
+    bioclim_rcp45 <- gower_rcp45 <- maha_rcp45 <- maxent_rcp45 <- SVM_rcp45 <- GLM_rcp45 <- stack()
+    bioclim_rcp60 <- gower_rcp60 <- maha_rcp60 <- maxent_rcp60 <- SVM_rcp60 <- GLM_rcp60 <- stack()
+    bioclim_rcp85 <- gower_rcp85 <- maha_rcp85 <- maxent_rcp85 <- SVM_rcp85 <- GLM_rcp85 <- stack()
+    
+    bioclim.e <- gower.e <- maha.e <- maxent.e <- SVM.e <- GLM.e <- NULL
+    bioclim.t <- gower.t <- maha.t <- maxent.t <- SVM.t <- GLM.t <- NULL
+    
+    for (i in 1:cross_validation)
+    {
+      ### creating test and trainning models
+      
+      ## Bioclim
+      # ajusting models
+      # making predictions
+      # Evaluating models
+      
+      ## Gower
+      # ajusting models
+      # making predictions
+      # Evaluating models
+      
+      ## Maha
+      # ajusting models
+      # making predictions
+      # Evaluating models
+      
+      ## Maxent
+      # ajusting models
+      # making predictions
+      # Evaluating models
+      
+      ## SVM
+      # ajusting models
+      # making predictions
+      # Evaluating models
+      
+      ## GLM
+      # ajusting models
+      # making predictions
+      # Evaluating models
+      
+    }
+    
+  }
 }
 
+fairy_godmother (occurrency_huberi = "./data/ocurrencies/huberi-var.txt", occurrency_plants = "./data/ocurrencies/plants-var.txt", background_huberi = "./data/ocurrencies/Background-random-huberi.txt", background_plants = "./data/ocurrencies/Background-random-plants.txt")
 
 # 07. Write predictions####
 
