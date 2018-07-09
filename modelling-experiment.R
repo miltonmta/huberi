@@ -1,22 +1,9 @@
 require(raster)
 require(rgdal)
-require(psych)
 require(abind)
-require(amap)
-require(stats)
 require(vegan)
-require(dismo)
-require(kernlab)
 require(maps)
 require(mask)
-#install.packages("rJava)
-dyn.load('/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home/jre/lib/server/libjvm.dylib')
-require(rJava)
-
-# Problems loading Rjava ( necessary package for running Maxent)? 
-# 1. Check if JDK is installed going to the path below. If not:
-# browseURL("http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html")
-# browseURL ("https://stackoverflow.com/questions/30738974/rjava-load-error-in-rstudio-r-after-upgrading-to-osx-yosemite")
 
 # 01. read aogcms models####
 
@@ -100,6 +87,7 @@ browseURL("http://www.worldclim.org/cmip5_2.5m")
 model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM", "NorESM1-M")# naming must be in the same directory reading order.
 
 # 02. Varimax variable selection####
+require(psych)
 
 fa.parallel(current[ , -c(1:2)], fa = 'fa') #scree plot
 # The estimated weights for the factor scores are probably incorrect.  Try a different factor extraction method.
@@ -280,12 +268,19 @@ rm(list = ls())
 require(raster)
 require(dismo)
 require(kernlab)
-require()
+require(maps)
+require(abind)
+dyn.load('/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home/jre/lib/server/libjvm.dylib')
+require(rJava)
+
+# Problems loading Rjava ( necessary package for running Maxent)? 
+# 1. Check if JDK is installed going to the path below. If not:
+# browseURL("http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html")
+# browseURL ("https://stackoverflow.com/questions/30738974/rjava-load-error-in-rstudio-r-after-upgrading-to-osx-yosemite")
 
 
 fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "...", background_huberi = "...", background_plants = "...", cross_validation = ...)
 {
-  ## Loop AOGCMs ####
   AOGCMs <- model_names
   
   ## loading occurrency and backgound data.
@@ -299,56 +294,148 @@ fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "..."
   
   for (j in AOGCMs)
   {
-    ## Reading the climatic files
+    ### Loop AOGCMs ####
+    
+    ### Reading the climatic files
     # ???----
     # I know I must creat a loop here for iteranting througt the aogcm  of my selected models at all RCPs
     # how?
-    AOGCM_CURRENT <- j # only one model here.
-    AOGCM_RCP26 <- j
-    AOGCM_RCP45 <- j
-    AOGCM_RCP60 <- j
-    AOGCM_RCP85 <- j
+    AOGCM_CURRENT <- # j # only one model here. 
+    AOGCM_RCP26 <- # j
+    AOGCM_RCP45 <- # j
+    AOGCM_RCP60 <- # j
+    AOGCM_RCP85 <- # j
     
-    ## Creating objects for saving partial results for each cross validation loop.
-    bioclim_c <- gower_c <- maha_c <- maxent_c <- SVM_c <- GLM_c <- stack()
-    bioclim_rcp26 <- gower_rcp26 <- maha_rcp26 <- maxent_rcp26 <- SVM_rcp26 <- GLM_rcp26 <- stack() # abind??
-    bioclim_rcp45 <- gower_rcp45 <- maha_rcp45 <- maxent_rcp45 <- SVM_rcp45 <- GLM_rcp45 <- stack()
-    bioclim_rcp60 <- gower_rcp60 <- maha_rcp60 <- maxent_rcp60 <- SVM_rcp60 <- GLM_rcp60 <- stack()
-    bioclim_rcp85 <- gower_rcp85 <- maha_rcp85 <- maxent_rcp85 <- SVM_rcp85 <- GLM_rcp85 <- stack()
+    ### Creating objects for saving partial results for each cross validation loop.
+    ## huberi
+    bioclim_c_h <- gower_c_h <- maha_c_h <- maxent_c_h <- SVM_c_h <- GLM_c_h <- stack()
+    bioclim_rcp26_h <- gower_rcp26_h <- maha_rcp26_h <- maxent_rcp26_h <- SVM_rcp26_h <- GLM_rcp26_h <- stack() # Should we run abind instead of stack??
+    bioclim_rcp45_h <- gower_rcp45_h <- maha_rcp45_h <- maxent_rcp45_h <- SVM_rcp45_h <- GLM_rcp45_h <- stack()
+    bioclim_rcp60_h <- gower_rcp60_h <- maha_rcp60_h <- maxent_rcp60_h <- SVM_rcp60_h <- GLM_rcp60_h <- stack()
+    bioclim_rcp85_h <- gower_rcp85_h <- maha_rcp85_h <- maxent_rcp85_h <- SVM_rcp85_h <- GLM_rcp85_h <- stack()
     
-    bioclim.e <- gower.e <- maha.e <- maxent.e <- SVM.e <- GLM.e <- NULL
-    bioclim.t <- gower.t <- maha.t <- maxent.t <- SVM.t <- GLM.t <- NULL
+    bioclim_e_h <- gower_e_h <- maha_e_h <- maxent_e_h <- SVM_e_h <- GLM_e_h <- NULL
+    bioclim_t_h <- gower_t_h <- maha_t_h <- maxent_t_h <- SVM_t_h <- GLM_t_h <- NULL
+    
+    ## host plants
+    bioclim_c_p <- gower_c_p <- maha_c_p <- maxent_c_p <- SVM_c_p <- GLM_c_p <- stack()
+    bioclim_rcp26_p <- gower_rcp26_p <- maha_rcp26_p <- maxent_rcp26_p <- SVM_rcp26_p <- GLM_rcp26_p <- stack() # Should we run abind instead of stack??
+    bioclim_rcp45_p <- gower_rcp45_p <- maha_rcp45_p <- maxent_rcp45_p <- SVM_rcp45_p <- GLM_rcp45_p <- stack()
+    bioclim_rcp60_p <- gower_rcp60_p <- maha_rcp60_p <- maxent_rcp60_p <- SVM_rcp60_p <- GLM_rcp60_p <- stack()
+    bioclim_rcp85_p <- gower_rcp85_p <- maha_rcp85_p <- maxent_rcp85_p <- SVM_rcp85_p <- GLM_rcp85_p <- stack()
+    
+    bioclim_e_p <- gower_e_p <- maha_e_p <- maxent_e_p <- SVM_e_p <- GLM_e_p <- NULL
+    bioclim_t_p <- gower_t_p <- maha_t_p <- maxent_t_p <- SVM_t_p <- GLM_t_p <- NULL
     
     for (i in 1:cross_validation)
     {
-      ### creating test and trainning models
+      ### Loop Cross-validation ----
       
-      ## Bioclim
+      
+      ### creating trainning-testing subsets
+      
+      ## huberi
+      sample_occur_h <- sample(1:nrow(occur_h), round(0.75 * nrow(occur_h)))
+      sample_back_h  <- sample(1:nrow(back_h), round(0.75 * nrow(back_h)))
+      training_h <- prepareData(x = current_select, p = occur_h[sample_occur_h,  1:2], b = back_h[sample_back_h,  1:2], xy = T)
+      testing_h  <- prepareData(x = current_select, p = occur_h[-sample_occur_h, 1:2], b = back_h[-sample_back_h, 1:2], xy = T)
+      
+      ## host plants
+      sample_occur_p <- sample(1:nrow(occur_p), round(0.75 * nrow(occur_p)))
+      sample_back_p  <- sample(1:nrow(back_p), round(0.75 * nrow(back_p)))
+      training_p <- prepareData(x = current_select, p = occur_p[sample_occur_p,  1:2], b = back_p[sample_back_p,  1:2], xy = T)
+      testing_p  <- prepareData(x = current_select, p = occur_p[-sample_occur_p, 1:2], b = back_p[-sample_back_p, 1:2], xy = T)
+      ### Bioclim ----
+      
+      ### huberi
+      # ajusting models
+      bioclim_model_h <- bioclim(training_h[training_h[,"pb"] == 1, -c(1:3)])
+      
+      # making predictions
+      bioclim_c_h <- stack (bioclim_c_h, predict(object = bioclim_model_h, x = current_select))
+      bioclim_rcp26_h <- stack (bioclim_rcp26_h, predict(object = bioclim_model_h, x = rcp26_select))
+      bioclim_rcp45_h <- stack (bioclim_rcp45_h, predict(object = bioclim_model_h, x = rcp45_select))
+      bioclim_rcp60_h <- stack (bioclim_rcp60_h, predict(object = bioclim_model_h, x = rcp60_select))
+      bioclim_rcp85_h <- stack (bioclim_rcp85_h, predict(object = bioclim_model_h, x = rcp85_select))
+      
+      # Evaluating models
+      bioclim_eval_h <- evaluate(p=testing_h[testing_h[, "pb"] == 1, -1], a = testing_h[testing_h[, "pb"] == 0, -1], model = bioclim_model_h)
+      
+      bioclim_e_h <- c(bioclim_e_h, bioclim_eval@auc)
+      bioclim_t_h <- c(bioclim_t_h, threshold(bioclim_eval_h, "spec_sens"))
+      
+      ## host plants
+      # ajusting models
+      bioclim_model_p <- bioclim(training_p[training_p[,"pb"] == 1, -c(1:3)])
+      
+      # making predictions
+      bioclim_c_p <- stack (bioclim_c_p, predict(object = bioclim_model_p, x = current_select))
+      bioclim_rcp26_p <- stack (bioclim_rcp26_p, predict(object = bioclim_model_p, x = rcp26_select))
+      bioclim_rcp45_p <- stack (bioclim_rcp45_p, predict(object = bioclim_model_p, x = rcp45_select))
+      bioclim_rcp60_p <- stack (bioclim_rcp60_p, predict(object = bioclim_model_p, x = rcp60_select))
+      bioclim_rcp85_p <- stack (bioclim_rcp85_p, predict(object = bioclim_model_p, x = rcp85_select))
+      
+      # Evaluating models
+      bioclim_eval_p <- evaluate(p=testing_p[testing_p[, "pb"] == 1, -1], a = testing_p[testing_p[, "pb"] == 0, -1], model = bioclim_model_p)
+      
+      bioclim_e_p <- c(bioclim_e_p, bioclim_eval@auc)
+      bioclim_t_p <- c(bioclim_t_p, threshold(bioclim_eval_p, "spec_sens"))
+      
+      ### Gower ----
+      ## huberi
       # ajusting models
       # making predictions
       # Evaluating models
       
-      ## Gower
+      ## host plants
       # ajusting models
       # making predictions
       # Evaluating models
       
-      ## Maha
+      
+      ### Maha ----
+      ## huberi
       # ajusting models
       # making predictions
       # Evaluating models
       
-      ## Maxent
+      ## host plants
       # ajusting models
       # making predictions
       # Evaluating models
       
-      ## SVM
+      
+      ### Maxent ----
+      ## huberi
       # ajusting models
       # making predictions
       # Evaluating models
       
-      ## GLM
+      ## host plants
+      # ajusting models
+      # making predictions
+      # Evaluating models
+      
+      
+      ### SVM ----
+      ## huberi
+      # ajusting models
+      # making predictions
+      # Evaluating models
+      
+      ## host plants
+      # ajusting models
+      # making predictions
+      # Evaluating models
+      
+      
+      ### GLM ----
+      ## huberi
+      # ajusting models
+      # making predictions
+      # Evaluating models
+      
+      ## host plants
       # ajusting models
       # making predictions
       # Evaluating models
