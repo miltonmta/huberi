@@ -694,8 +694,10 @@ fairy_godmother (occurrency_huberi = "./data/ocurrencies/huberi-var.txt", occurr
 
 ########## List of improvements to the scritp ############
 
+# 1. Implement occurrency data filtering at the ambiental space!
 # 1. Transform maps in frequencies intead of suitabilities.
 # 2. Impelement multi cores for running several models simultaneouly.
+
 
 
 
