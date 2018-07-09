@@ -7,7 +7,7 @@ require(amap)
 require(stats)
 
 
-# This script has an index table. If you are in RStudio go to Code > Show Document Outline (shift + command/clrt + o)
+# This script has an index table. If you are in RStudio go to Code > Show Document Outline (shift + command / clrt + o)
 
 # The directories with the variables utilized here can be viewed and downloaded from OneDrive:
 browseURL(" https://1drv.ms/f/s!ApJZaitgpPr7gZtfS9n9mU9DDzXQMg")
