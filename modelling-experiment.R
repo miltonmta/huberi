@@ -7,29 +7,17 @@ require(mask)
 
 # This script has an index table. If you are in RStudio go to Code > Show Document Outline (shift + command / clrt + o)
 
-# The directories with the variables utilized here can be viewed and downloaded from OneDrive:
-browseURL(" https://1drv.ms/f/s!ApJZaitgpPr7gZtfS9n9mU9DDzXQMg")
+# The directories with the data utilized and the ones outputted here can be downloaded from the following OneDrive repositorium:
+browseURL("https://1drv.ms/f/s!ApJZaitgpPr7gZtfS9n9mU9DDzXQMg")
 
-# At worldclim.com at the resolution of 2.5min we selected  only the variables that apper simultaneously in all the Representative Concetration Pathways projetions (RCP26, RCP45, RCP60, RCP80). The codes of the 11 GCMs utilized are: bc, cc, gs, hd, he, ip, mi, mr, mc, mg, no.
-
-## Wolrdclim GCM	code----
+# The models projected for 2070 (average for 2061-2080) were obtain at "worldclim.com" by the spatial resolution of 2.5min (0.04º or ≈ 4.4km). We selected the variables that appear simultaneously in all the representative concentration pathways scnarios (RCP26, RCP45, RCP60, RCP80). The codes of the 11 GCMs utilized are: bc, cc, gs, hd, he, ip, mi, mr, mc, mg, no.
 browseURL("http://www.worldclim.org/cmip5_2.5m")
 
-# BCC-CSM1-1	      BC
-# CCSM4	            CC
-# GISS-E2-R	        GS
-# HadGEM2-AO	      HD
-# HadGEM2-ES        HE	
-# IPSL-CM5A-LR	    IP
-# MIROC5            MC
-# MRI-CGCM3	        MG
-# MIROC-ESM-CHEM    MI
-# MIROC-ESM    	    MR
-# NorESM1-M	        NO
-# model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM", "NorESM1-M")# naming must be in the same reading order of the directory.
-# 01. read aogcms models####
 
-#?? Here we will import and process only the worldclim varibles for current conditions (~1960-1990).We'll submmit them to a varimax selection procedure. Once, selected throug the loadings, we'll make use of the same varible number in each future model acroos the RCPs
+# 01. read aogcms models ############################################################################
+
+#?? Here we will import and process only the worldclim varibles for current conditions (~1960-1990), by the spatial resolution of 2.5min. We'll submmit them to a varimax selection procedure. Once, selected through the loadings scores, we'll make use of the same variable number in each future model across all the GCM models at the four RCPs scenarios for 2070.
+browseURL("http://www.worldclim.org/current")
 
 # Current Model ----
 nuala <- function (dir)
@@ -71,28 +59,24 @@ apn <- function(...) abind(..., along = 3) # empty function for setting appendin
 # Models from RCP 26
 x <- list.dirs("./data/climatic_vars/selected/26bi70/", full.names = TRUE)[-1]
 model_list <- lapply(x, tinker_bell)
-rcp_26 <- do.call("apn", model_list)
+rcp26 <- do.call("apn", model_list)
 
 # Models from RCP 45
 x <- list.dirs("./data/climatic_vars/selected/45bi70/", full.names = TRUE)[-1]
 model_list <- lapply(x, tinker_bell)
-rcp_45 <- do.call("apn", model_list)
-rm(rcp_45_tinker_bell)
+rcp45 <- do.call("apn", model_list)
 
 # Models from RCP 60
 x <- list.dirs("./data/climatic_vars/selected/60bi70/", full.names = TRUE)[-1]
 model_list <- lapply(x, tinker_bell)
-rcp_60 <- do.call("apn", model_list)
+rcp60 <- do.call("apn", model_list)
 
 # Models from RCP 85
 x <- list.dirs("./data/climatic_vars/selected/85bi70/", full.names = TRUE)[-1]
 model_list <- lapply(x, tinker_bell)
-rcp_85 <- do.call("apn", model_list)
+rcp85 <- do.call("apn", model_list)
 
-
-## Wolrdclim GCM code----
-# At worldclim.com by the resolution of 2.5min we selected  only the variables that apper simultaneously in all the Representative Concetration Pathways projetions (RCP26, RCP45, RCP60, RCP80). The codes of the 11 GCMs utilized are: bc, cc, gs, hd, he, ip, mi, mr, mc, mg, no.
-browseURL("http://www.worldclim.org/cmip5_2.5m")
+## Wolrdclim GCM codes ----
 
 # BCC-CSM1-1	      BC
 # CCSM4	            CC
@@ -106,54 +90,29 @@ browseURL("http://www.worldclim.org/cmip5_2.5m")
 # MIROC-ESM    	    MR
 # NorESM1-M	        NO
 
-model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM", "NorESM1-M")# naming must be in the same directory reading order.
+model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM", "NorESM1-M")# naming must be in the same sequence of the origin directory reading order.
 
-# 02. Varimax variable selection####
+# 02. Varimax variable selection#########################################################################
 require(psych)
+#?####
+#I left it running over nigth, but it never ended.
 
 fa.parallel(current[ , -c(1:2)], fa = 'fa') #scree plot
-# The estimated weights for the factor scores are probably incorrect.  Try a different factor extraction method.
-# In factor.scores, the correlation matrix is singular, an approximation is used
+## The estimated weights for the factor scores are probably incorrect.  Try a different factor extraction method.
+## In factor.scores, the correlation matrix is singular, an approximation is used
+ 
 # Parallel analysis suggests that the number of factors =  5  and the number of components =  NA 
-# Warning messages:
-#   1: In cor.smooth(R) : Matrix was not positive definite, smoothing was done
-# 2: In cor.smooth(R) : Matrix was not positive definite, smoothing was done
-# 3: In cor.smooth(R) : Matrix was not positive definite, smoothing was done
-# 4: In cor.smooth(r) : Matrix was not positive definite, smoothing was done
-# 5: In cor.smooth(r) : Matrix was not positive definite, smoothing was done
+
+## Warning messages:
+## 1: In cor.smooth(R) : Matrix was not positive definite, smoothing was done
+## 2: In cor.smooth(R) : Matrix was not positive definite, smoothing was done
+## 3: In cor.smooth(R) : Matrix was not positive definite, smoothing was done
+## 4: In cor.smooth(r) : Matrix was not positive definite, smoothing was done
+## 5: In cor.smooth(r) : Matrix was not positive definite, smoothing was done
 current_fa <- fa(current[ , -c(1:2)], nfactors = 5, rotate = 'varimax')
 current_loadings <- loadings(current_fa)
 
-
-# fa.parallel(clima_now_coord_val[,-c(1:2)], fa='fa') #screen plot
-# clima_now_fa <- fa(clima_now_val[,-c(1:2)], nfactors= 5, rotate= 'varimax')
-# clima_now_loadings <- loadings(clima_now_fa)
-# Where is bio1, bio2, and bio19?
-# Loadings:
-#   MR1    MR3    MR2    MR4    MR5   
-# bio3   0.235  0.819         0.253  0.144
-# bio4  -0.215 -0.912        -0.327 -0.102
-# bio5   0.976                0.133       
-# bio6   0.744  0.596  0.141  0.244 -0.115
-# bio7  -0.169 -0.857 -0.270 -0.245  0.135
-# bio8   0.907  0.227         0.159  0.240
-# bio9   0.732  0.552         0.247 -0.205
-# bio10  0.980  0.139         0.136       
-# bio11  0.783  0.563         0.261       
-# bio12  0.241  0.378  0.526  0.714       
-# bio13  0.300  0.425  0.169  0.830       
-# bio14         0.178  0.934  0.216  0.106
-# bio15         0.123 -0.748         0.195
-# bio16  0.296  0.421  0.189  0.835       
-# bio17         0.193  0.940  0.248       
-# bio18  0.136  0.119  0.497  0.447  0.321
-# 
-# MR1   MR3   MR2   MR4   MR5
-# SS loadings    4.824 3.884 3.009 2.687 0.326
-# Proportion Var 0.301 0.243 0.188 0.168 0.020
-# Cumulative Var 0.301 0.544 0.732 0.900 0.921
-
-## Bioclimatic Variables Descriptions ----
+## Bioclimatic Variables Descriptions#######
 
 #BIO1 = Annual Mean Temperature
 #BIO2 = Mean Diurnal Range (Mean of monthly (max temp - min temp))
@@ -175,7 +134,7 @@ current_loadings <- loadings(current_fa)
 #BIO18 = Precipitation of Warmest Quarter
 #BIO19 = Precipitation of Coldest Quarter
 
-### 03. Saving selected variables####
+### 03. Saving selected variables#######################################################################
 
 # Now we have selected the variables bio... from the current GMC (worldclim v 1.4 at 2,5"), we'll take the same variable number from the selected models of the each one of the four RCP scenarious  and save them  at "./data/climatic_vars" as a .grd file.
 
@@ -227,7 +186,7 @@ write.table(rcp60_select, "./data/climatic_vars/selected/rcp-26-select.txt", row
 write.table(rcp85_select, "./data/climatic_vars/selected/rcp-26-select.txt", row.names = F, sep = "	")
 
 
-# 04. Occurrencies data####
+# 04. Occurrencies data###################################################################################
 
 
 huberi <- read.table("./data/ocurrencies/huberi.txt", h = T)
@@ -259,7 +218,7 @@ write.table(huberi_var, "./data/ocurrencies/huberi-var.txt", row.names = F, sep 
 write.table(host_plants_var, "./data/ocurrencies/host-plants-var.txt", row.names = F, sep = " ") 
 
 
-## 05. Background Sampling####
+## 05. Background Sampling##############################################################################
 
 ## CURRENT
 # creating the background with the Neotropic study area
@@ -285,7 +244,7 @@ write.table(back_plants, "./data/ocurrencies/Background-random-plants.txt", row.
 
 rm(list = ls())
 
-# 06. Modelling Adequability Predictions####
+# 06. Modelling Adequability Predictions##############################################################
 
 # require(raster)
 # require(rgdal)
@@ -318,7 +277,7 @@ fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "..."
   
   for (j in AOGCMs)
   {
-    ### Loop AOGCMs ####
+    ### Loop AOGCMs -----
     
     ### Reading the climatic files
     # ???----
@@ -369,6 +328,7 @@ fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "..."
       sample_back_p  <- sample(1:nrow(back_p), round(0.75 * nrow(back_p)))
       training_p <- prepareData(x = current_select, p = occur_p[sample_occur_p,  1:2], b = back_p[sample_back_p,  1:2], xy = T)
       testing_p  <- prepareData(x = current_select, p = occur_p[-sample_occur_p, 1:2], b = back_p[-sample_back_p, 1:2], xy = T)
+      
       ### Bioclim -------------------
       
       ## huberi
@@ -593,7 +553,8 @@ fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "..."
       
     }# closes the "i" - loop cross validation
     
-    ## Writing predictions as raster  ####
+    
+    ## Writing predictions as raster  ################################################
     # huberi
     writeRaster(bioclim_c_h, "./data/outputs/bioclim_c_h.bil", format = "EHdr")
     writeRaster(bioclim_rcp26_h, "./data/outputs/bioclim_rcp26_h.bil", format = "EHdr")
@@ -684,15 +645,25 @@ fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "..."
 fairy_godmother (occurrency_huberi = "./data/ocurrencies/huberi-var.txt", occurrency_plants = "./data/ocurrencies/plants-var.txt", background_huberi = "./data/ocurrencies/Background-random-huberi.txt", background_plants = "./data/ocurrencies/Background-random-plants.txt")
 
 
-# 07. Selecting models####
+# 07. Selecting models (auc) ############################################################################
 
-# 08. Find/standardize suitabilities (suit) ####
+## Huberi
+auc_h <- read.table("./data/outputs/AUC_plants.txt", h = T)
 
-# 09. Ensemble ####
 
-# 10. Uncertainty Evaluation ####
+## Host plants
+auc_p <- read.table("./data/outputs/Threshold_plants.txt", h = T)
 
-########## List of improvements to the scritp ############
+
+# 08. Standardize suitabilities (suit) #######################################################
+
+# 09. Ensemble ####################################################################################
+
+# 10. Uncertainty Evaluation ######################################################################
+
+
+
+################################ List of improvements to the scritp ###############################
 
 # 1. Implement occurrency data filtering at the ambiental space!
 # 1. Transform maps in frequencies intead of suitabilities.
