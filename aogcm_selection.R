@@ -65,7 +65,9 @@ rcp_60 <- ToothFairy( x = "./data/climatic_vars/60bi70/")
 rcp_85 <- ToothFairy( x = "./data/climatic_vars/85bi70/")
 
 ## Option 2 ----
-## Its ill-advised to grow complex objects like arrays in a loop. So here is another solution.
+## Its ill-advised to grow complex objects like arrays in a loop. Nevertheless, the abind package authors advise not to use do.call. See note from them:
+# It would be nice to make abind() an S3 generic, but S3 generics cannot dispatch off anonymous arguments.
+# The ability of abind() to accept a single list argument removes much of the need for constructs like do.call("abind", list.of.arrays). Instead, just do abind(list.of.arrays). The direct construct is preferred because do.call() construct can sometimes consume more memory during evaluation.
 
 tinker_bell <- function(x)
 {
