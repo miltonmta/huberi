@@ -9,13 +9,13 @@ require(stats)
 
 # This script has an index table. If you are in RStudio go to Code > Show Document Outline (shift + command / clrt + o)
 
-# The directories with the variables utilized here can be viewed and downloaded from OneDrive:
-browseURL(" https://1drv.ms/f/s!ApJZaitgpPr7gZtfS9n9mU9DDzXQMg")
+# The directories with the data utilized and the ones outputted here can be downloaded from the following OneDrive repositorium:
+browseURL("https://1drv.ms/f/s!ApJZaitgpPr7gZtfS9n9mU9DDzXQMg")
 
-# At worldclim.com at the resolution of 2.5min we selected  only the variables that apper simultaneously in all the Representative Concetration Pathways projetions (RCP26, RCP45, RCP60, RCP80). The codes of the 11 GCMs utilized are: bc, cc, gs, hd, he, ip, mi, mr, mc, mg, no.
+# The models projected for 2070 (average for 2061-2080) were obtain at "worldclim.com" by the spatial resolution of 2.5min (0.04º or ≈ 4.4km). We selected the variables that appear simultaneously in all the representative concentration pathways scnarios (RCP26, RCP45, RCP60, RCP80). The codes of the 11 GCMs utilized are: bc, cc, gs, hd, he, ip, mi, mr, mc, mg, no.
+browseURL("http://www.worldclim.org/cmip5_2.5m")
 
 ## Wolrdclim GCM	code----
-browseURL("http://www.worldclim.org/cmip5_2.5m")
 
 # BCC-CSM1-1	      BC
 # CCSM4	            CC
