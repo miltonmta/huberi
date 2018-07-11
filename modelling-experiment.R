@@ -92,7 +92,7 @@ rcp85 <- do.call("apn", model_list)
 
 model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM", "NorESM1-M")# naming must be in the same sequence of the origin directory reading order.
 
-# 02. Varimax variable selection#########################################################################
+# 02. Varimax variable selection #########################################################################
 require(psych)
 #?####
 #I left it running over nigth, but it never ended.
@@ -112,7 +112,7 @@ fa.parallel(current[ , -c(1:2)], fa = 'fa') #scree plot
 current_fa <- fa(current[ , -c(1:2)], nfactors = 5, rotate = 'varimax')
 current_loadings <- loadings(current_fa)
 
-## Bioclimatic Variables Descriptions#######
+## Bioclimatic Variables Descriptions #######
 
 #BIO1 = Annual Mean Temperature
 #BIO2 = Mean Diurnal Range (Mean of monthly (max temp - min temp))
@@ -134,7 +134,7 @@ current_loadings <- loadings(current_fa)
 #BIO18 = Precipitation of Warmest Quarter
 #BIO19 = Precipitation of Coldest Quarter
 
-### 03. Saving selected variables#######################################################################
+### 03. Saving selected variables #######################################################################
 
 # Now we have selected the variables bio... from the current GMC (worldclim v 1.4 at 2,5"), we'll take the same variable number from the selected models of the each one of the four RCP scenarious  and save them  at "./data/climatic_vars" as a .grd file.
 
@@ -186,7 +186,7 @@ write.table(rcp60_select, "./data/climatic_vars/selected/rcp-26-select.txt", row
 write.table(rcp85_select, "./data/climatic_vars/selected/rcp-26-select.txt", row.names = F, sep = "	")
 
 
-# 04. Occurrencies data###################################################################################
+# 04. Occurrencies data ###################################################################################
 
 
 huberi <- read.table("./data/ocurrencies/huberi.txt", h = T)
@@ -218,7 +218,7 @@ write.table(huberi_var, "./data/ocurrencies/huberi-var.txt", row.names = F, sep 
 write.table(host_plants_var, "./data/ocurrencies/host-plants-var.txt", row.names = F, sep = " ") 
 
 
-## 05. Background Sampling##############################################################################
+## 05. Background Sampling ##############################################################################
 
 ## CURRENT
 # creating the background with the Neotropic study area
@@ -244,7 +244,7 @@ write.table(back_plants, "./data/ocurrencies/Background-random-plants.txt", row.
 
 rm(list = ls())
 
-# 06. Modelling Adequability Predictions##############################################################
+# 06. Modelling Adequability Predictions ##############################################################
 
 # require(raster)
 # require(rgdal)
@@ -848,20 +848,183 @@ GLM_period_p <- rep(c("pres","fut"), each = nlayers(GLM_p))
 
 
 # 08. Standardize suitabilities (suit) #######################################################
+# If having error messages, try "range" instead of "standardize"
+## Huberi
+
+bioclim_c_h_val <- values(bioclim_c_h)
+bioclim_rcp26_h_val <- values(bioclim_rcp26_h)
+bioclim_rcp45_h_val <- values(bioclim_rcp45_h)
+bioclim_rcp60_h_val <- values(bioclim_rcp60_h)
+bioclim_rcp85_h_val <- values(bioclim_rcp85_h)
+
+bioclim_h_val <- rbind(bioclim_c_h_val, bioclim_rcp26_h_val, bioclim_rcp45_h_val, bioclim_rcp60_h_val, bioclim_rcp85_h_val)
+bioclim_h_stand <- decostand(bioclim_h_val, "standardize", 2)
 
 
+gower_c_h_val <- values(gower_c_h)
+gower_rcp26_h_val <- values(gower_rcp26_h)
+gower_rcp45_h_val <- values(gower_rcp45_h)
+gower_rcp60_h_val <- values(gower_rcp60_h)
+gower_rcp85_h_val <- values(gower_rcp85_h)
+
+gower_h_val <- rbind(gower_c_h_val, gower_rcp26_h_val, gower_rcp45_h_val, gower_rcp60_h_val, gower_rcp85_h_val)
+gower_h_stand <- decostand(gower_h_val, "standardize", 2)
+
+
+maha_c_h_val <- values(maha_c_h)
+maha_rcp26_h_val <- values(maha_rcp26_h)
+maha_rcp45_h_val <- values(maha_rcp45_h)
+maha_rcp60_h_val <- values(maha_rcp60_h)
+maha_rcp85_h_val <- values(maha_rcp85_h)
+
+maha_h_val <- rbind(maha_c_h_val, maha_rcp26_h_val, maha_rcp45_h_val, maha_rcp60_h_val, maha_rcp85_h_val)
+maha_h_stand <- decostand(maha_h_val, "standardize", 2)
+
+
+maxent_c_h_val <- values(maxent_c_h)
+maxent_rcp26_h_val <- values(maxent_rcp26_h)
+maxent_rcp45_h_val <- values(maxent_rcp45_h)
+maxent_rcp60_h_val <- values(maxent_rcp60_h)
+maxent_rcp85_h_val <- values(maxent_rcp85_h)
+
+maxent_h_val <- rbind(maxent_c_h_val, maxent_rcp26_h_val, maxent_rcp45_h_val, maxent_rcp60_h_val, maxent_rcp85_h_val)
+maxent_h_stand <- decostand(maxent_h_val, "standardize", 2)
+
+
+SVM_c_h_val <- values(SVM_c_h)
+SVM_rcp26_h_val <- values(SVM_rcp26_h)
+SVM_rcp45_h_val <- values(SVM_rcp45_h)
+SVM_rcp60_h_val <- values(SVM_rcp60_h)
+SVM_rcp85_h_val <- values(SVM_rcp85_h)
+
+SVM_h_val <- rbind(SVM_c_h_val, SVM_rcp26_h_val, SVM_rcp45_h_val, SVM_rcp60_h_val, SVM_rcp85_h_val)
+SVM_h_stand <- decostand(SVM_h_val, "standardize", 2)
+
+
+GLM_c_h_val <- values(GLM_c_h)
+GLM_rcp26_h_val <- values(GLM_rcp26_h)
+GLM_rcp45_h_val <- values(GLM_rcp45_h)
+GLM_rcp60_h_val <- values(GLM_rcp60_h)
+GLM_rcp85_h_val <- values(GLM_rcp85_h)
+
+GLM_h_val <- rbind(GLM_c_h_val, GLM_rcp26_h_val, GLM_rcp45_h_val, GLM_rcp60_h_val, GLM_rcp85_h_val)
+GLM_h_stand <- decostand(GLM_h_val, "standardize", 2)
+
+
+## Host Plants
+
+
+bioclim_c_p_val <- values(bioclim_c_p)
+bioclim_rcp26_p_val <- values(bioclim_rcp26_p)
+bioclim_rcp45_p_val <- values(bioclim_rcp45_p)
+bioclim_rcp60_p_val <- values(bioclim_rcp60_p)
+bioclim_rcp85_p_val <- values(bioclim_rcp85_p)
+
+bioclim_p_val <- rbind(bioclim_c_p_val, bioclim_rcp26_p_val, bioclim_rcp45_p_val, bioclim_rcp60_p_val, bioclim_rcp85_p_val)
+bioclim_p_stand <- decostand(bioclim_p_val, "standardize", 2)
+
+
+gower_c_p_val <- values(gower_c_p)
+gower_rcp26_p_val <- values(gower_rcp26_p)
+gower_rcp45_p_val <- values(gower_rcp45_p)
+gower_rcp60_p_val <- values(gower_rcp60_p)
+gower_rcp85_p_val <- values(gower_rcp85_p)
+
+gower_p_val <- rbind(gower_c_p_val, gower_rcp26_p_val, gower_rcp45_p_val, gower_rcp60_p_val, gower_rcp85_p_val)
+gower_p_stand <- decostand(gower_p_val, "standardize", 2)
+
+
+maha_c_p_val <- values(maha_c_p)
+maha_rcp26_p_val <- values(maha_rcp26_p)
+maha_rcp45_p_val <- values(maha_rcp45_p)
+maha_rcp60_p_val <- values(maha_rcp60_p)
+maha_rcp85_p_val <- values(maha_rcp85_p)
+
+maha_p_val <- rbind(maha_c_p_val, maha_rcp26_p_val, maha_rcp45_p_val, maha_rcp60_p_val, maha_rcp85_p_val)
+maha_p_stand <- decostand(maha_p_val, "standardize", 2)
+
+
+maxent_c_p_val <- values(maxent_c_p)
+maxent_rcp26_p_val <- values(maxent_rcp26_p)
+maxent_rcp45_p_val <- values(maxent_rcp45_p)
+maxent_rcp60_p_val <- values(maxent_rcp60_p)
+maxent_rcp85_p_val <- values(maxent_rcp85_p)
+
+maxent_p_val <- rbind(maxent_c_p_val, maxent_rcp26_p_val, maxent_rcp45_p_val, maxent_rcp60_p_val, maxent_rcp85_p_val)
+maxent_p_stand <- decostand(maxent_p_val, "standardize", 2)
+
+
+SVM_c_p_val <- values(SVM_c_p)
+SVM_rcp26_p_val <- values(SVM_rcp26_p)
+SVM_rcp45_p_val <- values(SVM_rcp45_p)
+SVM_rcp60_p_val <- values(SVM_rcp60_p)
+SVM_rcp85_p_val <- values(SVM_rcp85_p)
+
+SVM_p_val <- rbind(SVM_c_p_val, SVM_rcp26_p_val, SVM_rcp45_p_val, SVM_rcp60_p_val, SVM_rcp85_p_val)
+SVM_p_stand <- decostand(SVM_p_val, "standardize", 2)
+
+
+GLM_c_p_val <- values(GLM_c_p)
+GLM_rcp26_p_val <- values(GLM_rcp26_p)
+GLM_rcp45_p_val <- values(GLM_rcp45_p)
+GLM_rcp60_p_val <- values(GLM_rcp60_p)
+GLM_rcp85_p_val <- values(GLM_rcp85_p)
+
+GLM_p_val <- rbind(GLM_c_p_val, GLM_rcp26_p_val, GLM_rcp45_p_val, GLM_rcp60_p_val, GLM_rcp85_p_val)
+GLM_p_stand <- decostand(GLM_p_val, "standardize", 2)
 
 # 09. Ensemble ####################################################################################
 
+## huberi
+suit <- data.frame(bioclim_h_stand, gower_h_stand, maha_h_stand, maxent_h_stand, SVM_h_stand, GLM_h_stand)
+auc  <- c(bioclim_auc_h, gower_auc_h, maha_auc_h, maxent_auc_h, SVM_auc_h, GLM_auc_h)
+
+# loop Ensemble for huberi
+
+# Expected of ensembles for huberi:
+# huberi current;
+# huberi rcp26;
+# huberi rcp45;
+# huberi rcp60;
+# huberi rcp85.
+
+
+## host plants
+suit <- data.frame(bioclim_p_stand, gower_p_stand, maha_p_stand, maxent_p_stand, SVM_p_stand, GLM_p_stand)
+auc  <- c(bioclim_auc_p, gower_auc_p, maha_auc_p, maxent_auc_p, SVM_auc_p, GLM_auc_p)
+
+# loop Ensemble for host plants
+
+# Expected of ensembles for host plants:
+# host plants current;
+# host plants rcp26;
+# host plants rcp45;
+# host plants rcp60;
+# host plants rcp85.
+
+
 # 10. Uncertainty Evaluation ######################################################################
 
+## huberi
+data   <- values(stack(bioclim_h, gower_h, maha_h, maxent_h, SVM_h, GLM_h))
+method <- c(bioclim_method_h, gower_method_h, maha_method_h, maxent_method_h, SVM_method_h, GLM_method_h)
+period <- c(bioclim_period_h, gower_period_h, maha_period_h, maxent_period_h, SVM_period_h, GLM_period_h)
+
+# loop the ANOVA
+
+## host plants
+data   <- values(stack(bioclim_p, gower_p, maha_p, maxent_p, SVM_p, GLM_p))
+method <- c(bioclim_method_p, gower_method_p, maha_method_p, maxent_method_p, SVM_method_p, GLM_method_p)
+period <- c(bioclim_period_p, gower_period_p, maha_period_p, maxent_period_p, SVM_period_p, GLM_period_p)
+
+# loop the ANOVA
 
 
 ################################ List of improvements to the scritp ###############################
 
 # 1. Implement occurrency data filtering at the ambiental space!
 # 1. Transform maps in frequencies intead of suitabilities.
-# 2. Impelement multi cores for running several models simultaneouly.
+# 2. Impelement multi cores for running several models simultaneously.
 
 
 
