@@ -55,10 +55,11 @@ tooth_fairy <- function (x)
   return(rcp) 
 }
 
-rcp_26 <- tooth_fairy( x = "./data/climatic_vars/26bi70/")
+rcp_26_alter <- tooth_fairy( x = "./data/climatic_vars/26bi70/")
 rcp_45 <- tooth_fairy( x = "./data/climatic_vars/45bi70/")
 rcp_60 <- tooth_fairy( x = "./data/climatic_vars/60bi70/")
 rcp_85 <- tooth_fairy( x = "./data/climatic_vars/85bi70/")
+
 
 
 ## plot variables
@@ -75,11 +76,14 @@ rcp_85 <- tooth_fairy( x = "./data/climatic_vars/85bi70/")
 
 ### Correlation between predictions----
 # library (amap)
-model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM", "NorESM1-M") # must be in the same order of the directories. 
+# model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM", "NorESM1-M") # must be in the same order of the directories. 
+model_names <- c("ALTER-CCSM4", "ALTER-NorESM1-M", "BCC-CSM1-1", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM") # must be in the same order of th
+
+
 hc <- list()
 for (i in 1:19)
 {
-  raw_data <- t(rcp_26[ , i+2, ]) # get the variable data except the first two columms (lat, long)
+  raw_data <- t(rcp_26_alter[ , i+2, ]) # get the variable data except the first two columms (lat, long)
   rownames (raw_data) <- model_names 
   cor_bio <- hcluster (raw_data, method = "correlation")
   # rect.hclust(raw_data, k=i, border = "gray") Erro: $ operator is invalid for atomic vectors
@@ -104,52 +108,56 @@ for (i in 1:19)
 hc_2 <- list()
 for (i in 1:19)
 {
-  raw_data <- t(rcp_26[ , i+2, ])
+  raw_data <- t(rcp_26_alter[ , i+2, ])
   rownames (raw_data) <- model_names 
   cor_bio <- hcluster (raw_data, method = "euclidean")
   hc_2[[i]] <- cor_bio
 }
 
-names (hc_2)<- c(paste ("BIO", c(1:19), sep=""))
+names (hc_2) <- c(paste ("BIO", c(1:19), sep = ""))
 par (las = 1)
 for (i in 1:19)
 {
   plot (hc_2[[i]]) 
-  mtext (names(hc_2)[i], side= 1, line=2)
+  mtext (names(hc_2)[i], side = 1, line = 2)
 
 }
 
-# dev.off()
-plot (hc[[4]], 
-      main = "Cluster Dendrogram\n(RCP 26)")
+dev.off()
+plot (hc[[4]],
+      hang = -1,
+      main = "Cluster Dendrogram\n(RCP 26 alter)")
 
 
 ## Response grouping by k means
 
-res_k_26<- NULL
+res_k_26 <- NULL
 for (i in 1:19){
-  res<- cutree(hc[[i]], k=4) 
-  res_k_26<- rbind (res_k_26, res)
+  res <- cutree(hc[[i]], k = 4) 
+  res_k_26 <- rbind (res_k_26, res)
 }
 
 # Write the RCP cluster and the results table
-rownames (res_k_26)<- c(paste ("BIO", c(1:19), sep="")) 
-hc_k_26<- hcluster (t(res_k_26), method="euclidean")
-plot (hc_k_26, 
-      main = "Cluster Dendrogram by K means\n(RCP 26)")
+rownames (res_k_26) <- c(paste ("BIO", c(1:19), sep = "")) 
+hc_k_26 <- hcluster (t(res_k_26), method = "euclidean")
+dev.off()
+plot (hc_k_26,
+      hang = -1,
+      main = "Cluster Dendrogram by K means\n(RCP 26 alter)")
 t(res_k_26)
 
 ## Response grouping by Height
-res_h_26<- NULL
+res_h_26 <- NULL
 for (i in 1:19){
-  res<- cutree(hc[[i]], h=0.2) 
-  res_h_26<- rbind (res_h_26, res)
+  res <- cutree(hc[[i]], h = 0.2) 
+  res_h_26 <- rbind (res_h_26, res)
 }
 
 # Write the RCP cluster and the results table
-rownames (res_h_26)<- c(paste ("BIO", c(1:19), sep="")) 
-hc_h_26<- hcluster (t(res_h_26), method="euclidean")
+rownames (res_h_26) <- c(paste ("BIO", c(1:19), sep = "")) 
+hc_h_26 <- hcluster (t(res_h_26), method = "euclidean")
 plot (hc_h_26,
+      hang = -1,
       main = "Cluster Dendrogram by Height\n(RCP 26)")
 t(res_h_26)
 
@@ -283,5 +291,3 @@ t(res_h_26)
 ## correlation: Variables
 
 ## correlation models
-
-
