@@ -40,41 +40,32 @@ nrow(current)
 
 # based on the cluster analysis we'll import only the selected variables at each RCP scenario.
 
-tinker_bell <- function(x)
+tooth_fairy <- function (x)
 {
-  model_raw <- stack(list.files(x,  pattern = ".tif$", full.names = TRUE))
+  directories <- list.dirs( x, full.names = TRUE)[-1]
   e <- extent(-122, -18, -56, 14)
-  model_e <- crop(model_raw, e)
-  model_val <- getValues(model_e)
-  coord_model <- xyFromCell(model_e, 1:ncell(model_e))
-  model <- cbind(coord_model, model_val)
-  model <- na.omit(model)
-  # model <- rasterToPoints(model) # suggested by R. Hijimans at SO
-  return(model)
+  rcp <- NULL
+  # models <- list()
+  
+  for (i in 1:length(directories))
+  {
+    models_raw <- stack(list.files(directories[i],pattern = ".tif$", full.names = TRUE))
+    models_e <- crop( models_raw , e ) 
+    val <- values (models_e)
+    coord <- xyFromCell(models_e, 1:ncell(models_e))
+    models <- cbind(coord, val)
+    models <- na.omit(models)
+    # models <- rasterToPoints(model) # suggested by R. Hijimans at SO
+    rcp <- abind (rcp, models, along = 3)
+  }
+  
+  return(rcp) 
 }
 
-# append function
-apn <- function(...) abind(..., along = 3) # empty function for setting appending par to main function
-
-# Models from RCP 26
-x <- list.dirs("./data/climatic_vars/selected/26bi70/", full.names = TRUE)[-1]
-model_list <- lapply(x, tinker_bell)
-rcp26 <- do.call("apn", model_list)
-
-# Models from RCP 45
-x <- list.dirs("./data/climatic_vars/selected/45bi70/", full.names = TRUE)[-1]
-model_list <- lapply(x, tinker_bell)
-rcp45 <- do.call("apn", model_list)
-
-# Models from RCP 60
-x <- list.dirs("./data/climatic_vars/selected/60bi70/", full.names = TRUE)[-1]
-model_list <- lapply(x, tinker_bell)
-rcp60 <- do.call("apn", model_list)
-
-# Models from RCP 85
-x <- list.dirs("./data/climatic_vars/selected/85bi70/", full.names = TRUE)[-1]
-model_list <- lapply(x, tinker_bell)
-rcp85 <- do.call("apn", model_list)
+rcp26 <- tooth_fairy( x = "./data/climatic_vars/selected/26bi70/")
+rcp45 <- tooth_fairy( x = "./data/climatic_vars/selected/45bi70/")
+rcp60 <- tooth_fairy( x = "./data/climatic_vars/selected/60bi70/")
+rcp85 <- tooth_fairy( x = "./data/climatic_vars/selected/85bi70/")
 
 ## Wolrdclim GCM codes ----
 
@@ -91,6 +82,8 @@ rcp85 <- do.call("apn", model_list)
 # NorESM1-M	        NO
 
 model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM", "NorESM1-M")# naming must be in the same sequence of the origin directory reading order.
+
+# model_names <- c("BC", "CC", "GS", "HD", "HE", "IP", "MC", "MG", "MI", "MR", "NO") # must be in the same order of the directories.
 
 # 02. Varimax variable selection #########################################################################
 require(psych)
