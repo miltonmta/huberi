@@ -30,6 +30,7 @@ browseURL("http://www.worldclim.org/cmip5_2.5m")
 # NorESM1-M	        NO
 # model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM", "NorESM1-M")# naming must be in the same reading order of the origin directory.
 
+# model_names <- c("BC", "CC", "GS", "HD", "HE", "IP", "MC", "MG", "MI", "MR", "NO") # must be in the same order of the directories.
 
 ### Read the variables ----
 
@@ -55,7 +56,7 @@ tooth_fairy <- function (x)
   return(rcp) 
 }
 
-rcp_26_alter <- tooth_fairy( x = "./data/climatic_vars/26bi70/")
+rcp_26 <- tooth_fairy( x = "./data/climatic_vars/26bi70/")
 rcp_45 <- tooth_fairy( x = "./data/climatic_vars/45bi70/")
 rcp_60 <- tooth_fairy( x = "./data/climatic_vars/60bi70/")
 rcp_85 <- tooth_fairy( x = "./data/climatic_vars/85bi70/")
@@ -76,14 +77,16 @@ rcp_85 <- tooth_fairy( x = "./data/climatic_vars/85bi70/")
 
 ### Correlation between predictions----
 # library (amap)
-# model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM", "NorESM1-M") # must be in the same order of the directories. 
-model_names <- c("ALTER-CCSM4", "ALTER-NorESM1-M", "BCC-CSM1-1", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM") # must be in the same order of th
+model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM", "NorESM1-M") # must be in the same order of the directories.
 
+# model_names <- c("BC", "CC", "GS", "HD", "HE", "IP", "MC", "MG", "MI", "MR", "NO") # must be in the same order of the directories.
+
+# model_names <- c("ALTER-CCSM4", "ALTER-NorESM1-M", "BCC-CSM1-1", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM") # must be in the same order of th
 
 hc <- list()
 for (i in 1:19)
 {
-  raw_data <- t(rcp_26_alter[ , i+2, ]) # get the variable data except the first two columms (lat, long)
+  raw_data <- t(rcp_26[ , i+2, ]) # get the variable data except the first two columms (lat, long)
   rownames (raw_data) <- model_names 
   cor_bio <- hcluster (raw_data, method = "correlation")
   # rect.hclust(raw_data, k=i, border = "gray") Erro: $ operator is invalid for atomic vectors
@@ -108,7 +111,7 @@ for (i in 1:19)
 hc_2 <- list()
 for (i in 1:19)
 {
-  raw_data <- t(rcp_26_alter[ , i+2, ])
+  raw_data <- t(rcp_26[ , i+2, ])
   rownames (raw_data) <- model_names 
   cor_bio <- hcluster (raw_data, method = "euclidean")
   hc_2[[i]] <- cor_bio
@@ -126,7 +129,7 @@ for (i in 1:19)
 dev.off()
 plot (hc[[4]],
       hang = -1,
-      main = "Cluster Dendrogram\n(RCP 26 alter)")
+      main = "Cluster Dendrogram\n(RCP 26)")
 
 
 ## Response grouping by k means
@@ -140,10 +143,16 @@ for (i in 1:19){
 # Write the RCP cluster and the results table
 rownames (res_k_26) <- c(paste ("BIO", c(1:19), sep = "")) 
 hc_k_26 <- hcluster (t(res_k_26), method = "euclidean")
-dev.off()
-plot (hc_k_26,
-      hang = -1,
-      main = "Cluster Dendrogram by K means\n(RCP 26 alter)")
+hcd <- as.dendrogram((hc_k_26))
+nodePar <- list(lab.cex = 0.9, pch = c(NA,19), cex = 0.7, col = "blue")
+par (oma = c(0, 0, 0, 4))
+plot (hcd,
+      horiz   = TRUE,
+      nodePar = nodePar,
+      edgePar = list(col = 1:1, lwd = 2:1),
+      xlim    = c(14, 0),
+      xlab    = "Height",
+      main    = "Cluster Dendrogram by K means\n(RCP 26)")
 t(res_k_26)
 
 ## Response grouping by Height
@@ -158,6 +167,7 @@ rownames (res_h_26) <- c(paste ("BIO", c(1:19), sep = ""))
 hc_h_26 <- hcluster (t(res_h_26), method = "euclidean")
 plot (hc_h_26,
       hang = -1,
+      # cex  = 0.6,
       main = "Cluster Dendrogram by Height\n(RCP 26)")
 t(res_h_26)
 
