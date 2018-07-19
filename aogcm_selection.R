@@ -143,18 +143,10 @@ for (i in 1:19){
 # Write the RCP cluster and the results table
 rownames (res_k_26) <- c(paste ("BIO", c(1:19), sep = "")) 
 hc_k_26 <- hcluster (t(res_k_26), method = "euclidean")
-<<<<<<< HEAD
 hcd <- as.dendrogram((hc_k_26))
-nodePar <- list(lab.cex = 0.9, pch = c(NA,19), cex = 0.7, col = "blue")
-par (oma = c(0, 0, 0, 4))
-plot (hcd,
-=======
-dev.off()
-
 nodePar <- list(lab.cex = 0.9, pch = c(NA,19), cex = 0.7, col = "blue")
 par(oma = c(0, 0, 0, 4))
 plot (as.dendrogram(hc_k_26),
->>>>>>> 2a2296c5b970e0b19669f81d1362e2a49b46a345
       horiz   = TRUE,
       nodePar = nodePar,
       edgePar = list(col = 1:1, lwd = 2:1),
