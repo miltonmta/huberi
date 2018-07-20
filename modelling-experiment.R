@@ -37,8 +37,11 @@ current [1:5, ]
 nrow(current)
 
 # RCPs Models ----
-
 # based on the cluster analysis we'll import only the selected variables at each RCP scenario.
+# RCP 26: IPSL-CMSA-LR(IP), MIROC-ESM(MR), CCSM4(CC), HADGEM2-AO(HD)
+# RCP 45: IPSL-CMSA-LR(IP), MIROC-ESM(MR), CCSM4(CC), HADGEM2-AO(HD)
+# RCP 60: IPSL-CMSA-LR(IP), MIROC-ESM(MR), CCSM4(CC), MRI-CGCM3(MG)
+# RCP 85: IPSL-CMSA-LR(IP), MIROC-ESM(MR), CCSM4(CC), MIROC5(MC)
 
 tooth_fairy <- function (x)
 {
