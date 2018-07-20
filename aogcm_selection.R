@@ -6,7 +6,6 @@ require(abind)
 require(amap)
 require(stats)
 
-
 # This script has an index table. If you are in RStudio go to Code > Show Document Outline (shift + command / clrt + o)
 
 # The directories with the data utilized and the ones outputted here can be downloaded from the following OneDrive repositorium:
@@ -14,6 +13,7 @@ browseURL("https://1drv.ms/f/s!ApJZaitgpPr7gZtfS9n9mU9DDzXQMg")
 
 # The models projected for 2070 (average for 2061-2080) were obtain at "worldclim.com" by the spatial resolution of 2.5min (0.04º or ≈ 4.4km). We selected the variables that appear simultaneously in all the representative concentration pathways scnarios (RCP26, RCP45, RCP60, RCP80). The codes of the 11 GCMs utilized are: bc, cc, gs, hd, he, ip, mi, mr, mc, mg, no.
 browseURL("http://www.worldclim.org/cmip5_2.5m")
+
 
 ## Wolrdclim GCM	code----
 
@@ -28,9 +28,7 @@ browseURL("http://www.worldclim.org/cmip5_2.5m")
 # MIROC-ESM-CHEM    MI
 # MIROC-ESM    	    MR
 # NorESM1-M	        NO
-# model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM", "NorESM1-M")# naming must be in the same reading order of the origin directory.
 
-# model_names <- c("BC", "CC", "GS", "HD", "HE", "IP", "MC", "MG", "MI", "MR", "NO") # must be in the same order of the directories.
 
 ### Read the variables ----
 
@@ -61,27 +59,26 @@ rcp_45 <- tooth_fairy( x = "./data/climatic_vars/45bi70/")
 rcp_60 <- tooth_fairy( x = "./data/climatic_vars/60bi70/")
 rcp_85 <- tooth_fairy( x = "./data/climatic_vars/85bi70/")
 
-
-
 ## plot variables
 
-### Standard Deviation of the variables-----
 
+### Standard Deviation of the variables-----
 # determining the Quartile Coefficient of Deviation (qcd)
+
 
 ### Map sd -----
 
+
 ### Identifying areas of high heterogeneity between models -----
 
+
 ### Absolute change, using thresholds ----
+
 
 ### Correlation between predictions----
 # library (amap)
 model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM", "NorESM1-M") # must be in the same order of the directories.
-
 # model_names <- c("BC", "CC", "GS", "HD", "HE", "IP", "MC", "MG", "MI", "MR", "NO") # must be in the same order of the directories.
-
-# model_names <- c("ALTER-CCSM4", "ALTER-NorESM1-M", "BCC-CSM1-1", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM") # must be in the same order of th
 
 hc <- list()
 for (i in 1:19)
@@ -92,7 +89,6 @@ for (i in 1:19)
   # rect.hclust(raw_data, k=i, border = "gray") Erro: $ operator is invalid for atomic vectors
   plot (cor_bio)
   hc [[i]] <- cor_bio
-  
 }
 
 # head (cor_bio) 
@@ -107,7 +103,6 @@ for (i in 1:19)
 
 ### Euclidean clusters ----
 # library (stats)
-
 hc_2 <- list()
 for (i in 1:19)
 {
@@ -123,7 +118,6 @@ for (i in 1:19)
 {
   plot (hc_2[[i]]) 
   mtext (names(hc_2)[i], side = 1, line = 2)
-
 }
 
 dev.off()
@@ -131,45 +125,49 @@ plot (hc[[4]],
       hang = -1,
       main = "Cluster Dendrogram\n(RCP 26)")
 
-
 ## Response grouping by k means
-
 res_k_26 <- NULL
 for (i in 1:19){
   res <- cutree(hc[[i]], k = 4) 
   res_k_26 <- rbind (res_k_26, res)
 }
 
-# Write the RCP cluster and the results table
+# Plot the RCP cluster
+# require(factoextra)
 rownames (res_k_26) <- c(paste ("BIO", c(1:19), sep = "")) 
 hc_k_26 <- hcluster (t(res_k_26), method = "euclidean")
-hcd <- as.dendrogram((hc_k_26))
-nodePar <- list(lab.cex = 0.9, pch = c(NA,19), cex = 0.7, col = "blue")
-par(oma = c(0, 0, 0, 4))
-plot (as.dendrogram(hc_k_26),
-      horiz   = TRUE,
-      nodePar = nodePar,
-      edgePar = list(col = 1:1, lwd = 2:1),
-      xlim    = c(14, 0),
-      xlab    = "Height",
-      main    = "Cluster Dendrogram by K means\n(RCP 26)")
+fviz_dend (hc_k_26,
+           k           = 4,
+           cex         = 1,
+           horiz       = TRUE,
+           k_colors    = 'jco',
+           rect        = TRUE,
+           rect_border = 'jco',
+           rect_fill   = TRUE,
+           # k_colors = c("#2E9FDF", "#00AFBB", "#E7B800", "#FC4E07"),
+           # color_labels_by_k = TRUE,  # color labels by groups
+           # ggtheme = theme_dark(),     # Change theme
+           main       = "Cluster Dendrogram for RCP 26")
+
+# See the results table
 t(res_k_26)
+dev.off()
 
-## Response grouping by Height
-res_h_26 <- NULL
-for (i in 1:19){
-  res <- cutree(hc[[i]], h = 0.2) 
-  res_h_26 <- rbind (res_h_26, res)
-}
-
-# Write the RCP cluster and the results table
-rownames (res_h_26) <- c(paste ("BIO", c(1:19), sep = "")) 
-hc_h_26 <- hcluster (t(res_h_26), method = "euclidean")
-plot (hc_h_26,
-      hang = -1,
-      # cex  = 0.6,
-      main = "Cluster Dendrogram by Height\n(RCP 26)")
-t(res_h_26)
+# ## Response grouping by Height
+# res_h_26 <- NULL
+# for (i in 1:19){
+#   res <- cutree(hc[[i]], h = 0.2) 
+#   res_h_26 <- rbind (res_h_26, res)
+# }
+# 
+# # Write the RCP cluster and the results table
+# rownames (res_h_26) <- c(paste ("BIO", c(1:19), sep = "")) 
+# hc_h_26 <- hcluster (t(res_h_26), method = "euclidean")
+# plot (hc_h_26,
+#       hang = -1,
+#       # cex  = 0.6,
+#       main = "Cluster Dendrogram by Height\n(RCP 26)")
+# t(res_h_26)
 
 
 # Tables of cluster results ####
@@ -290,14 +288,15 @@ t(res_h_26)
 # NorESM1-M          1     2     1     1     1     1     2     2
 # > 
 
+
 ### ??? Construct clusters with the GCMs---- 
-# Is't this what I just did above?
-
-
-# # read correlation between models to 
+#?? Is't this what I just did above?
+# read correlation between models to 
 # library (tree)
 # library (rpart)
 
+
 ## correlation: Variables
+
 
 ## correlation models
