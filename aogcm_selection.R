@@ -83,7 +83,7 @@ model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES",
 hc <- list()
 for (i in 1:19)
 {
-  raw_data <- t(rcp_26[ , i+2, ]) # get the variable data except the first two columms (lat, long)
+  raw_data <- t(rcp_60[ , i+2, ]) # get the variable data except the first two columms (lat, long)
   rownames (raw_data) <- model_names 
   cor_bio <- hcluster (raw_data, method = "correlation")
   # rect.hclust(raw_data, k=i, border = "gray") Erro: $ operator is invalid for atomic vectors
@@ -106,7 +106,7 @@ for (i in 1:19)
 hc_2 <- list()
 for (i in 1:19)
 {
-  raw_data <- t(rcp_26[ , i+2, ])
+  raw_data <- t(rcp_60[ , i+2, ])
   rownames (raw_data) <- model_names 
   cor_bio <- hcluster (raw_data, method = "euclidean")
   hc_2[[i]] <- cor_bio
@@ -120,38 +120,47 @@ for (i in 1:19)
   mtext (names(hc_2)[i], side = 1, line = 2)
 }
 
-dev.off()
+
 plot (hc[[4]],
       hang = -1,
-      main = "Cluster Dendrogram\n(RCP 26)")
+      main = "Cluster Dendrogram\n(RCP 60)")
 
 ## Response grouping by k means
-res_k_26 <- NULL
+res_k_60 <- NULL
 for (i in 1:19){
   res <- cutree(hc[[i]], k = 4) 
-  res_k_26 <- rbind (res_k_26, res)
+  res_k_60 <- rbind (res_k_60, res)
 }
+# dev.off()
 
-# Plot the RCP cluster
+# Plot and Write the RCP cluster as PDF
 # require(factoextra)
-rownames (res_k_26) <- c(paste ("BIO", c(1:19), sep = "")) 
-hc_k_26 <- hcluster (t(res_k_26), method = "euclidean")
-fviz_dend (hc_k_26,
-           k           = 4,
-           cex         = 1,
-           horiz       = TRUE,
-           k_colors    = 'jco',
-           rect        = TRUE,
-           rect_border = 'jco',
-           rect_fill   = TRUE,
-           # k_colors = c("#2E9FDF", "#00AFBB", "#E7B800", "#FC4E07"),
-           # color_labels_by_k = TRUE,  # color labels by groups
-           # ggtheme = theme_dark(),     # Change theme
-           main       = "Cluster Dendrogram for RCP 26")
+rownames (res_k_60) <- c(paste ("BIO", c(1:19), sep = "")) 
+hc_k_60 <- hcluster (t(res_k_60), method = "euclidean")
 
-# See the results table
-t(res_k_26)
-dev.off()
+plot (hc_k_60,
+      hang = -1,
+      main = "Cluster Dendrogram\n(RCP 60)")
+
+pdf("./data/plots/cluster-rcp60.pdf", width=16, height=12)# Open a PDF device. Run at once from here till dev.off()
+p <- fviz_dend (hc_k_60,
+                k           = 4,
+                cex         = 0.9,
+                horiz       = TRUE,
+                k_colors    = 'jco',
+                # rect        = TRUE, # error at rcp60
+                # rect_border = 'jco',
+                # rect_fill   = TRUE,
+                # k_colors = c("#2E9FDF", "#00AFBB", "#E7B800", "#FC4E07"),
+                # color_labels_by_k = TRUE,# color labels by groups
+                # ggtheme = theme_dark(), # Using ggplot themes
+                main       = "Cluster Dendrogram for RCP 60")
+print(p)
+dev.off() # Close the PDF
+
+## See the results table
+t(res_k_60)
+
 
 # ## Response grouping by Height
 # res_h_26 <- NULL
