@@ -137,26 +137,22 @@ for (i in 1:19){
 # require(factoextra)
 rownames (res_k_60) <- c(paste ("BIO", c(1:19), sep = "")) 
 hc_k_60 <- hcluster (t(res_k_60), method = "euclidean")
-
-plot (hc_k_60,
-      hang = -1,
-      main = "Cluster Dendrogram\n(RCP 60)")
-
-pdf("./data/plots/cluster-rcp60.pdf", width=16, height=12)# Open a PDF device. Run at once from here till dev.off()
+pdf("./data/plots/cluster-rcp60.pdf", width=16, height=12)#Open a PDF device. Run at once from here till dev.off()
 p <- fviz_dend (hc_k_60,
-                k           = 4,
-                cex         = 0.9,
+                k           = 4,                          #cut in four groups
+                cex         = 0.9,                        #label size
                 horiz       = TRUE,
                 k_colors    = 'jco',
-                # rect        = TRUE, # error at rcp60
-                # rect_border = 'jco',
-                # rect_fill   = TRUE,
+                rect        = TRUE,                       # error only at rcp60 at k=4
+                rect_border = 'jco',
+                rect_fill   = TRUE,
+                xlim        = c(14, 0),
                 # k_colors = c("#2E9FDF", "#00AFBB", "#E7B800", "#FC4E07"),
-                # color_labels_by_k = TRUE,# color labels by groups
-                # ggtheme = theme_dark(), # Using ggplot themes
-                main       = "Cluster Dendrogram for RCP 60")
+                # color_labels_by_k = TRUE,
+                # ggtheme = theme_dark(),
+                main        = "Cluster Dendrogram for RCP 60")
 print(p)
-dev.off() # Close the PDF
+dev.off()                                                 # Close the PDF
 
 ## See the results table
 t(res_k_60)
