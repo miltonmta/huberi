@@ -137,27 +137,48 @@ for (i in 1:19){
 # require(factoextra)
 rownames (res_k_60) <- c(paste ("BIO", c(1:19), sep = "")) 
 hc_k_60 <- hcluster (t(res_k_60), method = "euclidean")
+
+par(mar = c(5, 4, 4, 8))
+par(cex = 4)
 pdf("./data/plots/cluster-rcp60.pdf", width=16, height=12)#Open a PDF device. Run at once from here till dev.off()
+par(mar = c(5, 4, 4, 8))
 p <- fviz_dend (hc_k_60,
                 k           = 4,                          #cut in four groups
                 cex         = 0.9,                        #label size
                 horiz       = TRUE,
                 k_colors    = 'jco',
-                rect        = TRUE,                       # error only at rcp60 at k=4
+                # rect        = TRUE,                       # error only at rcp60 at k=4
                 rect_border = 'jco',
-                rect_fill   = TRUE,
-                xlim        = c(14, 0),
+                rect_fill   = TRUE)
                 # k_colors = c("#2E9FDF", "#00AFBB", "#E7B800", "#FC4E07"),
                 # color_labels_by_k = TRUE,
                 # ggtheme = theme_dark(),
-                main        = "Cluster Dendrogram for RCP 60")
+                # main        = "Cluster Dendrogram for RCP 60")
+theme(axis.title = element_text(size = 20))
 print(p)
 dev.off()                                                 # Close the PDF
+
+# require(dendextend)
+# require(magrittr)
+# colorfull <- c("#2E9FDF", "#00AFBB", "#E7B800", "#FC4E07")
+# rownames (res_k_45) <- c(paste ("BIO", c(1:19), sep = ""))
+# # par(mar = c(5, 4, 4, 8))
+# hc_k_45 <- t(res_k_45) %>%
+#   hcluster() %>%
+#   as.dendrogram() %>%
+#   set("labels_cex", 0.9) %>%
+#   set("labels_col", value = colorfull, k = 4) %>%
+#   set("branches_k_color", value = colorfull, k =4) %>%
+#   rect.dendrogram(k = 2, lty = 5, lwd = 0, horiz = TRUE) %>%
+#   plot(main = "Cluster Dendrogram for RCP 26", horiz = TRUE, xlim = c(14, 0))
+# ?rect.dendrogram
+# Error in rect(xleft, ybottom, xright, ytop, border = border[n], density = density,  : 
+#                 não é possível misturar coordenadas de comprimento zero com de não-zero
 
 ## See the results table
 t(res_k_60)
 
-
+?fviz_dend
 # ## Response grouping by Height
 # res_h_26 <- NULL
 # for (i in 1:19){
