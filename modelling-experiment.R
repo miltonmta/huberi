@@ -1,3 +1,6 @@
+# Packages ######
+# install.packages(c("raster", "rgdal", "abind", "vegan", "maps", "mask","pcych", "kernlab", "dismo", "rJava")
+require(kernlab)
 require(raster)
 require(rgdal)
 require(abind)
@@ -19,8 +22,8 @@ browseURL("http://www.worldclim.org/cmip5_2.5m")
 #?? Here we will import and process only the worldclim varibles for current conditions (~1960-1990), by the spatial resolution of 2.5min. We'll submmit them to a varimax selection procedure. Once, selected through the loadings scores, we'll make use of the same variable number in each future model across all the GCM models at the four RCPs scenarios for 2070.
 browseURL("http://www.worldclim.org/current")
 
-# Current Model ----
-nuala <- function (dir)
+## Current Model ----
+tinker_bell <- function (dir)
 {
   model_raw <- stack(list.files(dir,  pattern = ".bil$", full.names = TRUE)) 
   e <- extent(-122, -18, -56, 14) 
@@ -32,16 +35,49 @@ nuala <- function (dir)
   return(model)
 }
 
-current <- nuala(dir = "./data/climatic_vars/current")
+current <- tinker_bell(dir = "./data/climatic_vars/current")
 current [1:5, ]
 nrow(current)
 
-# RCPs Models ----
+## RCPs Models ----
+
+# Wolrdclim GCM codes
+
+# BCC-CSM1-1	      BC
+# CCSM4	            CC
+# GISS-E2-R	        GS
+# HadGEM2-AO	      HD
+# HadGEM2-ES        HE	
+# IPSL-CM5A-LR	    IP
+# MIROC5            MC
+# MRI-CGCM3	        MG
+# MIROC-ESM-CHEM    MI
+# MIROC-ESM    	    MR
+# NorESM1-M	        NO
+
 # based on the cluster analysis we'll import only the selected variables at each RCP scenario.
-# RCP 26: IPSL-CMSA-LR(IP), MIROC-ESM(MR), CCSM4(CC), HADGEM2-AO(HD)
-# RCP 45: IPSL-CMSA-LR(IP), MIROC-ESM(MR), CCSM4(CC), HADGEM2-AO(HD)
-# RCP 60: IPSL-CMSA-LR(IP), MIROC-ESM(MR), CCSM4(CC), MRI-CGCM3(MG)
-# RCP 85: IPSL-CMSA-LR(IP), MIROC-ESM(MR), CCSM4(CC), MIROC5(MC)
+# RCP 26: CCSM4(CC), HADGEM2-AO(HD),   IPSL-CMSA-LR(IP), MIROC-ESM(MR) 
+# RCP 45: CCSM4(CC), HADGEM2-AO(HD),   IPSL-CMSA-LR(IP), MIROC-ESM(MR) 
+# RCP 60: CCSM4(CC), IPSL-CMSA-LR(IP), MRI-CGCM3(MG),    MIROC-ESM(MR)
+# RCP 85: CCSM4(CC), IPSL-CMSA-LR(IP), MIROC5(MC),       MIROC-ESM(MR)
+
+# naming must be in the exact order of the origin directory.
+model_names_rcp26 <- c("CCSM4", "HadGEM2-AO",   "IPSL-CM5A-LR", "MIROC-ESM")
+model_names_rcp45 <- c("CCSM4", "HadGEM2-AO",   "IPSL-CM5A-LR", "MIROC-ESM")
+model_names_rcp60 <- c("CCSM4", "IPSL-CM5A-LR", "MRI-CGCM3",    "MIROC-ESM")
+model_names_rcp85 <- c("CCSM4", "IPSL-CM5A-LR", "MIROC5",       "MIROC-ESM") 
+
+#?#####
+# ...0r... for maintanining comparability... 
+
+# RCP 26: CCSM4(CC),                   IPSL-CMSA-LR(IP), MIROC-ESM(MR) 
+# RCP 45: CCSM4(CC),                   IPSL-CMSA-LR(IP), MIROC-ESM(MR) 
+# RCP 60: CCSM4(CC), IPSL-CMSA-LR(IP),                   MIROC-ESM(MR)
+# RCP 85: CCSM4(CC), IPSL-CMSA-LR(IP),                   MIROC-ESM(MR)
+
+# naming must be in the exact order of the origin directory.
+model_names <- c("CCSM4", "IPSL-CM5A-LR", "MIROC-ESM")
+
 
 tooth_fairy <- function (x)
 {
@@ -65,46 +101,18 @@ tooth_fairy <- function (x)
   return(rcp) 
 }
 
-rcp26 <- tooth_fairy( x = "./data/climatic_vars/selected/26bi70/")
-rcp45 <- tooth_fairy( x = "./data/climatic_vars/selected/45bi70/")
-rcp60 <- tooth_fairy( x = "./data/climatic_vars/selected/60bi70/")
-rcp85 <- tooth_fairy( x = "./data/climatic_vars/selected/85bi70/")
+rcp26_select <- tooth_fairy( x = "./data/climatic_vars/selected/26bi70/")
+rcp45_select <- tooth_fairy( x = "./data/climatic_vars/selected/45bi70/")
+rcp60_select <- tooth_fairy( x = "./data/climatic_vars/selected/60bi70/")
+rcp85_select <- tooth_fairy( x = "./data/climatic_vars/selected/85bi70/")
 
-## Wolrdclim GCM codes ----
-
-# BCC-CSM1-1	      BC
-# CCSM4	            CC
-# GISS-E2-R	        GS
-# HadGEM2-AO	      HD
-# HadGEM2-ES        HE	
-# IPSL-CM5A-LR	    IP
-# MIROC5            MC
-# MRI-CGCM3	        MG
-# MIROC-ESM-CHEM    MI
-# MIROC-ESM    	    MR
-# NorESM1-M	        NO
-
-model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM", "NorESM1-M")# naming must be in the same sequence of the origin directory reading order.
-
-# model_names <- c("BC", "CC", "GS", "HD", "HE", "IP", "MC", "MG", "MI", "MR", "NO") # must be in the same order of the directories.
 
 # 02. Varimax variable selection #########################################################################
+# install.packages("psych")
 require(psych)
 #?####
-#I left it running over nigth, but it never ended.
 
 fa.parallel(current[ , -c(1:2)], fa = 'fa') #scree plot
-## The estimated weights for the factor scores are probably incorrect.  Try a different factor extraction method.
-## In factor.scores, the correlation matrix is singular, an approximation is used
- 
-# Parallel analysis suggests that the number of factors =  5  and the number of components =  NA 
-
-## Warning messages:
-## 1: In cor.smooth(R) : Matrix was not positive definite, smoothing was done
-## 2: In cor.smooth(R) : Matrix was not positive definite, smoothing was done
-## 3: In cor.smooth(R) : Matrix was not positive definite, smoothing was done
-## 4: In cor.smooth(r) : Matrix was not positive definite, smoothing was done
-## 5: In cor.smooth(r) : Matrix was not positive definite, smoothing was done
 current_fa <- fa(current[ , -c(1:2)], nfactors = 5, rotate = 'varimax')
 current_loadings <- loadings(current_fa)
 
@@ -132,12 +140,11 @@ current_loadings <- loadings(current_fa)
 
 ### 03. Saving selected variables #######################################################################
 
-# Now we have selected the variables bio... from the current GMC (worldclim v 1.4 at 2,5"), we'll take the same variable number from the selected models of the each one of the four RCP scenarious  and save them  at "./data/climatic_vars" as a .grd file.
+# Now we have selected the variables bio... from the current GMC (worldclim v 1.4 at 2,5"), we'll take the same variable number from the selected models of the each one of the four RCP scenarious  and save them  at "./data/climatic_vars/selected/current" as a .grd file.
 
 ## current
 # saving as table
-
-write.table(current[,c("x", "y" )], "./data/climatic_vars/selected/current.txt", row.names = F, sep = " ")  
+write.table(current[,c("x", "y", "bio...", "..." )], "./data/climatic_vars/selected/current.txt", row.names = F, sep = " ")  
 # alternatively:
 # write.table(current[,c("x", "y")], "clima_AS.csv", row.names=F, sep=",")
 
@@ -155,31 +162,26 @@ bio <- raster("./data/climatic_vars/selected/bio_current.grd")
 bio <- raster("./data/climatic_vars/selected/bio_current.grd")
 bio <- raster("./data/climatic_vars/selected/bio_current.grd")
 
-# Binding the variables
 current_select <- stack(c(bio, bio, bio, bio, bio))
 names(clima.AS) <- c("bio","bio", "bio", "bio", "bio")
 plot(clima.AS)
 
 
-## Creating objects for all RCPs with the selected variables 
-#??####
+## RCPs
+#??----
+#check 
 
-# how to extract the selected variables simultaneously form all model at the four RCPs?
-# since the variables have already been processed within the function tinker_bell, here we just have to get the selected ones from the arrays.
+# saving array of aogcm models as table??
+write.table(rcp26_select, "./data/climatic_vars/selected/rcp26-select.txt", row.names = F, sep = "	")
+write.table(rcp45_select, "./data/climatic_vars/selected/rcp45-select.txt", row.names = F, sep = "	")
+write.table(rcp60_select, "./data/climatic_vars/selected/rcp60-select.txt", row.names = F, sep = "	")
+write.table(rcp85_select, "./data/climatic_vars/selected/rcp85-select.txt", row.names = F, sep = "	")
 
-rcp26_select
-
-rcp45_select
-
-rcp60_select
-
-rcp85_select
-
-
-write.table(rcp26_select, "./data/climatic_vars/selected/rcp-26-select.txt", row.names = F, sep = "	")
-write.table(rcp45_select, "./data/climatic_vars/selected/rcp-26-select.txt", row.names = F, sep = "	")
-write.table(rcp60_select, "./data/climatic_vars/selected/rcp-26-select.txt", row.names = F, sep = "	")
-write.table(rcp85_select, "./data/climatic_vars/selected/rcp-26-select.txt", row.names = F, sep = "	")
+# saving array of aogcm models as raster
+writeRaster(rcp26_select, "./data/climatic_vars/selected/rcp26-select.grd", format = "raster")
+writeRaster(rcp45_select, "./data/climatic_vars/selected/rcp45-select.grd", format = "raster")
+writeRaster(rcp60_select, "./data/climatic_vars/selected/rcp60-select.grd", format = "raster")
+writeRaster(rcp85_select, "./data/climatic_vars/selected/rcp85-select.grd", format = "raster")
 
 
 # 04. Occurrencies data ###################################################################################
@@ -260,16 +262,12 @@ require(rJava)
 
 fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "...", background_huberi = "...", background_plants = "...", cross_validation = ...)
 {
-  AOGCMs <- model_names
   
-  ## loading occurrency and backgound data.
-  occur_h <- read.table(occurrency_huberi, h = T)
-  occur_p <- read.table(occurrency_plants, h = T)
-  back_h <- read.table(background_huberi, h = T)
-  back_p <- read.talbe(background_plants, h = T)
-  
-  ## Creating empty objects for saving results from all AOGCMs
+  # Creating empty objects for considering the difefferent AOGCMs
   output_current <- output_rcp26 <- output_rcp45 <- output_rcp60 <- output_rcp85 <- NULL
+  
+  # model_names <- c("CCSM4", "IPSL-CM5A-LR", "MIROC-ESM")
+  AOGCMs <- model_names
   
   for (j in AOGCMs)
   {
@@ -277,14 +275,20 @@ fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "..."
     
     ### Reading the climatic files
     # ???----
-    # I know I must creat a loop here for iteranting througt the aogcm  of my selected models at all RCPs
-    # how?
-    AOGCM_CURRENT <- # j # only one model here. 
-    AOGCM_RCP26 <- # j
-    AOGCM_RCP45 <- # j
-    AOGCM_RCP60 <- # j
-    AOGCM_RCP85 <- # j
+    # I know I must creat a loop here for iteranting througt the aogcm  of my selected models at all RCPs.  How?
     
+    AOGCM_CURRENT <- # j   # only one model here. 
+    AOGCM_RCP26   <- # j   # Three models here.
+    AOGCM_RCP45   <- # j   # Three models here.
+    AOGCM_RCP60   <- # j   # Three models here.
+    AOGCM_RCP85   <- # j   # Three models here.
+    
+    ### loading occurrency and backgound data.
+    occur_h <- read.table(occurrency_huberi, h = T)
+    occur_p <- read.table(occurrency_plants, h = T)
+    back_h <- read.table(background_huberi, h = T)
+    back_p <- read.talbe(background_plants, h = T)  
+      
     ### Creating objects for saving partial results for each cross validation loop
     ## huberi
     bioclim_c_h <- gower_c_h <- maha_c_h <- maxent_c_h <- SVM_c_h <- GLM_c_h <- stack()
@@ -638,6 +642,7 @@ fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "..."
   
 }# closes the function fairy_godmother
 
+# Running my model ####
 fairy_godmother (occurrency_huberi = "./data/ocurrencies/huberi-var.txt", occurrency_plants = "./data/ocurrencies/plants-var.txt", background_huberi = "./data/ocurrencies/Background-random-huberi.txt", background_plants = "./data/ocurrencies/Background-random-plants.txt")
 
 
@@ -1019,7 +1024,7 @@ period <- c(bioclim_period_p, gower_period_p, maha_period_p, maxent_period_p, SV
 ################################ List of improvements to the scritp ###############################
 
 # 1. Implement occurrency data filtering at the ambiental space!
-# 1. Transform maps in frequencies intead of suitabilities.
+# 1. Transform maps in frequencies instead of suitabilities.
 # 2. Impelement multi cores for running several models simultaneously.
 
 
