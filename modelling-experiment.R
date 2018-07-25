@@ -1,12 +1,13 @@
 # Packages ######
 # install.packages(c("raster", "rgdal", "abind", "vegan", "maps", "mask","pcych", "kernlab", "dismo", "rJava")
-require(kernlab)
+
 require(raster)
 require(rgdal)
 require(abind)
 require(vegan)
 require(maps)
 require(mask)
+require(kernlab)
 
 # This script has an index table. If you are in RStudio go to Code > Show Document Outline (shift + command / clrt + o)
 
@@ -19,7 +20,7 @@ browseURL("http://www.worldclim.org/cmip5_2.5m")
 
 # 01. read aogcms models ############################################################################
 
-#?? Here we will import and process only the worldclim varibles for current conditions (~1960-1990), by the spatial resolution of 2.5min. We'll submmit them to a varimax selection procedure. Once, selected through the loadings scores, we'll make use of the same variable number in each future model across all the GCM models at the four RCPs scenarios for 2070.
+#?? Here we will import and process only the worldclim variables for current conditions (~1960-1990), by the spatial resolution of 2.5min. We'll submmit them to a varimax selection procedure. Once, selected through the loadings scores, we'll make use of the same variable number in each future model across all the GCM models at the four RCPs scenarios for 2070.
 browseURL("http://www.worldclim.org/current")
 
 ## Current Model ----
@@ -56,24 +57,20 @@ nrow(current)
 # NorESM1-M	        NO
 
 # based on the cluster analysis we'll import only the selected variables at each RCP scenario.
+
 # RCP 26: CCSM4(CC), HADGEM2-AO(HD),   IPSL-CMSA-LR(IP), MIROC-ESM(MR) 
 # RCP 45: CCSM4(CC), HADGEM2-AO(HD),   IPSL-CMSA-LR(IP), MIROC-ESM(MR) 
 # RCP 60: CCSM4(CC), IPSL-CMSA-LR(IP), MRI-CGCM3(MG),    MIROC-ESM(MR)
 # RCP 85: CCSM4(CC), IPSL-CMSA-LR(IP), MIROC5(MC),       MIROC-ESM(MR)
 
-# naming must be in the exact order of the origin directory.
-model_names_rcp26 <- c("CCSM4", "HadGEM2-AO",   "IPSL-CM5A-LR", "MIROC-ESM")
-model_names_rcp45 <- c("CCSM4", "HadGEM2-AO",   "IPSL-CM5A-LR", "MIROC-ESM")
-model_names_rcp60 <- c("CCSM4", "IPSL-CM5A-LR", "MRI-CGCM3",    "MIROC-ESM")
-model_names_rcp85 <- c("CCSM4", "IPSL-CM5A-LR", "MIROC5",       "MIROC-ESM") 
-
-#?#####
-# ...0r... for maintanining comparability... 
+#!#####
+# for maintanining comparability... 
 
 # RCP 26: CCSM4(CC),                   IPSL-CMSA-LR(IP), MIROC-ESM(MR) 
 # RCP 45: CCSM4(CC),                   IPSL-CMSA-LR(IP), MIROC-ESM(MR) 
 # RCP 60: CCSM4(CC), IPSL-CMSA-LR(IP),                   MIROC-ESM(MR)
 # RCP 85: CCSM4(CC), IPSL-CMSA-LR(IP),                   MIROC-ESM(MR)
+
 
 # naming must be in the exact order of the origin directory.
 model_names <- c("CCSM4", "IPSL-CM5A-LR", "MIROC-ESM")
@@ -108,13 +105,18 @@ rcp85_select <- tooth_fairy( x = "./data/climatic_vars/selected/85bi70/")
 
 
 # 02. Varimax variable selection #########################################################################
-# install.packages("psych")
+# install.packages(c("psych", "GPArotation"), dependencies = TRUE)
 require(psych)
-#?####
+# require(GPArotation)
 
+?fa
 fa.parallel(current[ , -c(1:2)], fa = 'fa') #scree plot
 current_fa <- fa(current[ , -c(1:2)], nfactors = 5, rotate = 'varimax')
-current_loadings <- loadings(current_fa)
+loadings <- loadings(current_fa)
+
+#!!####
+# Matheus Ribeiro is running the factorial selection analysis with the "current" object to provide the loadings table. For now we'll use the variables selected by Matheus at one of the courses, as follows: 
+#bio1, bio2, bio3, bio16, bio17
 
 ## Bioclimatic Variables Descriptions #######
 
@@ -139,37 +141,54 @@ current_loadings <- loadings(current_fa)
 #BIO19 = Precipitation of Coldest Quarter
 
 ### 03. Saving selected variables #######################################################################
-
-# Now we have selected the variables bio... from the current GMC (worldclim v 1.4 at 2,5"), we'll take the same variable number from the selected models of the each one of the four RCP scenarious  and save them  at "./data/climatic_vars/selected/current" as a .grd file.
+# Selected variables: bio1, bio2, bio3, bio16, bio17.
 
 ## current
 # saving as table
-write.table(current[,c("x", "y", "bio...", "..." )], "./data/climatic_vars/selected/current.txt", row.names = F, sep = " ")  
+write.table(current[,c("x", "y", "bio1", "bio2", "bio3", "bio16", "bio17" )], "./data/climatic_vars/selected/current-select.txt", row.names = F, sep = " ")  
 # alternatively:
 # write.table(current[,c("x", "y")], "clima_AS.csv", row.names=F, sep=",")
 
+
 # saving as raster
-writeRaster(current$bio, "./data/climatic_vars/selected/bio_current.grd", format = "raster")
-writeRaster(current$bio, "./data/climatic_vars/selected/bio_current.grd", format = "raster")
-writeRaster(current$bio, "./data/climatic_vars/selected/bio_current.grd", format = "raster")
-writeRaster(current$bio, "./data/climatic_vars/selected/bio_current.grd", format = "raster")
-writeRaster(current$bio, "./data/climatic_vars/selected/bio_current.grd", format = "raster")
+#??----
+
+# Error in current$bio1 : $ operator is invalid for atomic vectors
+is.recursive(current)
+# FALSE
+current_txt <- read.table("./data/climatic_vars/selected/current-select.txt", h = T, "")
+is.recursive(current_txt)
+# TRUE
+# Bad solution becouse to use writeRaster my origin object must be an S4 class objetc.
+
+
+writeRaster(subset(current, grep("bio1")), "./data/climatic_vars/selected/bio1_current.grd", format = "raster")
+# Error in grep("bio1") : argumento "x" ausente, sem padrão
+writeRaster(subset(current, grep("bio1", names(current), value = F)), "./data/climatic_vars/selected/bio1_current.grd", format = "raster")
+# Error in subset.matrix(current, grep("bio1", names(current), value = F)) : 'subset' must be logical
+
+writeRaster(current$bio1, "./data/climatic_vars/selected/bio1_current.grd", format = "raster")
+# Error in current$bio1 : $ operator is invalid for atomic vectors
+writeRaster(current$bio2, "./data/climatic_vars/selected/bio2_current.grd", format = "raster")
+writeRaster(current$bio3, "./data/climatic_vars/selected/bio3_current.grd", format = "raster")
+writeRaster(current$bio16, "./data/climatic_vars/selected/bio16_current.grd", format = "raster")
+writeRaster(current$bio17, "./data/climatic_vars/selected/bio17_current.grd", format = "raster")
 
 # reading selected variables raster files
-bio <- raster("./data/climatic_vars/selected/bio_current.grd")
-bio <- raster("./data/climatic_vars/selected/bio_current.grd")
-bio <- raster("./data/climatic_vars/selected/bio_current.grd")
-bio <- raster("./data/climatic_vars/selected/bio_current.grd")
-bio <- raster("./data/climatic_vars/selected/bio_current.grd")
+bio1 <- raster("./data/climatic_vars/selected/bio1_current.grd")
+bio2 <- raster("./data/climatic_vars/selected/bio2_current.grd")
+bio3 <- raster("./data/climatic_vars/selected/bio3_current.grd")
+bio16 <- raster("./data/climatic_vars/selected/bio16_current.grd")
+bio17 <- raster("./data/climatic_vars/selected/bio17_current.grd")
 
-current_select <- stack(c(bio, bio, bio, bio, bio))
-names(clima.AS) <- c("bio","bio", "bio", "bio", "bio")
-plot(clima.AS)
+current_select <- stack(c(bio1, bio2, bio3, bio16, bio17))
+names(current_select) <- c("bio1","bio2", "bio3", "bio16", "bio17")
+plot(current_select)
 
 
 ## RCPs
-#??----
-#check 
+
+#How to extract bio1, bio2, bio3, bio16, bio17 from the arrays?
 
 # saving array of aogcm models as table??
 write.table(rcp26_select, "./data/climatic_vars/selected/rcp26-select.txt", row.names = F, sep = "	")
@@ -211,10 +230,8 @@ duplicated(host_plantss_cell)
 host_plants_cell <- unique(host_plants_cell)
 host_plants_var <- extract(current_select, host_plants_cell)
 
-
 write.table(huberi_var, "./data/ocurrencies/huberi-var.txt", row.names = F, sep = " ") 
 write.table(host_plants_var, "./data/ocurrencies/host-plants-var.txt", row.names = F, sep = " ") 
-
 
 ## 05. Background Sampling ##############################################################################
 
@@ -247,17 +264,25 @@ rm(list = ls())
 # require(raster)
 # require(rgdal)
 # require(vegan)
+# require(abind)
 require(dismo)
 require(kernlab)
 require(maps)
-# require(abind)
 dyn.load('/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home/jre/lib/server/libjvm.dylib')
 require(rJava)
 
-# Problems loading Rjava ( necessary package for running Maxent)? 
+# MaxEnt is available as a standalone Java program. Dismo has a function 'maxent' that communicates with this program. To use it you must first download the program from http://www.cs.princeton.edu/~schapire/maxent/. Put the le 'maxent.jar' in the 'java' folder of the 'dismo' package. That is the folder returned by system.file("java", package="dismo"). You need MaxEnt version 3.3.3b or higher.
+
 # 1. Check if JDK is installed going to the path below. If not:
 # browseURL("http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html")
 # browseURL ("https://stackoverflow.com/questions/30738974/rjava-load-error-in-rstudio-r-after-upgrading-to-osx-yosemite")
+
+
+# 2. checking if the jar file is present. If not, skip this bit
+# 	jar <- paste(system.file(package="dismo"), "/java/maxent.jar", sep='')
+#	 file.exists(jar)
+
+# 3. Use dyn.load for ataching the libjvm.dylib file before running the `rJava` Package.
 
 
 fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "...", background_huberi = "...", background_plants = "...", cross_validation = ...)
@@ -439,12 +464,7 @@ fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "..."
       
       
       ### Maxent ----
-      
-      #   MaxEnt is available as a standalone Java program. Dismo has a function 'maxent' that communicates with this program. To use it you must first download the program from http://www.cs.princeton.edu/~schapire/maxent/. Put the le 'maxent.jar' in the 'java' folder of the 'dismo' package. That is the folder returned by system.file("java", package="dismo"). You need MaxEnt version 3.3.3b or higher.
-      
-      # checking if the jar file is present. If not, skip this bit
-      # 	jar <- paste(system.file(package="dismo"), "/java/maxent.jar", sep='')
-      #	 file.exists(jar)
+    
       
       ## huberi
       # ajusting models
