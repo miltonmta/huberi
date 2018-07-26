@@ -24,21 +24,19 @@ browseURL("http://www.worldclim.org/cmip5_2.5m")
 browseURL("http://www.worldclim.org/current")
 
 ## Current Model ----
-tinker_bell <- function (dir)
+tinker_bell <- function (dir)                                                # 19 .bil files at the directory
 {
-  model_raw <- stack(list.files(dir,  pattern = ".bil$", full.names = TRUE)) 
+  model_raw <- stack(list.files(dir,  pattern = ".bil$", full.names = TRUE)) # Object Type RasterStack (241.1KB) nrow 3600
   e <- extent(-122, -18, -56, 14) 
-  model_e <- crop(model_raw, e) 
-  val <- getValues(model_e) 
-  coord <- xyFromCell(model_e, 1:ncell(model_e))
-  model <- cbind(coord, val)
-  model <- na.omit(model)
+  model_e <- crop(model_raw, e)                                              # Object Type RasterBrick (303.9 MB) nrow 1680
+  val <- getValues(model_e)                                                  # Object Type matrix (303.9 MB) nrow 4193280
+  coord <- xyFromCell(model_e, 1:ncell(model_e))                             # Object Type matrix (64MB) nrow 4193280
+  model <- cbind(coord, val)                                                 # Object Type matrix (671,8 MB) nrow 4193280
+  model <- na.omit(model)                                                    # Object Type matrix (171,2 MB) nrow 912559
   return(model)
 }
 
-current <- tinker_bell(dir = "./data/climatic_vars/current")
-current [1:5, ]
-nrow(current)
+current <- tinker_bell(dir = "./data/climatic_vars/current")                  # Object Type matrix (171,2 MB) nrow 912559
 
 ## RCPs Models ----
 
@@ -109,13 +107,12 @@ rcp85_select <- tooth_fairy( x = "./data/climatic_vars/selected/85bi70/")
 require(psych)
 # require(GPArotation)
 
-?fa
 fa.parallel(current[ , -c(1:2)], fa = 'fa') #scree plot
 current_fa <- fa(current[ , -c(1:2)], nfactors = 5, rotate = 'varimax')
 loadings <- loadings(current_fa)
 
 #!!####
-# Matheus Ribeiro is running the factorial selection analysis with the "current" object to provide the loadings table. For now we'll use the variables selected by Matheus at one of the courses, as follows: 
+# Matheus Ribeiro is running the factorial selection analysis with the "current" object to provide the loadings table. For now we'll use the following variables for adjusting the scrip:
 #bio1, bio2, bio3, bio16, bio17
 
 ## Bioclimatic Variables Descriptions #######
@@ -140,55 +137,34 @@ loadings <- loadings(current_fa)
 #BIO18 = Precipitation of Warmest Quarter
 #BIO19 = Precipitation of Coldest Quarter
 
-### 03. Saving selected variables #######################################################################
+# 03. Saving selected variables #######################################################################
 # Selected variables: bio1, bio2, bio3, bio16, bio17.
 
-## current
-# saving as table
+### current
+
+## saving as table
+
 write.table(current[,c("x", "y", "bio1", "bio2", "bio3", "bio16", "bio17" )], "./data/climatic_vars/selected/current-select.txt", row.names = F, sep = " ")  
-# alternatively:
-# write.table(current[,c("x", "y")], "clima_AS.csv", row.names=F, sep=",")
 
-
-# saving as raster
+## saving as raster
 #??----
 
+current <- rasterFromXYZ(current) # The object current was outputted from the function tinker_bell as a matrix. It needs to be a RasterBrick type of object so we could extract the selected variables from it.
+
+writeRaster(current$bio1, "./data/climatic_vars/selected/bio01_current.grd", format = "raster")
 # Error in current$bio1 : $ operator is invalid for atomic vectors
-is.recursive(current)
-# FALSE
-current_txt <- read.table("./data/climatic_vars/selected/current-select.txt", h = T, "")
-is.recursive(current_txt)
-# TRUE
-# Bad solution becouse to use writeRaster my origin object must be an S4 class objetc.
-
-
-writeRaster(subset(current, grep("bio1")), "./data/climatic_vars/selected/bio1_current.grd", format = "raster")
-# Error in grep("bio1") : argumento "x" ausente, sem padrão
-writeRaster(subset(current, grep("bio1", names(current), value = F)), "./data/climatic_vars/selected/bio1_current.grd", format = "raster")
-# Error in subset.matrix(current, grep("bio1", names(current), value = F)) : 'subset' must be logical
-
-writeRaster(current$bio1, "./data/climatic_vars/selected/bio1_current.grd", format = "raster")
-# Error in current$bio1 : $ operator is invalid for atomic vectors
-writeRaster(current$bio2, "./data/climatic_vars/selected/bio2_current.grd", format = "raster")
-writeRaster(current$bio3, "./data/climatic_vars/selected/bio3_current.grd", format = "raster")
+writeRaster(current$bio2, "./data/climatic_vars/selected/bio02_current.grd", format = "raster")
+writeRaster(current$bio3, "./data/climatic_vars/selected/bio03_current.grd", format = "raster")
 writeRaster(current$bio16, "./data/climatic_vars/selected/bio16_current.grd", format = "raster")
 writeRaster(current$bio17, "./data/climatic_vars/selected/bio17_current.grd", format = "raster")
 
-# reading selected variables raster files
-bio1 <- raster("./data/climatic_vars/selected/bio1_current.grd")
-bio2 <- raster("./data/climatic_vars/selected/bio2_current.grd")
-bio3 <- raster("./data/climatic_vars/selected/bio3_current.grd")
-bio16 <- raster("./data/climatic_vars/selected/bio16_current.grd")
-bio17 <- raster("./data/climatic_vars/selected/bio17_current.grd")
 
-current_select <- stack(c(bio1, bio2, bio3, bio16, bio17))
-names(current_select) <- c("bio1","bio2", "bio3", "bio16", "bio17")
+current_select <- stack(list.files("./data/climatic_vars/selected",  pattern = ".grd$", full.names = TRUE))
 plot(current_select)
 
 
 ## RCPs
 
-#How to extract bio1, bio2, bio3, bio16, bio17 from the arrays?
 
 # saving array of aogcm models as table??
 write.table(rcp26_select, "./data/climatic_vars/selected/rcp26-select.txt", row.names = F, sep = "	")
