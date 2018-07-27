@@ -36,7 +36,11 @@ tinker_bell <- function (dir)                                                # 1
   return(model)
 }
 
+## Creating a matrix
 current <- tinker_bell(dir = "./data/climatic_vars/current")                  # Object Type matrix (171,2 MB) nrow 912559
+
+## Creating a RasterBrick
+current_spatial <- rasterFromXYZ(current) 
 
 ## RCPs Models ----
 
@@ -61,7 +65,6 @@ current <- tinker_bell(dir = "./data/climatic_vars/current")                  # 
 # RCP 60: CCSM4(CC), IPSL-CMSA-LR(IP), MRI-CGCM3(MG),    MIROC-ESM(MR)
 # RCP 85: CCSM4(CC), IPSL-CMSA-LR(IP), MIROC5(MC),       MIROC-ESM(MR)
 
-#!#####
 # for maintanining comparability... 
 
 # RCP 26: CCSM4(CC),                   IPSL-CMSA-LR(IP), MIROC-ESM(MR) 
@@ -69,7 +72,7 @@ current <- tinker_bell(dir = "./data/climatic_vars/current")                  # 
 # RCP 60: CCSM4(CC), IPSL-CMSA-LR(IP),                   MIROC-ESM(MR)
 # RCP 85: CCSM4(CC), IPSL-CMSA-LR(IP),                   MIROC-ESM(MR)
 
-
+#! model_names----
 # naming must be in the exact order of the origin directory.
 model_names <- c("CCSM4", "IPSL-CM5A-LR", "MIROC-ESM")
 
@@ -89,18 +92,62 @@ tooth_fairy <- function (x)
     coord <- xyFromCell(models_e, 1:ncell(models_e))
     models <- cbind(coord, val)
     models <- na.omit(models)
+    # models <- rasterFromXYZ(models)
     # models <- rasterToPoints(model) # suggested by R. Hijimans at SO
     rcp <- abind (rcp, models, along = 3)
+    # rcp <- stack(models)
   }
   
   return(rcp) 
 }
 
-rcp26_select <- tooth_fairy( x = "./data/climatic_vars/selected/26bi70/")
-rcp45_select <- tooth_fairy( x = "./data/climatic_vars/selected/45bi70/")
-rcp60_select <- tooth_fairy( x = "./data/climatic_vars/selected/60bi70/")
-rcp85_select <- tooth_fairy( x = "./data/climatic_vars/selected/85bi70/")
+## Creating a large array
+rcp26 <- tooth_fairy( x = "./data/climatic_vars/selected/26bi70/")
+rcp45 <- tooth_fairy( x = "./data/climatic_vars/selected/45bi70/")
+rcp60 <- tooth_fairy( x = "./data/climatic_vars/selected/60bi70/")
+rcp85 <- tooth_fairy( x = "./data/climatic_vars/selected/85bi70/")
 
+
+## Creating a Large RasterStack
+# RCP 26
+rcp26_cc <- tinker_bell(dir = "./data/climatic_vars/selected/26bi70/cc26bi70")
+rcp26_ip <- tinker_bell(dir = "./data/climatic_vars/selected/26bi70/ip26bi70")
+rcp26_mr <- tinker_bell(dir = "./data/climatic_vars/selected/26bi70/mr26bi70")
+rcp26_cc <- rasterFromXYZ(rcp26_cc) # Large RasterBrick (468.6MB)
+rcp26_ip <- rasterFromXYZ(rcp26_ip) # Large RasterBrick (468.6MB)
+rcp26_mr <- rasterFromXYZ(rcp26_mr) # Large RasterBrick (468.6MB)
+
+rcp26_spatial <- stack(rcp26_cc, rcp26_ip, rcp26_mr)
+
+# RCP 45
+rcp45_cc <- tinker_bell(dir = "./data/climatic_vars/selected/45bi70/cc45bi70")
+rcp45_ip <- tinker_bell(dir = "./data/climatic_vars/selected/45bi70/ip45bi70")
+rcp45_mr <- tinker_bell(dir = "./data/climatic_vars/selected/45bi70/mr45bi70")
+rcp45_cc <- rasterFromXYZ(rcp45_cc) # Large RasterBrick (468.6MB)
+rcp45_ip <- rasterFromXYZ(rcp45_ip) # Large RasterBrick (468.6MB)
+rcp45_mr <- rasterFromXYZ(rcp45_mr) # Large RasterBrick (468.6MB)
+
+rcp45_spatial <- stack(rcp45_cc, rcp45_ip, rcp45_mr)
+
+# RCP 60
+rcp60_cc <- tinker_bell(dir = "./data/climatic_vars/selected/60bi70/cc60bi70")
+rcp60_ip <- tinker_bell(dir = "./data/climatic_vars/selected/60bi70/ip60bi70")
+rcp60_mr <- tinker_bell(dir = "./data/climatic_vars/selected/60bi70/mr60bi70")
+rcp60_cc <- rasterFromXYZ(rcp60_cc) # Large RasterBrick (468.6MB)
+rcp60_ip <- rasterFromXYZ(rcp60_ip) # Large RasterBrick (468.6MB)
+rcp60_mr <- rasterFromXYZ(rcp60_mr) # Large RasterBrick (468.6MB)
+
+rcp60_spatial <- stack(rcp60_cc, rcp60_ip, rcp60_mr)
+
+# RCP 85
+rcp85_cc <- tinker_bell(dir = "./data/climatic_vars/selected/85bi70/cc85bi70")
+rcp85_ip <- tinker_bell(dir = "./data/climatic_vars/selected/85bi70/ip85bi70")
+rcp85_mr <- tinker_bell(dir = "./data/climatic_vars/selected/85bi70/mr85bi70")
+rcp85_cc <- rasterFromXYZ(rcp85_cc) # Large RasterBrick (468.6MB)
+rcp85_ip <- rasterFromXYZ(rcp85_ip) # Large RasterBrick (468.6MB)
+rcp85_mr <- rasterFromXYZ(rcp85_mr) # Large RasterBrick (468.6MB)
+
+rcp85_spatial <- stack(rcp85_cc, rcp85_ip, rcp85_mr)
 
 # 02. Varimax variable selection #########################################################################
 # install.packages(c("psych", "GPArotation"), dependencies = TRUE)
@@ -111,7 +158,7 @@ fa.parallel(current[ , -c(1:2)], fa = 'fa') #scree plot
 current_fa <- fa(current[ , -c(1:2)], nfactors = 5, rotate = 'varimax')
 loadings <- loadings(current_fa)
 
-#!!####
+#!!! ----
 # Matheus Ribeiro is running the factorial selection analysis with the "current" object to provide the loadings table. For now we'll use the following variables for adjusting the scrip:
 #bio1, bio2, bio3, bio16, bio17
 
@@ -140,43 +187,146 @@ loadings <- loadings(current_fa)
 # 03. Saving selected variables #######################################################################
 # Selected variables: bio1, bio2, bio3, bio16, bio17.
 
-### current
+#### current
 
 ## saving as table
 
 write.table(current[,c("x", "y", "bio1", "bio2", "bio3", "bio16", "bio17" )], "./data/climatic_vars/selected/current-select.txt", row.names = F, sep = " ")  
 
 ## saving as raster
-#??----
 
-current <- rasterFromXYZ(current) # The object current was outputted from the function tinker_bell as a matrix. It needs to be a RasterBrick type of object so we could extract the selected variables from it.
+# current_spatial <- rasterFromXYZ(current) # The object current was outputted from the function tinker_bell as a matrix. It needs to be a RasterBrick type of object so we could extract the selected variables from it.
 
-writeRaster(current$bio1, "./data/climatic_vars/selected/bio01_current.grd", format = "raster")
-# Error in current$bio1 : $ operator is invalid for atomic vectors
-writeRaster(current$bio2, "./data/climatic_vars/selected/bio02_current.grd", format = "raster")
-writeRaster(current$bio3, "./data/climatic_vars/selected/bio03_current.grd", format = "raster")
-writeRaster(current$bio16, "./data/climatic_vars/selected/bio16_current.grd", format = "raster")
-writeRaster(current$bio17, "./data/climatic_vars/selected/bio17_current.grd", format = "raster")
+writeRaster(current$bio1, "./data/climatic_vars/selected/current/bio01-current.grd", format = "raster")
+writeRaster(current$bio2, "./data/climatic_vars/selected/current/bio02-current.grd", format = "raster")
+writeRaster(current$bio3, "./data/climatic_vars/selected/current/bio03-current.grd", format = "raster")
+writeRaster(current$bio16, "./data/climatic_vars/selected/current/bio16-current.grd", format = "raster")
+writeRaster(current$bio17, "./data/climatic_vars/selected/current/bio17-current.grd", format = "raster")
 
 
-current_select <- stack(list.files("./data/climatic_vars/selected",  pattern = ".grd$", full.names = TRUE))
+#! current_select----
+current_select <- stack(list.files("./data/climatic_vars/selected/current",  pattern = ".grd$", full.names = TRUE))
 plot(current_select)
 
 
-## RCPs
 
+#### RCPs
 
-# saving array of aogcm models as table??
-write.table(rcp26_select, "./data/climatic_vars/selected/rcp26-select.txt", row.names = F, sep = "	")
-write.table(rcp45_select, "./data/climatic_vars/selected/rcp45-select.txt", row.names = F, sep = "	")
-write.table(rcp60_select, "./data/climatic_vars/selected/rcp60-select.txt", row.names = F, sep = "	")
-write.table(rcp85_select, "./data/climatic_vars/selected/rcp85-select.txt", row.names = F, sep = "	")
+### saving array of aogcm models as table
+
+write.table(rcp26 [ ,c("x", "y", "bio1", "bio2", "bio3", "bio16", "bio17" ), ], "./data/climatic_vars/selected/current/rcp26-select.txt", row.names = F, sep = "	")
+write.table(rcp45, "./data/climatic_vars/selected/rcp45-select.txt", row.names = F, sep = "	")
+write.table(rcp60, "./data/climatic_vars/selected/rcp60-select.txt", row.names = F, sep = "	")
+write.table(rcp85, "./data/climatic_vars/selected/rcp85-select.txt", row.names = F, sep = "	")
 
 # saving array of aogcm models as raster
-writeRaster(rcp26_select, "./data/climatic_vars/selected/rcp26-select.grd", format = "raster")
-writeRaster(rcp45_select, "./data/climatic_vars/selected/rcp45-select.grd", format = "raster")
-writeRaster(rcp60_select, "./data/climatic_vars/selected/rcp60-select.grd", format = "raster")
-writeRaster(rcp85_select, "./data/climatic_vars/selected/rcp85-select.grd", format = "raster")
+# writeRaster(rcp26$bio1, "./data/climatic_vars/selected/bio01_rcp26.grd", format = "raster")
+# writeRaster(rcp45, "./data/climatic_vars/selected/rcp45-select.grd", format = "raster")
+# writeRaster(rcp60, "./data/climatic_vars/selected/rcp60-select.grd", format = "raster")
+# writeRaster(rcp85, "./data/climatic_vars/selected/rcp85-select.grd", format = "raster")
+
+
+### Creating rasters with the selected variables from each aogcm
+
+## RCP26
+# Saving selected variables from CCSM4
+writeRaster(rcp26_spatial$bio1.1,  "./data/climatic_vars/selected/rcp26/bio01-cc-rcp26.grd", format = "raster")
+writeRaster(rcp26_spatial$bio2.1,  "./data/climatic_vars/selected/rcp26/bio02-cc-rcp26.grd", format = "raster")
+writeRaster(rcp26_spatial$bio3.1,  "./data/climatic_vars/selected/rcp26/bio03-cc-rcp26.grd", format = "raster")
+writeRaster(rcp26_spatial$bio16.1, "./data/climatic_vars/selected/rcp26/bio16-cc-rcp26.grd", format = "raster")
+writeRaster(rcp26_spatial$bio17.1, "./data/climatic_vars/selected/rcp26/bio17-cc-rcp26.grd", format = "raster")
+
+# Saving selected/rcp26 variables from IPSL-CM5A-LR
+writeRaster(rcp26_spatial$bio1.2,  "./data/climatic_vars/selected/rcp26/bio01-ip-rcp26.grd", format = "raster")
+writeRaster(rcp26_spatial$bio2.2,  "./data/climatic_vars/selected/rcp26/bio02-ip-rcp26.grd", format = "raster")
+writeRaster(rcp26_spatial$bio3.2,  "./data/climatic_vars/selected/rcp26/bio03-ip-rcp26.grd", format = "raster")
+writeRaster(rcp26_spatial$bio16.2, "./data/climatic_vars/selected/rcp26/bio16-ip-rcp26.grd", format = "raster")
+writeRaster(rcp26_spatial$bio17.2, "./data/climatic_vars/selected/rcp26/bio17-ip-rcp26.grd", format = "raster")
+
+# Saving selected/rcp26 variables from MIROC-ESM
+writeRaster(rcp26_spatial$bio1.3,  "./data/climatic_vars/selected/rcp26/bio01-mr-rcp26.grd", format = "raster")
+writeRaster(rcp26_spatial$bio2.3,  "./data/climatic_vars/selected/rcp26/bio02-mr-rcp26.grd", format = "raster")
+writeRaster(rcp26_spatial$bio3.3,  "./data/climatic_vars/selected/rcp26/bio03-mr-rcp26.grd", format = "raster")
+writeRaster(rcp26_spatial$bio16.3, "./data/climatic_vars/selected/rcp26/bio16-mr-rcp26.grd", format = "raster")
+writeRaster(rcp26_spatial$bio17.3, "./data/climatic_vars/selected/rcp26/bio17-mr-rcp26.grd", format = "raster")
+
+## RCP45
+# Saving selected variables from CCSM4
+writeRaster(rcp45_spatial$bio1.1,  "./data/climatic_vars/selected/rcp45/bio01-cc-rcp45.grd", format = "raster")
+writeRaster(rcp45_spatial$bio2.1,  "./data/climatic_vars/selected/rcp45/bio02-cc-rcp45.grd", format = "raster")
+writeRaster(rcp45_spatial$bio3.1,  "./data/climatic_vars/selected/rcp45/bio03-cc-rcp45.grd", format = "raster")
+writeRaster(rcp45_spatial$bio16.1, "./data/climatic_vars/selected/rcp45/bio16-cc-rcp45.grd", format = "raster")
+writeRaster(rcp45_spatial$bio17.1, "./data/climatic_vars/selected/rcp45/bio17-cc-rcp45.grd", format = "raster")
+
+# Saving selected/rcp45 variables from IPSL-CM5A-LR
+writeRaster(rcp45_spatial$bio1.2,  "./data/climatic_vars/selected/rcp45/bio01-ip-rcp45.grd", format = "raster")
+writeRaster(rcp45_spatial$bio2.2,  "./data/climatic_vars/selected/rcp45/bio02-ip-rcp45.grd", format = "raster")
+writeRaster(rcp45_spatial$bio3.2,  "./data/climatic_vars/selected/rcp45/bio03-ip-rcp45.grd", format = "raster")
+writeRaster(rcp45_spatial$bio16.2, "./data/climatic_vars/selected/rcp45/bio16-ip-rcp45.grd", format = "raster")
+writeRaster(rcp45_spatial$bio17.2, "./data/climatic_vars/selected/rcp45/bio17-ip-rcp45.grd", format = "raster")
+
+# Saving selected/rcp45 variables from MIROC-ESM
+writeRaster(rcp45_spatial$bio1.3,  "./data/climatic_vars/selected/rcp45/bio01-mr-rcp45.grd", format = "raster")
+writeRaster(rcp45_spatial$bio2.3,  "./data/climatic_vars/selected/rcp45/bio02-mr-rcp45.grd", format = "raster")
+writeRaster(rcp45_spatial$bio3.3,  "./data/climatic_vars/selected/rcp45/bio03-mr-rcp45.grd", format = "raster")
+writeRaster(rcp45_spatial$bio16.3, "./data/climatic_vars/selected/rcp45/bio16-mr-rcp45.grd", format = "raster")
+writeRaster(rcp45_spatial$bio17.3, "./data/climatic_vars/selected/rcp45/bio17-mr-rcp45.grd", format = "raster")
+
+## RCP60
+# Saving selected variables from CCSM4
+writeRaster(rcp60_spatial$bio1.1,  "./data/climatic_vars/selected/rcp60/bio01-cc-rcp60.grd", format = "raster")
+writeRaster(rcp60_spatial$bio2.1,  "./data/climatic_vars/selected/rcp60/bio02-cc-rcp60.grd", format = "raster")
+writeRaster(rcp60_spatial$bio3.1,  "./data/climatic_vars/selected/rcp60/bio03-cc-rcp60.grd", format = "raster")
+writeRaster(rcp60_spatial$bio16.1, "./data/climatic_vars/selected/rcp60/bio16-cc-rcp60.grd", format = "raster")
+writeRaster(rcp60_spatial$bio17.1, "./data/climatic_vars/selected/rcp60/bio17-cc-rcp60.grd", format = "raster")
+
+# Saving selected/rcp60 variables from IPSL-CM5A-LR
+writeRaster(rcp60_spatial$bio1.2,  "./data/climatic_vars/selected/rcp60/bio01-ip-rcp60.grd", format = "raster")
+writeRaster(rcp60_spatial$bio2.2,  "./data/climatic_vars/selected/rcp60/bio02-ip-rcp60.grd", format = "raster")
+writeRaster(rcp60_spatial$bio3.2,  "./data/climatic_vars/selected/rcp60/bio03-ip-rcp60.grd", format = "raster")
+writeRaster(rcp60_spatial$bio16.2, "./data/climatic_vars/selected/rcp60/bio16-ip-rcp60.grd", format = "raster")
+writeRaster(rcp60_spatial$bio17.2, "./data/climatic_vars/selected/rcp60/bio17-ip-rcp60.grd", format = "raster")
+
+# Saving selected/rcp60 variables from MIROC-ESM
+writeRaster(rcp60_spatial$bio1.3,  "./data/climatic_vars/selected/rcp60/bio01-mr-rcp60.grd", format = "raster")
+writeRaster(rcp60_spatial$bio2.3,  "./data/climatic_vars/selected/rcp60/bio02-mr-rcp60.grd", format = "raster")
+writeRaster(rcp60_spatial$bio3.3,  "./data/climatic_vars/selected/rcp60/bio03-mr-rcp60.grd", format = "raster")
+writeRaster(rcp60_spatial$bio16.3, "./data/climatic_vars/selected/rcp60/bio16-mr-rcp60.grd", format = "raster")
+writeRaster(rcp60_spatial$bio17.3, "./data/climatic_vars/selected/rcp60/bio17-mr-rcp60.grd", format = "raster")
+
+## RCP85
+# Saving selected variables from CCSM4
+writeRaster(rcp85_spatial$bio1.1,  "./data/climatic_vars/selected/rcp85/bio01-cc-rcp85.grd", format = "raster")
+writeRaster(rcp85_spatial$bio2.1,  "./data/climatic_vars/selected/rcp85/bio02-cc-rcp85.grd", format = "raster")
+writeRaster(rcp85_spatial$bio3.1,  "./data/climatic_vars/selected/rcp85/bio03-cc-rcp85.grd", format = "raster")
+writeRaster(rcp85_spatial$bio16.1, "./data/climatic_vars/selected/rcp85/bio16-cc-rcp85.grd", format = "raster")
+writeRaster(rcp85_spatial$bio17.1, "./data/climatic_vars/selected/rcp85/bio17-cc-rcp85.grd", format = "raster")
+
+# Saving selected/rcp85 variables from IPSL-CM5A-LR
+writeRaster(rcp85_spatial$bio1.2,  "./data/climatic_vars/selected/rcp85/bio01-ip-rcp85.grd", format = "raster")
+writeRaster(rcp85_spatial$bio2.2,  "./data/climatic_vars/selected/rcp85/bio02-ip-rcp85.grd", format = "raster")
+writeRaster(rcp85_spatial$bio3.2,  "./data/climatic_vars/selected/rcp85/bio03-ip-rcp85.grd", format = "raster")
+writeRaster(rcp85_spatial$bio16.2, "./data/climatic_vars/selected/rcp85/bio16-ip-rcp85.grd", format = "raster")
+writeRaster(rcp85_spatial$bio17.2, "./data/climatic_vars/selected/rcp85/bio17-ip-rcp85.grd", format = "raster")
+
+# Saving selected/rcp85 variables from MIROC-ESM
+writeRaster(rcp85_spatial$bio1.3,  "./data/climatic_vars/selected/rcp85/bio01-mr-rcp85.grd", format = "raster")
+writeRaster(rcp85_spatial$bio2.3,  "./data/climatic_vars/selected/rcp85/bio02-mr-rcp85.grd", format = "raster")
+writeRaster(rcp85_spatial$bio3.3,  "./data/climatic_vars/selected/rcp85/bio03-mr-rcp85.grd", format = "raster")
+writeRaster(rcp85_spatial$bio16.3, "./data/climatic_vars/selected/rcp85/bio16-mr-rcp85.grd", format = "raster")
+writeRaster(rcp85_spatial$bio17.3, "./data/climatic_vars/selected/rcp85/bio17-mr-rcp85.grd", format = "raster")
+
+
+### creating objects for each rcp
+#! rcpxx_select----
+rcp26_select <- stack(list.files("./data/climatic_vars/selected/rcp26",  pattern = ".grd$", full.names = TRUE))
+plot(rcp26_select[[1]])
+rcp45_select <- stack(list.files("./data/climatic_vars/selected/rcp45",  pattern = ".grd$", full.names = TRUE))
+plot(rcp45_select[[1]])
+rcp60_select <- stack(list.files("./data/climatic_vars/selected/rcp60",  pattern = ".grd$", full.names = TRUE))
+plot(rcp60_select[[1]])
+rcp85_select <- stack(list.files("./data/climatic_vars/selected/rcp85",  pattern = ".grd$", full.names = TRUE))
+plot(rcp85_select[[1]])
 
 
 # 04. Occurrencies data ###################################################################################
@@ -247,7 +397,7 @@ require(maps)
 dyn.load('/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home/jre/lib/server/libjvm.dylib')
 require(rJava)
 
-# MaxEnt is available as a standalone Java program. Dismo has a function 'maxent' that communicates with this program. To use it you must first download the program from http://www.cs.princeton.edu/~schapire/maxent/. Put the le 'maxent.jar' in the 'java' folder of the 'dismo' package. That is the folder returned by system.file("java", package="dismo"). You need MaxEnt version 3.3.3b or higher.
+# MaxEnt is available as a standalone Java program. Dismo has a function 'maxent' that communicates with this program. To use it you must first download the program from http://www.cs.princeton.edu/~schapire/maxent/. Put the file 'maxent.jar' in the 'java' folder of the 'dismo' package. That is the folder returned by system.file("java", package="dismo"). You need MaxEnt version 3.3.3b or higher.
 
 # 1. Check if JDK is installed going to the path below. If not:
 # browseURL("http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html")
