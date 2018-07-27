@@ -220,10 +220,10 @@ plot(current_select)
 
 ### saving array of aogcm models as table
 
-write.table(rcp26 [ ,c("x", "y", "bio1", "bio2", "bio3", "bio16", "bio17" ), ], "./data/climatic_vars/selected/current/rcp26-select.txt", row.names = F, sep = "	")
-write.table(rcp45, "./data/climatic_vars/selected/rcp45-select.txt", row.names = F, sep = "	")
-write.table(rcp60, "./data/climatic_vars/selected/rcp60-select.txt", row.names = F, sep = "	")
-write.table(rcp85, "./data/climatic_vars/selected/rcp85-select.txt", row.names = F, sep = "	")
+write.table(rcp26 [ ,c("x", "y", "bio1", "bio2", "bio3", "bio16", "bio17" ), ], "./data/climatic_vars/selected/rcp26/rcp26-select.txt", row.names = F, sep = "	")
+write.table(rcp45 [ ,c("x", "y", "bio1", "bio2", "bio3", "bio16", "bio17" ), ], "./data/climatic_vars/selected/rcp45/rcp45-select.txt", row.names = F, sep = "	")
+write.table(rcp60 [ ,c("x", "y", "bio1", "bio2", "bio3", "bio16", "bio17" ), ], "./data/climatic_vars/selected/rcp60/rcp60-select.txt", row.names = F, sep = "	")
+write.table(rcp85 [ ,c("x", "y", "bio1", "bio2", "bio3", "bio16", "bio17" ), ], "./data/climatic_vars/selected/rcp85/rcp85-select.txt", row.names = F, sep = "	")
 
 # saving array of aogcm models as raster
 # writeRaster(rcp26$bio1, "./data/climatic_vars/selected/bio01_rcp26.grd", format = "raster")
@@ -430,17 +430,39 @@ fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "..."
   {
     ### Loop AOGCMs -----
     
-    ### Reading the climatic files
-    # ???----
-    # I know I must creat a loop here for iteranting througt the aogcm  of my selected models at all RCPs.  How?
+    ### Reading the bioclimatic variables from the .txt files
+    # ??? Check #####
     
-    AOGCM_CURRENT <- # j   # only one model here. 
-    AOGCM_RCP26   <- # j   # Three models here.
-    AOGCM_RCP45   <- # j   # Three models here.
-    AOGCM_RCP60   <- # j   # Three models here.
-    AOGCM_RCP85   <- # j   # Three models here.
+    # creating objects for iterating through the layers, thus processing all models.
+    AOGCM_CURRENT <- paste("be_biovar_", j, "./data/climatic_vars/selected/current-select.txt",     sep="")
+    AOGCM_RCP26   <- paste("be_biovar_", j, "./data/climatic_vars/selected/rcp26/rcp26-select.txt", sep="")
+    AOGCM_RCP45   <- paste("be_biovar_", j, "./data/climatic_vars/selected/rcp45/rcp45-select.txt", sep="")
+    AOGCM_RCP60   <- paste("be_biovar_", j, "./data/climatic_vars/selected/rcp60/rcp60-select.txt", sep="")
+    AOGCM_RCP85   <- paste("be_biovar_", j, "./data/climatic_vars/selected/rcp60/rcp60-select.txt", sep="")
     
-    ### loading occurrency and backgound data.
+    vars_current  <- read.table(AOGCM_CURRENT, h = T)
+    vars_rcp26    <- read.table(AOGCM_RCP26,   h = T)
+    vars_rcp45    <- read.table(AOGCM_RCP45,   h = T)
+    vars_rcp60    <- read.table(AOGCM_RCP60,   h = T)
+    vars_rcp85    <- read.table(AOGCM_RCP85,   h = T)
+    
+    # rasterizing them
+    gridded(vars_current) <- ~ x + y
+    gridded(vars_rcp26)   <- ~ x + y
+    gridded(vars_rcp45) <- ~ x + y
+    gridded(vars_rcp60) <- ~ x + y
+    gridded(vars_rcp85) <- ~ x + y
+    
+    #! _modelling  ----
+    # creating the bioclimatic variables objects for the modelling experiment
+    current_modelling <- stack(vars_current)
+    rcp26_modelling   <- stack(vars_rcp26)
+    rcp45_modelling   <- stack(vars_rcp45)
+    rcp60_modelling   <- stack(vars_rcp60)
+    rcp85_modelling   <- stack(vars_rcp85)
+    
+   
+     ### loading occurrency and backgound data.
     occur_h <- read.table(occurrency_huberi, h = T)
     occur_p <- read.table(occurrency_plants, h = T)
     back_h <- read.table(background_huberi, h = T)
@@ -477,14 +499,14 @@ fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "..."
       ## huberi
       sample_occur_h <- sample(1:nrow(occur_h), round(0.75 * nrow(occur_h)))
       sample_back_h  <- sample(1:nrow(back_h), round(0.75 * nrow(back_h)))
-      training_h <- prepareData(x = current_select, p = occur_h[sample_occur_h,  1:2], b = back_h[sample_back_h,  1:2], xy = T)
-      testing_h  <- prepareData(x = current_select, p = occur_h[-sample_occur_h, 1:2], b = back_h[-sample_back_h, 1:2], xy = T)
+      training_h <- prepareData(x = current_modelling, p = occur_h[sample_occur_h,  1:2], b = back_h[sample_back_h,  1:2], xy = T)
+      testing_h  <- prepareData(x = current_modelling, p = occur_h[-sample_occur_h, 1:2], b = back_h[-sample_back_h, 1:2], xy = T)
       
       ## host plants
       sample_occur_p <- sample(1:nrow(occur_p), round(0.75 * nrow(occur_p)))
       sample_back_p  <- sample(1:nrow(back_p), round(0.75 * nrow(back_p)))
-      training_p <- prepareData(x = current_select, p = occur_p[sample_occur_p,  1:2], b = back_p[sample_back_p,  1:2], xy = T)
-      testing_p  <- prepareData(x = current_select, p = occur_p[-sample_occur_p, 1:2], b = back_p[-sample_back_p, 1:2], xy = T)
+      training_p <- prepareData(x = current_modelling, p = occur_p[sample_occur_p,  1:2], b = back_p[sample_back_p,  1:2], xy = T)
+      testing_p  <- prepareData(x = current_modelling, p = occur_p[-sample_occur_p, 1:2], b = back_p[-sample_back_p, 1:2], xy = T)
       
       ### Bioclim -------------------
       
@@ -493,11 +515,11 @@ fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "..."
       bioclim_model_h <- bioclim(training_h[training_h[,"pb"] == 1, -c(1:3)])
       
       # making predictions
-      bioclim_c_h <- stack(bioclim_c_h, predict(object = bioclim_model_h, x = current_select))
-      bioclim_rcp26_h <- stack(bioclim_rcp26_h, predict(object = bioclim_model_h, x = rcp26_select))
-      bioclim_rcp45_h <- stack(bioclim_rcp45_h, predict(object = bioclim_model_h, x = rcp45_select))
-      bioclim_rcp60_h <- stack(bioclim_rcp60_h, predict(object = bioclim_model_h, x = rcp60_select))
-      bioclim_rcp85_h <- stack(bioclim_rcp85_h, predict(object = bioclim_model_h, x = rcp85_select))
+      bioclim_c_h <- stack(bioclim_c_h, predict(object = bioclim_model_h, x = current_modelling))
+      bioclim_rcp26_h <- stack(bioclim_rcp26_h, predict(object = bioclim_model_h, x = rcp26_modelling))
+      bioclim_rcp45_h <- stack(bioclim_rcp45_h, predict(object = bioclim_model_h, x = rcp45_modelling))
+      bioclim_rcp60_h <- stack(bioclim_rcp60_h, predict(object = bioclim_model_h, x = rcp60_modelling))
+      bioclim_rcp85_h <- stack(bioclim_rcp85_h, predict(object = bioclim_model_h, x = rcp85_modelling))
       
       # Evaluating models
       bioclim_eval_h <- evaluate(p=testing_h[testing_h[, "pb"] == 1, -1], a = testing_h[testing_h[, "pb"] == 0, -1], model = bioclim_model_h)
@@ -510,11 +532,11 @@ fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "..."
       bioclim_model_p <- bioclim(training_p[training_p[,"pb"] == 1, -c(1:3)])
       
       # making predictions
-      bioclim_c_p <- stack(bioclim_c_p, predict(object = bioclim_model_p, x = current_select))
-      bioclim_rcp26_p <- stack(bioclim_rcp26_p, predict(object = bioclim_model_p, x = rcp26_select))
-      bioclim_rcp45_p <- stack(bioclim_rcp45_p, predict(object = bioclim_model_p, x = rcp45_select))
-      bioclim_rcp60_p <- stack(bioclim_rcp60_p, predict(object = bioclim_model_p, x = rcp60_select))
-      bioclim_rcp85_p <- stack(bioclim_rcp85_p, predict(object = bioclim_model_p, x = rcp85_select))
+      bioclim_c_p <- stack(bioclim_c_p, predict(object = bioclim_model_p, x = current_modelling))
+      bioclim_rcp26_p <- stack(bioclim_rcp26_p, predict(object = bioclim_model_p, x = rcp26_modelling))
+      bioclim_rcp45_p <- stack(bioclim_rcp45_p, predict(object = bioclim_model_p, x = rcp45_modelling))
+      bioclim_rcp60_p <- stack(bioclim_rcp60_p, predict(object = bioclim_model_p, x = rcp60_modelling))
+      bioclim_rcp85_p <- stack(bioclim_rcp85_p, predict(object = bioclim_model_p, x = rcp85_modelling))
       
       # Evaluating models
       bioclim_eval_p <- evaluate(p=testing_p[testing_p[, "pb"] == 1, -1], a = testing_p[testing_p[, "pb"] == 0, -1], model = bioclim_model_p)
@@ -528,11 +550,11 @@ fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "..."
       gower_model_h <- domain(training_h[training_h[,"pb"] == 1, -c(1:3)])
       
       # making predictions
-      gower_c_h <- stack(gower_c_h, predict(object = gower_model_h, x = current_select))
-      gower_rcp26_h <- stack(gower_rcp26_h, predict(object = gower_model_h, x = rcp26_select))
-      gower_rcp45_h <- stack(gower_rcp45_h, predict(object = gower_model_h, x = rcp45_select))
-      gower_rcp60_h <- stack(gower_rcp60_h, predict(object = gower_model_h, x = rcp60_select))
-      gower_rcp85_h <- stack(gower_rcp85_h, predict(object = gower_model_h, x = rcp85_select))
+      gower_c_h <- stack(gower_c_h, predict(object = gower_model_h, x = current_modelling))
+      gower_rcp26_h <- stack(gower_rcp26_h, predict(object = gower_model_h, x = rcp26_modelling))
+      gower_rcp45_h <- stack(gower_rcp45_h, predict(object = gower_model_h, x = rcp45_modelling))
+      gower_rcp60_h <- stack(gower_rcp60_h, predict(object = gower_model_h, x = rcp60_modelling))
+      gower_rcp85_h <- stack(gower_rcp85_h, predict(object = gower_model_h, x = rcp85_modelling))
       
       # Evaluating models
       gower_eval_h <- evaluate(p=testing_h[testing_h[, "pb"] == 1, -1], a = testing_h[testing_h[, "pb"] == 0, -1], model = gower_model_h)
@@ -545,11 +567,11 @@ fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "..."
       gower_model_p <- domain(training_p[training_p[,"pb"] == 1, -c(1:3)])
       
       # making predictions
-      gower_c_p <- stack(gower_c_p, predict(object = gower_model_p, x = current_select))
-      gower_rcp26_p <- stack(gower_rcp26_p, predict(object = gower_model_p, x = rcp26_select))
-      gower_rcp45_p <- stack(gower_rcp45_p, predict(object = gower_model_p, x = rcp45_select))
-      gower_rcp60_p <- stack(gower_rcp60_p, predict(object = gower_model_p, x = rcp60_select))
-      gower_rcp85_p <- stack(gower_rcp85_p, predict(object = gower_model_p, x = rcp85_select))
+      gower_c_p <- stack(gower_c_p, predict(object = gower_model_p, x = current_modelling))
+      gower_rcp26_p <- stack(gower_rcp26_p, predict(object = gower_model_p, x = rcp26_modelling))
+      gower_rcp45_p <- stack(gower_rcp45_p, predict(object = gower_model_p, x = rcp45_modelling))
+      gower_rcp60_p <- stack(gower_rcp60_p, predict(object = gower_model_p, x = rcp60_modelling))
+      gower_rcp85_p <- stack(gower_rcp85_p, predict(object = gower_model_p, x = rcp85_modelling))
       
       # Evaluating models
       gower_eval_p <- evaluate(p=testing_p[testing_p[, "pb"] == 1, -1], a = testing_p[testing_p[, "pb"] == 0, -1], model = gower_model_p)
@@ -564,11 +586,11 @@ fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "..."
       maha_model_h <- mahal(training_h[training_h[,"pb"] == 1, -c(1:3)])
       
       # making predictions
-      maha_c_h <- stack(maha_c_h, predict(object = maha_model_h, x = current_select))
-      maha_rcp26_h <- stack(maha_rcp26_h, predict(object = maha_model_h, x = rcp26_select))
-      maha_rcp45_h <- stack(maha_rcp45_h, predict(object = maha_model_h, x = rcp45_select))
-      maha_rcp60_h <- stack(maha_rcp60_h, predict(object = maha_model_h, x = rcp60_select))
-      maha_rcp85_h <- stack(maha_rcp85_h, predict(object = maha_model_h, x = rcp85_select))
+      maha_c_h <- stack(maha_c_h, predict(object = maha_model_h, x = current_modelling))
+      maha_rcp26_h <- stack(maha_rcp26_h, predict(object = maha_model_h, x = rcp26_modelling))
+      maha_rcp45_h <- stack(maha_rcp45_h, predict(object = maha_model_h, x = rcp45_modelling))
+      maha_rcp60_h <- stack(maha_rcp60_h, predict(object = maha_model_h, x = rcp60_modelling))
+      maha_rcp85_h <- stack(maha_rcp85_h, predict(object = maha_model_h, x = rcp85_modelling))
       
       # Evaluating models
       maha_eval_h <- evaluate(p=testing_h[testing_h[, "pb"] == 1, -1], a = testing_h[testing_h[, "pb"] == 0, -1], model = maha_model_h)
@@ -581,11 +603,11 @@ fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "..."
       maha_model_p <- mahal(training_p[training_p[,"pb"] == 1, -c(1:3)])
       
       # making predictions
-      maha_c_p <- stack(maha_c_p, predict(object = maha_model_p, x = current_select))
-      maha_rcp26_p <- stack(maha_rcp26_p, predict(object = maha_model_p, x = rcp26_select))
-      maha_rcp45_p <- stack(maha_rcp45_p, predict(object = maha_model_p, x = rcp45_select))
-      maha_rcp60_p <- stack(maha_rcp60_p, predict(object = maha_model_p, x = rcp60_select))
-      maha_rcp85_p <- stack(maha_rcp85_p, predict(object = maha_model_p, x = rcp85_select))
+      maha_c_p <- stack(maha_c_p, predict(object = maha_model_p, x = current_modelling))
+      maha_rcp26_p <- stack(maha_rcp26_p, predict(object = maha_model_p, x = rcp26_modelling))
+      maha_rcp45_p <- stack(maha_rcp45_p, predict(object = maha_model_p, x = rcp45_modelling))
+      maha_rcp60_p <- stack(maha_rcp60_p, predict(object = maha_model_p, x = rcp60_modelling))
+      maha_rcp85_p <- stack(maha_rcp85_p, predict(object = maha_model_p, x = rcp85_modelling))
       
       # Evaluating models
       maha_eval_p <- evaluate(p=testing_p[testing_p[, "pb"] == 1, -1], a = testing_p[testing_p[, "pb"] == 0, -1], model = maha_model_p)
@@ -604,11 +626,11 @@ fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "..."
       maxent_model_h <- maxent(x = training_h[, -1], p = training_h[, 1])
       
       # making predictions
-      maxent_c_h <- stack(maxent_c_h, predict(object = maxent_model_h, x = current_select))
-      maxent_rcp26_h <- stack(maxent_rcp26_h, predict(object = maxent_model_h, x = rcp26_select))
-      maxent_rcp45_h <- stack(maxent_rcp45_h, predict(object = maxent_model_h, x = rcp45_select))
-      maxent_rcp60_h <- stack(maxent_rcp60_h, predict(object = maxent_model_h, x = rcp60_select))
-      maxent_rcp85_h <- stack(maxent_rcp85_h, predict(object = maxent_model_h, x = rcp85_select))
+      maxent_c_h <- stack(maxent_c_h, predict(object = maxent_model_h, x = current_modelling))
+      maxent_rcp26_h <- stack(maxent_rcp26_h, predict(object = maxent_model_h, x = rcp26_modelling))
+      maxent_rcp45_h <- stack(maxent_rcp45_h, predict(object = maxent_model_h, x = rcp45_modelling))
+      maxent_rcp60_h <- stack(maxent_rcp60_h, predict(object = maxent_model_h, x = rcp60_modelling))
+      maxent_rcp85_h <- stack(maxent_rcp85_h, predict(object = maxent_model_h, x = rcp85_modelling))
       
       # Evaluating models
       maxent_eval_h <- evaluate(p=testing_h[testing_h[, "pb"] == 1, -1], a = testing_h[testing_h[, "pb"] == 0, -1], model = maxent_model_h)
@@ -622,11 +644,11 @@ fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "..."
       maxent_model_p <- maxent(x = training_p[, -1], p = training_p[, 1])
       
       # making predictions
-      maxent_c_p <- stack(maxent_c_p, predict(object = maxent_model_p, x = current_select))
-      maxent_rcp26_p <- stack(maxent_rcp26_p, predict(object = maxent_model_p, x = rcp26_select))
-      maxent_rcp45_p <- stack(maxent_rcp45_p, predict(object = maxent_model_p, x = rcp45_select))
-      maxent_rcp60_p <- stack(maxent_rcp60_p, predict(object = maxent_model_p, x = rcp60_select))
-      maxent_rcp85_p <- stack(maxent_rcp85_p, predict(object = maxent_model_p, x = rcp85_select))
+      maxent_c_p <- stack(maxent_c_p, predict(object = maxent_model_p, x = current_modelling))
+      maxent_rcp26_p <- stack(maxent_rcp26_p, predict(object = maxent_model_p, x = rcp26_modelling))
+      maxent_rcp45_p <- stack(maxent_rcp45_p, predict(object = maxent_model_p, x = rcp45_modelling))
+      maxent_rcp60_p <- stack(maxent_rcp60_p, predict(object = maxent_model_p, x = rcp60_modelling))
+      maxent_rcp85_p <- stack(maxent_rcp85_p, predict(object = maxent_model_p, x = rcp85_modelling))
       
       # Evaluating models
       maxent_eval_p <- evaluate(p=testing_p[testing_p[, "pb"] == 1, -1], a = testing_p[testing_p[, "pb"] == 0, -1], model = maxent_model_p)
@@ -640,11 +662,11 @@ fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "..."
       SVM_model_h <- ksvm(pb ~ bio+bio..., data = training_h)
       
       # making predictions
-      SVM_c_h <- stack(SVM_c_h, predict(object = SVM_model_h, x = current_select))
-      SVM_rcp26_h <- stack(SVM_rcp26_h, predict(object = SVM_model_h, x = rcp26_select))
-      SVM_rcp45_h <- stack(SVM_rcp45_h, predict(object = SVM_model_h, x = rcp45_select))
-      SVM_rcp60_h <- stack(SVM_rcp60_h, predict(object = SVM_model_h, x = rcp60_select))
-      SVM_rcp85_h <- stack(SVM_rcp85_h, predict(object = SVM_model_h, x = rcp85_select))
+      SVM_c_h <- stack(SVM_c_h, predict(object = SVM_model_h, x = current_modelling))
+      SVM_rcp26_h <- stack(SVM_rcp26_h, predict(object = SVM_model_h, x = rcp26_modelling))
+      SVM_rcp45_h <- stack(SVM_rcp45_h, predict(object = SVM_model_h, x = rcp45_modelling))
+      SVM_rcp60_h <- stack(SVM_rcp60_h, predict(object = SVM_model_h, x = rcp60_modelling))
+      SVM_rcp85_h <- stack(SVM_rcp85_h, predict(object = SVM_model_h, x = rcp85_modelling))
       
       # Evaluating models
       SVM_eval_h <- evaluate(p=testing_h[testing_h[, "pb"] == 1, -1], a = testing_h[testing_h[, "pb"] == 0, -1], model = SVM_model_h)
@@ -657,11 +679,11 @@ fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "..."
       SVM_model_h <- ksvm(pb ~ bio+bio..., data = training_h)
       
       # making predictions
-      SVM_c_p <- stack(SVM_c_p, predict(object = SVM_model_p, x = current_select))
-      SVM_rcp26_p <- stack(SVM_rcp26_p, predict(object = SVM_model_p, x = rcp26_select))
-      SVM_rcp45_p <- stack(SVM_rcp45_p, predict(object = SVM_model_p, x = rcp45_select))
-      SVM_rcp60_p <- stack(SVM_rcp60_p, predict(object = SVM_model_p, x = rcp60_select))
-      SVM_rcp85_p <- stack(SVM_rcp85_p, predict(object = SVM_model_p, x = rcp85_select))
+      SVM_c_p <- stack(SVM_c_p, predict(object = SVM_model_p, x = current_modelling))
+      SVM_rcp26_p <- stack(SVM_rcp26_p, predict(object = SVM_model_p, x = rcp26_modelling))
+      SVM_rcp45_p <- stack(SVM_rcp45_p, predict(object = SVM_model_p, x = rcp45_modelling))
+      SVM_rcp60_p <- stack(SVM_rcp60_p, predict(object = SVM_model_p, x = rcp60_modelling))
+      SVM_rcp85_p <- stack(SVM_rcp85_p, predict(object = SVM_model_p, x = rcp85_modelling))
       
       # Evaluating models
       SVM_eval_p <- evaluate(p=testing_p[testing_p[, "pb"] == 1, -1], a = testing_p[testing_p[, "pb"] == 0, -1], model = SVM_model_p)
@@ -674,11 +696,11 @@ fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "..."
       GLM_model_h <- glm(pb ~ bio+bio..., data = training_h, family = binomial (link = "logit"))
       
       # making predictions
-      GLM_c_h <- stack(GLM_c_h, predict(object = GLM_model_h, x = current_select))
-      GLM_rcp26_h <- stack(GLM_rcp26_h, predict(object = GLM_model_h, x = rcp26_select))
-      GLM_rcp45_h <- stack(GLM_rcp45_h, predict(object = GLM_model_h, x = rcp45_select))
-      GLM_rcp60_h <- stack(GLM_rcp60_h, predict(object = GLM_model_h, x = rcp60_select))
-      GLM_rcp85_h <- stack(GLM_rcp85_h, predict(object = GLM_model_h, x = rcp85_select))
+      GLM_c_h <- stack(GLM_c_h, predict(object = GLM_model_h, x = current_modelling))
+      GLM_rcp26_h <- stack(GLM_rcp26_h, predict(object = GLM_model_h, x = rcp26_modelling))
+      GLM_rcp45_h <- stack(GLM_rcp45_h, predict(object = GLM_model_h, x = rcp45_modelling))
+      GLM_rcp60_h <- stack(GLM_rcp60_h, predict(object = GLM_model_h, x = rcp60_modelling))
+      GLM_rcp85_h <- stack(GLM_rcp85_h, predict(object = GLM_model_h, x = rcp85_modelling))
       
       # Evaluating models
       GLM_eval_h <- evaluate(p=testing_h[testing_h[, "pb"] == 1, -1], a = testing_h[testing_h[, "pb"] == 0, -1], model = GLM_model_h)
@@ -691,11 +713,11 @@ fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "..."
       GLM_model_h <-glm(pb ~ bio+bio..., data = training_h, family = binomial (link = "logit"))
       
       # making predictions
-      GLM_c_p <- stack(GLM_c_p, predict(object = GLM_model_p, x = current_select))
-      GLM_rcp26_p <- stack(GLM_rcp26_p, predict(object = GLM_model_p, x = rcp26_select))
-      GLM_rcp45_p <- stack(GLM_rcp45_p, predict(object = GLM_model_p, x = rcp45_select))
-      GLM_rcp60_p <- stack(GLM_rcp60_p, predict(object = GLM_model_p, x = rcp60_select))
-      GLM_rcp85_p <- stack(GLM_rcp85_p, predict(object = GLM_model_p, x = rcp85_select))
+      GLM_c_p <- stack(GLM_c_p, predict(object = GLM_model_p, x = current_modelling))
+      GLM_rcp26_p <- stack(GLM_rcp26_p, predict(object = GLM_model_p, x = rcp26_modelling))
+      GLM_rcp45_p <- stack(GLM_rcp45_p, predict(object = GLM_model_p, x = rcp45_modelling))
+      GLM_rcp60_p <- stack(GLM_rcp60_p, predict(object = GLM_model_p, x = rcp60_modelling))
+      GLM_rcp85_p <- stack(GLM_rcp85_p, predict(object = GLM_model_p, x = rcp85_modelling))
       
       # Evaluating models
       GLM_eval_p <- evaluate(p=testing_p[testing_p[, "pb"] == 1, -1], a = testing_p[testing_p[, "pb"] == 0, -1], model = GLM_model_p)
