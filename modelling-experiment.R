@@ -43,6 +43,9 @@ current <- tinker_bell(dir = "./data/climatic_vars/current")                  # 
 ## Creating a RasterBrick
 current_spatial <- rasterFromXYZ(current) 
 
+## Creating a RasterBrick
+current_spatial <- rasterFromXYZ(current) 
+
 ## RCPs Models ----
 
 # Wolrdclim GCM codes
@@ -103,6 +106,7 @@ tooth_fairy <- function (x)
 }
 
 #! rcpxx----
+
 ## Creating a large array
 rcp26 <- tooth_fairy( x = "./data/climatic_vars/selected/26bi70/")
 rcp45 <- tooth_fairy( x = "./data/climatic_vars/selected/45bi70/")
