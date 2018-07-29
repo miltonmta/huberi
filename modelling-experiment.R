@@ -506,8 +506,8 @@ fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "..."
     rcp45_select   <- stack(vars_rcp45)
     rcp60_select   <- stack(vars_rcp60)
     rcp85_select   <- stack(vars_rcp85)
+
     
-   
      ### loading occurrency and backgound data.
     occur_h <- read.table(occurrency_huberi, h = T)
     occur_p <- read.table(occurrency_plants, h = T)
@@ -517,7 +517,7 @@ fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "..."
     ### Creating objects for saving partial results for each cross validation loop
     ## huberi
     bioclim_c_h <- gower_c_h <- maha_c_h <- maxent_c_h <- SVM_c_h <- GLM_c_h <- stack()
-    bioclim_rcp26_h <- gower_rcp26_h <- maha_rcp26_h <- maxent_rcp26_h <- SVM_rcp26_h <- GLM_rcp26_h <- stack() # Should we run abind instead of stack??
+    bioclim_rcp26_h <- gower_rcp26_h <- maha_rcp26_h <- maxent_rcp26_h <- SVM_rcp26_h <- GLM_rcp26_h <- stack() 
     bioclim_rcp45_h <- gower_rcp45_h <- maha_rcp45_h <- maxent_rcp45_h <- SVM_rcp45_h <- GLM_rcp45_h <- stack()
     bioclim_rcp60_h <- gower_rcp60_h <- maha_rcp60_h <- maxent_rcp60_h <- SVM_rcp60_h <- GLM_rcp60_h <- stack()
     bioclim_rcp85_h <- gower_rcp85_h <- maha_rcp85_h <- maxent_rcp85_h <- SVM_rcp85_h <- GLM_rcp85_h <- stack()
