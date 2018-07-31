@@ -392,13 +392,17 @@ huberi <- huberi[, -1]
 host_plants <- read.table("./data/occurrences/host-plants-species.txt", h = T)
 host_plants [1:5, ]
 
+
 # Extracting the list of species names
+
+
 sp <- gsub("C[1-9]","", host_plants$species)
 sp_unico <- unique(sp)
 # [1] "Ipomoea_asarifolia" "Ipomoea_bahiensis" 
 # [3] "Ipomoea_cairica"    "Ipomoea_indica"    
 # [5] "Ipomoea_nil"        "Ipomoea_purpurea"  
 # [7] "Merremia_aegyptia" 
+
 
 # creating an array with the host plants data
 splits <- split(seq(nrow(host_plants)), host_plants[, 1])
@@ -417,6 +421,16 @@ points(huberi[,"long"], huberi[,"lat"], pch = 20)
 points(host_plants[,"long"], host_plants[,"lat"], pch = 18) # not plotting in map
 
 ## extracting variables from occurrences data cells
+
+
+
+plot(current_select$bio1)
+points(huberi[,"long"], huberi[,"lat"], pch = 20)
+points(host_plants[,"long"], host_plants[,"lat"], pch = 18) # not plotting in map
+huberi[1:5,]
+
+# extracting variables from occurrences data cells
+
 huberi_cell <- cellFromXY(current_select, huberi)
 duplicated(huberi_cell)
 huberi_cell <- unique(huberi_cell)
