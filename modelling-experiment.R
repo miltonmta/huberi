@@ -1,13 +1,13 @@
 ################################ List of improvements to the scritp ###############################
 
-# 1. Make function tinker_bell search for .bil or .tif files - if else statement
-# 2. Line  44 - Make tinker_bell output two objects: current as a matrix; current_spatial as a RasterBrick
-# 3. Line 110 - Make tooth_fairy output two objects: current as a matrix; current_spatial as a RasterBrick
+# 1. Make function read_current search for .bil or .tif files - if else statement
+# 2. Line  44 - Make read_current output two objects: current as a matrix; current_spatial as a RasterBrick
+# 3. Line 110 - Make read_rcp output two objects: current as a matrix; current_spatial as a RasterBrick
 # 4. Line 272 - improve the code for creating the rasters from the models within the rcps
 # 5. Line 397 - host_plants not been plotted with points
-# 6. Implement occurrency data filtering at the ambiental space!
-# 1. Transform maps in frequencies instead of suitabilities.
-# 2. Impelement multi cores for running several models simultaneously.
+# 6. Implement occurrence data filtering at the ambiental space!
+# 7. Transform maps in frequencies instead of suitabilities.
+# 8. Impelement multi cores for running several models simultaneously.
 
 
 # Packages ######
@@ -42,7 +42,7 @@ browseURL("http://www.worldclim.org/current")
 
 
 ## current Model ----
-tinker_bell <- function (dir)                                # 19 .bil files at the directory
+read_current <- function (dir)                                # 19 .bil files at the directory
 {
 #  if (list.files(dir, pattern = ".bil$") = T)
 #  {
@@ -64,7 +64,7 @@ tinker_bell <- function (dir)                                # 19 .bil files at 
 
 ## Creating a matrix
 #! current -----
-current <- tinker_bell(dir = "./data/climatic_vars/current") # Object Type matrix (171,2 MB) nrow 912559
+current <- read_current(dir = "./data/climatic_vars/current") # Object Type matrix (171,2 MB) nrow 912559
 
 #! current_spatial -----
 ## Transforming It into a RasterBrick
@@ -108,7 +108,7 @@ model_names <- c("CCSM4", "IPSL-CM5A-LR", "MIROC-ESM")
 
 
 
-tooth_fairy <- function (x)
+read_rcp <- function (x)
 {
   directories <- list.dirs( x, full.names = TRUE)[-1]
   e <- extent(-122, -18, -56, 14)
@@ -137,43 +137,43 @@ tooth_fairy <- function (x)
 
 #! rcpxx----
 ## Creating a large array
-rcp26 <- tooth_fairy( x = "./data/climatic_vars/selected/26bi70/")
-rcp45 <- tooth_fairy( x = "./data/climatic_vars/selected/45bi70/")
-rcp60 <- tooth_fairy( x = "./data/climatic_vars/selected/60bi70/")
-rcp85 <- tooth_fairy( x = "./data/climatic_vars/selected/85bi70/")
+rcp26 <- read_rcp( x = "./data/climatic_vars/selected/26bi70/")
+rcp45 <- read_rcp( x = "./data/climatic_vars/selected/45bi70/")
+rcp60 <- read_rcp( x = "./data/climatic_vars/selected/60bi70/")
+rcp85 <- read_rcp( x = "./data/climatic_vars/selected/85bi70/")
 
 
 ## Creating a Large RasterStack 
-# change ".bil$" for ".tif$" in the tinker_bell function 
+# change ".bil$" for ".tif$" in the read_current function 
 
 # RCP 26
-rcp26_cc <- tinker_bell(dir = "./data/climatic_vars/selected/26bi70/cc26bi70")
-rcp26_ip <- tinker_bell(dir = "./data/climatic_vars/selected/26bi70/ip26bi70")
-rcp26_mr <- tinker_bell(dir = "./data/climatic_vars/selected/26bi70/mr26bi70")
+rcp26_cc <- read_current(dir = "./data/climatic_vars/selected/26bi70/cc26bi70")
+rcp26_ip <- read_current(dir = "./data/climatic_vars/selected/26bi70/ip26bi70")
+rcp26_mr <- read_current(dir = "./data/climatic_vars/selected/26bi70/mr26bi70")
 rcp26_cc <- rasterFromXYZ(rcp26_cc) # Large RasterBrick (468.6MB)
 rcp26_ip <- rasterFromXYZ(rcp26_ip) # Large RasterBrick (468.6MB)
 rcp26_mr <- rasterFromXYZ(rcp26_mr) # Large RasterBrick (468.6MB)
 
 # RCP 45
-rcp45_cc <- tinker_bell(dir = "./data/climatic_vars/selected/45bi70/cc45bi70")
-rcp45_ip <- tinker_bell(dir = "./data/climatic_vars/selected/45bi70/ip45bi70")
-rcp45_mr <- tinker_bell(dir = "./data/climatic_vars/selected/45bi70/mr45bi70")
+rcp45_cc <- read_current(dir = "./data/climatic_vars/selected/45bi70/cc45bi70")
+rcp45_ip <- read_current(dir = "./data/climatic_vars/selected/45bi70/ip45bi70")
+rcp45_mr <- read_current(dir = "./data/climatic_vars/selected/45bi70/mr45bi70")
 rcp45_cc <- rasterFromXYZ(rcp45_cc) # Large RasterBrick (468.6MB)
 rcp45_ip <- rasterFromXYZ(rcp45_ip) # Large RasterBrick (468.6MB)
 rcp45_mr <- rasterFromXYZ(rcp45_mr) # Large RasterBrick (468.6MB)
 
 # RCP 60
-rcp60_cc <- tinker_bell(dir = "./data/climatic_vars/selected/60bi70/cc60bi70")
-rcp60_ip <- tinker_bell(dir = "./data/climatic_vars/selected/60bi70/ip60bi70")
-rcp60_mr <- tinker_bell(dir = "./data/climatic_vars/selected/60bi70/mr60bi70")
+rcp60_cc <- read_current(dir = "./data/climatic_vars/selected/60bi70/cc60bi70")
+rcp60_ip <- read_current(dir = "./data/climatic_vars/selected/60bi70/ip60bi70")
+rcp60_mr <- read_current(dir = "./data/climatic_vars/selected/60bi70/mr60bi70")
 rcp60_cc <- rasterFromXYZ(rcp60_cc) # Large RasterBrick (468.6MB)
 rcp60_ip <- rasterFromXYZ(rcp60_ip) # Large RasterBrick (468.6MB)
 rcp60_mr <- rasterFromXYZ(rcp60_mr) # Large RasterBrick (468.6MB)
 
 # RCP 85
-rcp85_cc <- tinker_bell(dir = "./data/climatic_vars/selected/85bi70/cc85bi70")
-rcp85_ip <- tinker_bell(dir = "./data/climatic_vars/selected/85bi70/ip85bi70")
-rcp85_mr <- tinker_bell(dir = "./data/climatic_vars/selected/85bi70/mr85bi70")
+rcp85_cc <- read_current(dir = "./data/climatic_vars/selected/85bi70/cc85bi70")
+rcp85_ip <- read_current(dir = "./data/climatic_vars/selected/85bi70/ip85bi70")
+rcp85_mr <- read_current(dir = "./data/climatic_vars/selected/85bi70/mr85bi70")
 rcp85_cc <- rasterFromXYZ(rcp85_cc) # Large RasterBrick (468.6MB)
 rcp85_ip <- rasterFromXYZ(rcp85_ip) # Large RasterBrick (468.6MB)
 rcp85_mr <- rasterFromXYZ(rcp85_mr) # Large RasterBrick (468.6MB)
@@ -232,7 +232,7 @@ write.table(current[,c("x", "y", "bio1", "bio2", "bio3", "bio16", "bio17" )], ".
 
 ## 3.1b. current - saving as raster ----
 
-# current_spatial <- rasterFromXYZ(current) # The object current was outputted from the function tinker_bell as a matrix. It needs to be a RasterBrick type of object so we could extract the selected variables from it.
+# current_spatial <- rasterFromXYZ(current) # The object current was outputted from the function read_current as a matrix. It needs to be a RasterBrick type of object so we could extract the selected variables from it.
 
 writeRaster(current_spatial$bio1, "./data/climatic_vars/selected/current/bio01-current.grd", format = "raster")
 writeRaster(current_spatial$bio2, "./data/climatic_vars/selected/current/bio02-current.grd", format = "raster")
@@ -382,8 +382,6 @@ plot(rcp85_select[[1]])
 dev.off()
 
 # 04. Occurrences data ###################################################################################
- 
-file.exists("./data/occurrences/huberi.txt")
 
 huberi <- read.table("./data/occurrences/huberi.txt", h = T)
 huberi [1:5, ]
@@ -393,24 +391,33 @@ host_plants <- read.table("./data/occurrences/host-plants-species.txt", h = T)
 host_plants [1:5, ]
 host_plants <- host_plants[, -1]
 
+sp <- gsub("C[1-9]","", host_plants$species)
+sp_unico <- unique(sp)
+# [1] "Ipomoea_asarifolia" "Ipomoea_bahiensis" 
+# [3] "Ipomoea_cairica"    "Ipomoea_indica"    
+# [5] "Ipomoea_nil"        "Ipomoea_purpurea"  
+# [7] "Merremia_aegyptia" 
+
+
+
 plot(current_select$bio1)
 points(huberi[,"long"], huberi[,"lat"], pch = 20)
-points(host_plants[,"long"], host_plants[,"lat"], pch = 18)
+points(host_plants[,"long"], host_plants[,"lat"], pch = 18) # not plotting in map
 huberi[1:5,]
 
-# extracting variables from occurences data cells
+# extracting variables from occurrences data cells
 huberi_cell <- cellFromXY(current_select, huberi)
 duplicated(huberi_cell)
 huberi_cell <- unique(huberi_cell)
 huberi_var <- extract(current_select, huberi_cell)
 
 host_plants_cell <- cellFromXY(current_select, host_plants)
-duplicated(host_plantss_cell)
+duplicated(host_plants_cell)
 host_plants_cell <- unique(host_plants_cell)
 host_plants_var <- extract(current_select, host_plants_cell)
 
-write.table(huberi_var, "./data/occurences/huberi-var.txt", row.names = F, sep = " ") 
-write.table(host_plants_var, "./data/occurences/host-plants-var.txt", row.names = F, sep = " ") 
+write.table(huberi_var,      "./data/occurrences/huberi-var.txt", row.names = F, sep = " ") 
+write.table(host_plants_var, "./data/occurrences/host-plants-var.txt", row.names = F, sep = " ") 
 
 ## 05. Background Sampling ##############################################################################
 
@@ -423,17 +430,17 @@ neot_c <- na.omit(neot_c)
 
 # sampling with huberi
 back_id_huberi <- sample(1:nrow(neot_c), nrow(huberi_var))
-back_huberi_c <- neot_c[back_id_huberi, ]
+back_huberi <- neot_c[back_id_huberi, ]
 points(back_huberi_c[, "x"], back_huberi_c[, "y"], pch = 20, col = 'red')
 
 # sampling with host plants
 back_id_plants <- sample(1:nrow(neot_c), nrow(host_plants_var))
-back_plants_c <- neot_c[back_id_plants, ]
-points(back_plants_c[, "x"], back_plants_c[, "y"], pch = 20, col = 'blue')
+back_plants <- neot_c[back_id_plants, ]
+points(back_plants_c[, "x"], back_plants_c[, "y"], pch = 20, col = 'blue') # número incorreto de dimensões
 
 # saving background files
-write.table(back_huberi, "./data/occurences/Background-random-huberi.txt", row.names = F, sep = " ") 
-write.table(back_plants, "./data/occurences/Background-random-plants.txt", row.names = F, sep = " ")
+write.table(back_huberi, "./data/occurrences/Background-random-huberi.txt", row.names = F, sep = " ") 
+write.table(back_plants, "./data/occurrences/Background-random-plants.txt", row.names = F, sep = " ")
 
 
 rm(list = ls())
@@ -464,7 +471,7 @@ require(rJava)
 # 3. Use dyn.load for ataching the libjvm.dylib file before running the `rJava` Package.
 
 
-fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "...", background_huberi = "...", background_plants = "...", cross_validation = ...)
+modelling <- function(occurrence_huberi = "...", occurrence_plants = "...", background_huberi = "...", background_plants = "...", cross_validation = ...)
 {
   
   # Creating empty objects for considering the difefferent AOGCMs
@@ -508,9 +515,9 @@ fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "..."
     rcp85_select   <- stack(vars_rcp85)
 
     
-     ### loading occurrency and backgound data.
-    occur_h <- read.table(occurrency_huberi, h = T)
-    occur_p <- read.table(occurrency_plants, h = T)
+     ### loading occurrence and backgound data.
+    occur_h <- read.table(occurrence_huberi, h = T)
+    occur_p <- read.table(occurrence_plants, h = T)
     back_h <- read.table(background_huberi, h = T)
     back_p <- read.talbe(background_plants, h = T)  
       
@@ -860,10 +867,10 @@ fairy_godmother <- function(occurrency_huberi = "...", occurrency_plants = "..."
   }# closes the "j" - loop AOGCMs
   
   
-}# closes the function fairy_godmother
+}# closes the function modelling
 
 # ! running my model ####
-fairy_godmother (occurrency_huberi = "./data/occurences/huberi-var.txt", occurrency_plants = "./data/occurences/plants-var.txt", background_huberi = "./data/occurences/Background-random-huberi.txt", background_plants = "./data/occurences/Background-random-plants.txt")
+modelling (occurrence_huberi = "./data/occurrences/huberi-var.txt", occurrence_plants = "./data/occurrences/plants-var.txt", background_huberi = "./data/occurrences/Background-random-huberi.txt", background_plants = "./data/occurrences/Background-random-plants.txt")
 
 
 # 07. Selecting models (auc) ############################################################################
