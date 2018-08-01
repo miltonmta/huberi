@@ -382,65 +382,58 @@ dev.off()
 
 # 04. Occurrences data ###################################################################################
 
-## reading huberi
+##  huberi
 huberi <- read.table("./data/occurrences/huberi.txt", h = T)
-huberi [1:5, ]
 huberi <- huberi[, -1]
+huberi [1:5, ]
+tail(huberi)
 
-
-## reading host plants
+## host plants
+# reading data
 host_plants <- read.table("./data/occurrences/host-plants-species.txt", h = T)
 host_plants [1:5, ]
+str(host_plants) # object type matrix
 
-
-# Extracting the list of species names
-
-
+# species names
 sp <- gsub("C[1-9]","", host_plants$species)
-sp_unico <- unique(sp)
+sp <- unique(sp)
 # [1] "Ipomoea_asarifolia" "Ipomoea_bahiensis" 
 # [3] "Ipomoea_cairica"    "Ipomoea_indica"    
 # [5] "Ipomoea_nil"        "Ipomoea_purpurea"  
 # [7] "Merremia_aegyptia" 
 
-
 # creating an array with the host plants data
-splits <- split(seq(nrow(host_plants)), host_plants[, 1])
-splits <- lapply(splits, function(x) host_plants[c(x, rep(NA, max(lengths(splits)) - length(x))), ])
-host_plants <- do.call(abind, list(splits, along = 3))
-host_plants [1, , "Ipomoea_asarifolia"] 
-host_plants <- host_plants_array[, -1, ] # remove the column with the species name. 
-host_plants2 <- as.integer(host_plants)
-#??----
-# long          lat 
-# "-60,683889"   "2,839167" 
-?unlist
+splits <- split(seq(nrow(host_plants)), host_plants[, 1]) # splits the matrix by col 1
+splits <- lapply(splits, function(x) host_plants[c(x, rep(NA, max(lengths(splits)) - length(x))), ]) # creates a list of matrixes with the splitted data.
+host_plants <- do.call(abind, list(splits, along = 3)) # creates the array
+host_plants [1:5, , "Ipomoea_asarifolia"] 
+host_plants <- host_plants_array[, -1, ]# remove the column with the species name. 
+host_plants <- array(as.numeric(sub(",", ".", host_plants)), dim(host_plants), dimnames(host_plants))# convert array data from strigs to integers
+host_plants <- na.omit(host_plants)
+host_plants [1:5, , "Ipomoea_asarifolia"] 
+
+
 ## Plotting 
 plot(current_select$bio1)
-points(huberi[,"long"], huberi[,"lat"], pch = 20)
-points(host_plants[,"long"], host_plants[,"lat"], pch = 18) # not plotting in map
-
-## extracting variables from occurrences data cells
-
-
-
-plot(current_select$bio1)
-points(huberi[,"long"], huberi[,"lat"], pch = 20)
-points(host_plants[,"long"], host_plants[,"lat"], pch = 18) # not plotting in map
-huberi[1:5,]
-
-# extracting variables from occurrences data cells
-
+points(huberi[,"long"], huberi[,"lat"], pch = 20, col = "blue")
+points(host_plants[,"long",], host_plants[,"lat",], pch = 18, col = "red") 
+## extracting variables based on the occurrences data cells
 huberi_cell <- cellFromXY(current_select, huberi)
 duplicated(huberi_cell)
 huberi_cell <- unique(huberi_cell)
 huberi_var <- extract(current_select, huberi_cell)
+# [65,]  257  105   70   649    11
+# [66,]   NA   NA   NA    NA    NA
+huberi_var <- na.omit(huberi_var)
 
+#??----
 host_plants_cell <- cellFromXY(current_select, host_plants)
+# Error in xy[, 1] : número incorreto de dimensões
 duplicated(host_plants_cell)
 host_plants_cell <- unique(host_plants_cell)
 host_plants_var <- extract(current_select, host_plants_cell)
 
+## saving data
 write.table(huberi_var,      "./data/occurrences/huberi-var.txt", row.names = F, sep = " ") 
 write.table(host_plants_var, "./data/occurrences/host-plants-var.txt", row.names = F, sep = " ") 
 
