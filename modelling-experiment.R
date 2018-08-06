@@ -23,11 +23,13 @@ require(rJava)
 # 8. Impelement multi cores for running several models simultaneously.
 
 # --- Maxent/rJava troubleshoot                     ----
-# MaxEnt is available as a standalone Java program. Dismo has a function 'maxent' that communicates with this program. To use it you must first download the program from 
+
+# MaxEnt is available as a standalone Java program. Dismo has a function 'maxent' that communicates with this program. To use it you must first download the program from:
 # browseURL("http://www.cs.princeton.edu/~schapire/maxent/")
 # Put the file 'maxent.jar' in the 'java' folder of the 'dismo' package. That is the folder returned by system.file("java", package="dismo"). You need MaxEnt version 3.3.3b or higher.
 
-# 1. Check if JDK is installed going to the path below. If not:
+# While loagind the package rJava, if you have the error image not found, follow the steps:
+# 1. Check if JDK is installed in you machine. If not:
 # browseURL("http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html")
 
 # 2. Checking if the jar file is present. 
@@ -68,7 +70,7 @@ require(rJava)
 ## current Model ----
 read_current <- function (dir)                                
 {
-  model_raw <- stack(list.files(dir,  pattern = ".bil$", full.names = TRUE))
+  model_raw <- stack(list.files(dir,  pattern = ".tif$", full.names = TRUE))
   e <- extent(-122, -18, -56, 14) 
   model_e <- crop(model_raw, e)                              
   val <- getValues(model_e)                                  
@@ -119,13 +121,14 @@ current_spatial <- rasterFromXYZ(current)
 #! model_names----
 # naming must be in the exact order of the origin directory. Best practice would be renaming the origin folders with the corresponding model.
 model_names <- c("CCSM4", "IPSL-CM5A-LR", "MIROC-ESM")
-
+#??----
+# rcpxx----
 read_rcp <- function (x)
 {
   directories <- list.dirs( x, full.names = TRUE)[-1]
   e <- extent(-122, -18, -56, 14)
   rcp <- NULL
-  models_list <- list()
+  # models_list <- list()
   for (i in 1:length(directories))
   {
     models_raw       <- stack(list.files(directories[i],pattern = ".tif$", full.names = TRUE))
@@ -134,32 +137,38 @@ read_rcp <- function (x)
     coord            <- xyFromCell(models_e, 1:ncell(models_e))
     models           <- cbind(coord, val)
     models           <- na.omit(models)
-    models_rast      <- rasterFromXYZ(models)
-    models_list[[i]] <- models_rast
+    # models_list[[i]] <- models_e
     rcp              <- abind (rcp, models, along = 3)
   }
-  return(list("array" = rcp, "rasters" = models_list))
+  # return(list("array" = rcp, "rasters" = models_list))
+  return(rcp)
 }
-
-## Creating a list with: large array and a RasterBrick
-rcp26_lista <- read_rcp( x = "./data/climatic_vars/selected/26bi70/")
-rcp45_lista <- read_rcp( x = "./data/climatic_vars/selected/45bi70/")
-rcp60_lista <- read_rcp( x = "./data/climatic_vars/selected/60bi70/")
-rcp85_lista <- read_rcp( x = "./data/climatic_vars/selected/85bi70/")
-
-#??----
-# rcpxx----
-rcp26 <- rcp26_lista["array"]
-
+# object type: array
+rcp26 <- read_rcp( x = "./data/climatic_vars/selected/26bi70/")
+rcp45 <- read_rcp( x = "./data/climatic_vars/selected/45bi70/")
+rcp60 <- read_rcp( x = "./data/climatic_vars/selected/60bi70/")
+rcp85 <- read_rcp( x = "./data/climatic_vars/selected/85bi70/")
 
 # rcpxx_spatial----
+read_rcp_spatial <- function (x)
+{
+  directories <- list.dirs( x, full.names = TRUE)[-1]
+  e <- extent(-122, -18, -56, 14)
+  rcp <- NULL
+  for (i in 1:length(directories))
+  {
+    models_raw  <- stack(list.files(directories[i],pattern = ".tif$", full.names = TRUE))
+    models_e    <- crop( models_raw , e )
+    rcp         <- stack (models_e)
+  }
+  return(rcp)
+}
+# object type: RasterStack
+rcp26_spatial5 <- read_rcp_spatial( x = "./data/climatic_vars/selected/26bi70/")
+rcp45_spatial <- read_rcp_spatial( x = "./data/climatic_vars/selected/45bi70/")
+rcp60_spatial <- read_rcp_spatial( x = "./data/climatic_vars/selected/60bi70/")
+rcp85_spatial <- read_rcp_spatial( x = "./data/climatic_vars/selected/85bi70/")
 
-rcp26_spatial <- rcp26_lista["rasters"]
-
-rcp26_spatial <- stack(rcp26_cc, rcp26_ip, rcp26_mr)
-rcp45_spatial <- stack(rcp45_cc, rcp45_ip, rcp45_mr)
-rcp60_spatial <- stack(rcp60_cc, rcp60_ip, rcp60_mr)
-rcp85_spatial <- stack(rcp85_cc, rcp85_ip, rcp85_mr)
 
 # 02. Varimax variable selection #########################################################################
 # install.packages(c("psych", "GPArotation"), dependencies = TRUE)
@@ -216,13 +225,22 @@ writeRaster(current_spatial$bio3, "./data/climatic_vars/selected/current/bio03-c
 writeRaster(current_spatial$bio16, "./data/climatic_vars/selected/current/bio16-current.grd", format = "raster")
 writeRaster(current_spatial$bio17, "./data/climatic_vars/selected/current/bio17-current.grd", format = "raster")
 
-#! current_select----
+#>> current_select----
 current_select <- stack(list.files("./data/climatic_vars/selected/current",  pattern = ".grd$", full.names = TRUE))
 plot(current_select)
 
 #### RCPs
 
 ### 3.2a. rcp - saving table ----
+
+write.table(rcp26 [ ,c("x", "y", "bio1", "bio2", "bio3", "bio16", "bio17" ), ], "./data/climatic_vars/selected/rcp26/rcp26-select.txt", row.names = F, sep = "	")
+write.table(rcp45 [ ,c("x", "y", "bio1", "bio2", "bio3", "bio16", "bio17" ), ], "./data/climatic_vars/selected/rcp45/rcp45-select.txt", row.names = F, sep = "	")
+write.table(rcp60 [ ,c("x", "y", "bio1", "bio2", "bio3", "bio16", "bio17" ), ], "./data/climatic_vars/selected/rcp60/rcp60-select.txt", row.names = F, sep = "	")
+write.table(rcp85 [ ,c("x", "y", "bio1", "bio2", "bio3", "bio16", "bio17" ), ], "./data/climatic_vars/selected/rcp85/rcp85-select.txt", row.names = F, sep = "	")
+
+
+### 3.2b. rcp - saving as raster ----
+# Creating rasters with the selected variables from each aogcm
 #???!! ----
 # tem que fazer um loop
 # 
@@ -241,20 +259,18 @@ plot(current_select)
 # 
 # tenta fazer isso ai
 
+dir <- list.dirs(..., full.names = TRUE)
+models <- rep(c("rcp26_spatial", "rcp45_spatial", "rcp60_spatial", "rcp85_spatial"), each = 15)
+variables <- c("bio01.1", "bio02.1", "bio03.1", "bio16.1", "bio17.1", "bio01.2", "bio02.2", "bio03.2", "bio16.2", "bio17.2", "bio01.3", "bio02.3", "bio03.3", "bio16.3", "bio17.3")
+m_code <- rep(c((rep(c("cc", "ip", "mr"), each = 5))), times = 4)
+m <- cbind((models), (variables), (m_code))
+colnames(m) <- c("models", "var", "code")
 
-write.table(rcp26 [ ,c("x", "y", "bio1", "bio2", "bio3", "bio16", "bio17" ), ], "./data/climatic_vars/selected/rcp26/rcp26-select.txt", row.names = F, sep = "	")
-write.table(rcp45 [ ,c("x", "y", "bio1", "bio2", "bio3", "bio16", "bio17" ), ], "./data/climatic_vars/selected/rcp45/rcp45-select.txt", row.names = F, sep = "	")
-write.table(rcp60 [ ,c("x", "y", "bio1", "bio2", "bio3", "bio16", "bio17" ), ], "./data/climatic_vars/selected/rcp60/rcp60-select.txt", row.names = F, sep = "	")
-write.table(rcp85 [ ,c("x", "y", "bio1", "bio2", "bio3", "bio16", "bio17" ), ], "./data/climatic_vars/selected/rcp85/rcp85-select.txt", row.names = F, sep = "	")
-
-# saving array of aogcm models as raster
-# writeRaster(rcp26$bio1, "./data/climatic_vars/selected/bio01_rcp26.grd", format = "raster")
-# writeRaster(rcp45, "./data/climatic_vars/selected/rcp45-select.grd", format = "raster")
-# writeRaster(rcp60, "./data/climatic_vars/selected/rcp60-select.grd", format = "raster")
-# writeRaster(rcp85, "./data/climatic_vars/selected/rcp85-select.grd", format = "raster")
-
-### 3.2b. rcp - saving as raster ----
-# Creating rasters with the selected variables from each aogcm
+for (i in seq_along(m))
+{
+  
+  writeRaster((m[i]$models[i])$(m[i]$variables[i]), paste(names(c(models[-"_spatial"], (variables[i], mcode[i])))), dir[i],  ".grd", format = "raster")
+}
 
 ## RCP26
 # Saving selected variables from CCSM4
@@ -346,7 +362,7 @@ writeRaster(rcp85_spatial$bio17.3, "./data/climatic_vars/selected/rcp85/bio17-mr
 
 
 ### creating objects for each rcp
-#! rcpxx_select----
+#>> rcpxx_select----
 par (mfrow = c(2,2))
 
 rcp26_select <- stack(list.files("./data/climatic_vars/selected/rcp26",  pattern = ".grd$", full.names = TRUE))
@@ -355,13 +371,12 @@ rcp45_select <- stack(list.files("./data/climatic_vars/selected/rcp45",  pattern
 
 rcp60_select <- stack(list.files("./data/climatic_vars/selected/rcp60",  pattern = ".grd$", full.names = TRUE))
 
-rcp85_select <- stack(list.files("./data/climatic_vars/selected/rcp85",  pattern = ".grd$", full.names = TRUE))
+rcp85_select <- stack(list.files("./data/climatic_vars/selected/rcp85",  pattern = ".grd$", full.names = TRUE)) 
 
 plot(rcp26_select)
 plot(rcp45_select)
 plot(rcp60_select)
 plot(rcp85_select)
-
 dev.off()
 
 # 04. Occurrences data ###################################################################################
@@ -397,14 +412,14 @@ duplicated(huberi_cell)
 huberi_cell <- unique(huberi_cell)
 huberi_var <- raster::extract(current_select, huberi_cell)
 huberi_var <- na.omit(huberi_var)
-#! huberi_var----
+#>> huberi_var----
 
 host_plants_cell <- cellFromXY(current_select, host_plants [, -1])
 duplicated(host_plants_cell)
 host_plants_cell <- unique(host_plants_cell)
 host_plants_var <- raster::extract(current_select, host_plants_cell)
 host_plants_var <- na.omit(host_plants_var)
-#! host_plants_var----
+#>> host_plants_var----
 
 ## saving data
 write.table(huberi_var,      "./data/occurrences/huberi-var.txt", row.names = F, sep = " ") 
@@ -426,13 +441,13 @@ neot <- na.omit(neot)
 back_id_huberi <- sample(1:nrow(neot), nrow(huberi_var))
 back_huberi <- neot[back_id_huberi, ]
 points(back_huberi[, "x"], back_huberi[, "y"], pch = "*", col = 'black')
-#! back_huberi----
+#>> back_huberi----
 
 # sampling with host plants
 back_id_plants <- sample(1:nrow(neot), nrow(host_plants_var))
 back_plants <- neot[back_id_plants, ]
 points(back_plants[, "x"], back_plants[, "y"], pch = "*", col = 'magenta') # número incorreto de dimensões
-#! back_plants----
+#>> back_plants----
 
 # saving background files
 write.table(back_huberi, "./data/occurrences/Background-random-huberi.txt", row.names = F, sep = " ") 
