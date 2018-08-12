@@ -1,4 +1,4 @@
-# Packages ######
+# --- Packages                                      ----
 # install.packages(c("tidyverse", "raster", "rgdal", "abind", "spThin", "vegan", "maps", "mask","pcych", "kernlab", "dismo", "rJava")
 require(tidyverse)
 require(raster)
@@ -12,20 +12,7 @@ require(kernlab)
 require(dismo)
 require(rJava)
 
-# --- List of improvements to the scritp            ####
-
-#  sugiro usar apenas: bioclim, gower, maxent, SVM 
-#  modificar para modelar uma espécie por vez - espécie generica
-#  autocorrelacao espacial - filtragem no espaço geográfico - spthin
-#  avaliaçao de modelos deixar de usar AUC e implementar TRP (tb retirado da funçao evaluate)
-#  usas threshold que elimina erros de comissao. ?threshold
-#  Quanto à seleção de modelos, faça a média ponderada uando o "d" como peso
-#  d = TPR*(1-pi)
-#  pi = sum(bioclim_c_h >= bioclim_t_h)/ 912559
-#  nrow(na.omit(values(current_select))) = 912559
-#  n_cells <- nrow(na.omit(values(current_select))) 
-#  pi = sum(bioclim_c_h >= bioclim_t_h)/ n_cells
-
+# --- List of improvements to the scritp            ----
 
 # 1. Implement validation by the checkerboards method.
 # 2. Implement occurrence filtering at the ambiental space and compare with spThin (geographical space)
@@ -66,9 +53,10 @@ browseURL("https://1drv.ms/f/s!ApJZaitgpPr7gZtfS9n9mU9DDzXQMg")
 # browseURL("http://www.worldclim.org/cmip5_2.5m")
 
 
-# 01. Read aogcms models ###########################################################################
+# ***************************************************************************************
+## 01. Read aogcms models                           ----
 
-### current ----
+### 1.1 current ----
 # Worldclim variables for current conditions (~1960-1990), by the spatial resolution of 2.5min. 
 # browseURL("http://www.worldclim.org/current")
 
@@ -87,12 +75,11 @@ read_current <- function (dir)
 ## Creating a matrix
 current <- read_current(dir = "./data/climatic_vars/current")
 
-
 ## Creating a RasterBrick
 current_spatial <- rasterFromXYZ(current) 
 
 
-## rcp  ----
+### 1.2 rcp  ----
 # Worldclim variables for the RCPs, projected to 2070(average for 2061-2080), by the spatial resolution of 2.5min. 
 # browseURL("http://www.worldclim.org/cmip5_2.5m")
 
@@ -176,17 +163,17 @@ rcp85_spatial <- stack(rcp85_spatial[[1]], rcp85_spatial[[2]], rcp85_spatial[[3]
 
 rm(rcp26_list, rcp45_list, rcp60_list, rcp85_list)
 
-# 02. Variable selection #########################################################################
+# ***************************************************************************************
+## 02. Variable selection                           ----
 ### by exploratory factor analysis
 
-require(psych)
 fa.parallel(current[ , -c(1:2)], fa = 'fa') #scree plot
 current_fa <- fa(current[ , -c(1:2)], nfactors = 5, rotate = 'varimax')
 loadings <- loadings(current_fa)
 write.table(loadings, "./data/climatic_vars/selected/varimax-loadings.txt")
- 
-# bio01, bio03, bio08, bio14, bio16.
-# Selected variables ----
+
+### Selected variables 
+# bio02, bio03, bio10, bio14, bio16.
 
 ## bioclimatic variables descriptions
 
@@ -210,25 +197,22 @@ write.table(loadings, "./data/climatic_vars/selected/varimax-loadings.txt")
 #BIO18 = Precipitation of Warmest Quarter
 #BIO19 = Precipitation of Coldest Quarter
 
+# ***************************************************************************************
+## 03. Saving selected variables                    ----
+### 3.1a. current - saving as table ----
 
-# 03. Saving selected variables ####################################################################
+write.table(current[,c("x", "y", "bio02", "bio03", "bio10", "bio14", "bio16")], "./data/climatic_vars/selected/current/current-select.txt", row.names = F, sep = " ")  
 
-#### current
+### 3.1b. current - saving as raster ----
 
-## 3.1a. current - saving as table ----
-
-write.table(current[,c("x", "y", "bio01", "bio02", "bio03", "bio04", "bio12", "bio14", "bio15", "bio18", "bio19" )], "./data/climatic_vars/selected/current/current-select.txt", row.names = F, sep = " ")  
-
-## 3.1b. current - saving as raster ----
-
-variables <- as.factor(c("bio01", "bio02", "bio03", "bio04", "bio12", "bio14", "bio15", "bio18", "bio19"))
+variables <- as.factor(c("bio02", "bio03", "bio10", "bio14", "bio16"))
 for (i in 1:length(variables))
 {
   writeRaster (current_spatial[[i]], filename = paste0("./data/climatic_vars/selected/current/current-", variables[i], ".grd"), format = "raster")
 }
 rm(variables)
 
-#>> current_select----
+
 current_select <- stack(list.files("./data/climatic_vars/selected/current/",  pattern = ".grd$", full.names = TRUE))
 # plot(current_select)
 
@@ -236,15 +220,21 @@ current_select <- stack(list.files("./data/climatic_vars/selected/current/",  pa
 
 ### 3.2a. rcp - saving table ----
 
-write.table(rcp26 [ ,c("x", "y", "bio01", "bio02", "bio03", "bio04", "bio12", "bio14", "bio15", "bio18", "bio19" ), ], "./data/climatic_vars/selected/rcp26/rcp26-select.txt", row.names = F, sep = "	")
-write.table(rcp45 [ ,c("x", "y", "bio01", "bio02", "bio03", "bio04", "bio12", "bio14", "bio15", "bio18", "bio19" ), ], "./data/climatic_vars/selected/rcp45/rcp45-select.txt", row.names = F, sep = "	")
-write.table(rcp60 [ ,c("x", "y", "bio01", "bio02", "bio03", "bio04", "bio12", "bio14", "bio15", "bio18", "bio19" ), ], "./data/climatic_vars/selected/rcp60/rcp60-select.txt", row.names = F, sep = "	")
-write.table(rcp85 [ ,c("x", "y", "bio01", "bio02", "bio03", "bio04", "bio12", "bio14", "bio15", "bio18", "bio19" ), ], "./data/climatic_vars/selected/rcp85/rcp85-select.txt", row.names = F, sep = "	")
+# variables <- as.factor(c("rcp26", "rcp45", "rcp60", "rcp85"))
+# for (i in 1:length(variables))
+# {
+#   write.table(variables[i][ ,c("x", "y", "bio02", "bio03", "bio10", "bio14", "bio16" ), ], filename = paste0("./data/climatic_vars/selected/select-", variables[i], ".txt"), sep = "")
+# }
+
+write.table(rcp26 [ ,c("x", "y", "bio02", "bio03", "bio10", "bio14", "bio16" ), ], "./data/climatic_vars/selected/rcp26/rcp26-select.txt", row.names = F, sep = "	")
+write.table(rcp45 [ ,c("x", "y", "bio02", "bio03", "bio10", "bio14", "bio16" ), ], "./data/climatic_vars/selected/rcp45/rcp45-select.txt", row.names = F, sep = "	")
+write.table(rcp60 [ ,c("x", "y", "bio02", "bio03", "bio10", "bio14", "bio16" ), ], "./data/climatic_vars/selected/rcp60/rcp60-select.txt", row.names = F, sep = "	")
+write.table(rcp85 [ ,c("x", "y", "bio02", "bio03", "bio10", "bio14", "bio16" ), ], "./data/climatic_vars/selected/rcp85/rcp85-select.txt", row.names = F, sep = "	")
 
 
 ### 3.2b. rcp - saving as raster ----
 # Creating rasters with the selected variables from each aogcm
-variables <- as.factor(c("bio01.1", "bio02.1", "bio03.1", "bio04.1", "bio12.1", "bio14.1", "bio15.1", "bio18.1", "bio19.1", "bio01.2", "bio02.2", "bio03.2", "bio04.2", "bio12.2", "bio14.2", "bio15.2", "bio18.2", "bio19.2", "bio01.3", "bio02.3", "bio03.3", "bio04.3", "bio12.3", "bio14.3", "bio15.3", "bio18.3", "bio19.3"))
+variables <- as.factor(c("bio02.1", "bio03.1", "bio10.1", "bio14.1", "bio16.1", "bio02.2", "bio03.2", "bio10.2", "bio14.2", "bio16.2", "bio02.3", "bio03.3", "bio10.3", "bio14.3", "bio16.3"))
 
 ## RCP26
 for (i in 1:length(variables))
@@ -274,9 +264,9 @@ for (i in 1:length(variables))
 rm(variables)
 
 
-### Creating objects for each rcp
+### Reading selected RCP variables.
 
-#>> rcpxx_select----
+
 rcp26_select <- stack(list.files("./data/climatic_vars/selected/rcp26",  pattern = ".grd$", full.names = TRUE))
 
 rcp45_select <- stack(list.files("./data/climatic_vars/selected/rcp45",  pattern = ".grd$", full.names = TRUE))
@@ -292,47 +282,28 @@ rcp85_select <- stack(list.files("./data/climatic_vars/selected/rcp85",  pattern
 # plot(rcp85_select)
 # dev.off()
 
-# 04. Occurrences data ###################################################################################
+# ***************************************************************************************
+## 04. Occurrences data                             ----
 
-### reading data
-
-huberi <- read.table("./data/occurrences/huberi.txt", h = T)
-huberi [1:5, ]
-tail(huberi)
-
-host_plants<- read.table("./data/occurrences/host-plants-species.txt", h = T)[, -1]
-host_plants [1:5, ]
-str(host_plants) # object type matrix
-
-
+### Reading data
+# if you have more than one species, all of them should be in the file raw_data.
+# the names of columms in this file must be: "SPEC", "LONG", "LAT".
+occur_raw <- read.table("./data/occurrences/raw_data.txt", h = T)
+huberi [1:5, ] 
+str(occur_raw) # object type: 3 columms matrix
+ 
 ### Filtering occurrences in the geographical space
-require(spThin)
-thinned_huberi <- thin(huberi, out.dir = "./data/occurrences/", thin.par=20, reps=100, locs.thinned.list.return = T)
-plotThin(thinned_huberi)
-summaryThin(thinned_huberi)
+occur_thinned <- thin(occur, out.dir = "./data/occurrences/", out.base = "occur", thin.par = 20, reps = 100, max.files = 1, locs.thinned.list.return = T)
+summaryThin(occur_thinned)
 
-thinned_plants <- thin(host_plants, out.dir = "./data/occurrences/", thin.par=20, reps=100, locs.thinned.list.return = T)
-plotThin(thinned_plants)
-summaryThin(thinned_plants)
+### Species names
+sp <- gsub("C[1-9]","", occur_thinned$SPEC)
+sp_names <- unique(sp)
 
+# ***************************************************************************************
+## 05. Extracting variables                         ----
 
-### Plants species names ----
-sp <- gsub("C[1-9]","", thinned_plants$species)
-plants_names <- unique(sp)
-# [1] "Ipomoea_asarifolia" "Ipomoea_bahiensis" 
-# [3] "Ipomoea_cairica"    "Ipomoea_indica"    
-# [5] "Ipomoea_nil"        "Ipomoea_purpurea"  
-# [7] "Merremia_aegyptia" 
-
-
-### Plotting 
-plot(current_select$bio01)
-points(huberi[,-1], pch = "*", col = "blue")
-points(thinned_plants[ , , ], pch = "*", col = "red")
-
-
-### extracting variables based on the occurrences data cells
-create_occur <- function(sp, name)
+create_var <- function(sp,name)
 {
   sp_cell <- cellFromXY(current_select, sp[, -1])
   duplicated(sp_cell)
@@ -340,22 +311,18 @@ create_occur <- function(sp, name)
   sp_coord <- xyFromCell(current_select, sp_cell)
   sp_var <- raster::extract(current_select, sp_cell)
   sp_var <- na.omit(cbind(sp_coord, sp_var))
-  write.table(sp_var, filename = paste0("./data/ocurrences/", as.factor(name), ".txt"), row.names = F, sep = " ")
+  write.table(sp_var, file = paste0("./data/occurrences/var_", as.factor(name), ".txt"), row.names = F, sep = " ")
   
   return(sp_var)
 }
 
-var_huberi         <- create_occur(huberi, "var_huberi") 
-var_asarifolia <- create_occur(thinned_plants[thinned_plants[, 1] == "ipomoea_asarifolia", ], "var-asarifolia" )
-var_bahiensis  <- create_occur(thinned_plants[thinned_plants[, 1] == "ipomoea_bahiensis", ],  "var-bahiensis")
-var_cairica    <- create_occur(thinned_plants[thinned_plants[, 1] == "ipomoea_cairica", ],    "var-cairica")
-var_indica     <- create_occur(thinned_plants[thinned_plants[, 1] == "ipomoea_indica", ],     "var-indica")
-var_nil        <- create_occur(thinned_plants[thinned_plants[, 1] == "ipomoea_nil", ],        "var-nil")
-var_purpuera   <- create_occur(thinned_plants[thinned_plants[, 1] == "ipomoea_purpuera", ],   "var-purpuera")
-var_aegyptia  <- create_occur(thinned_plants[thinned_plants[, 1] == "ipomoea_aegyptia", ],    "var-aegyptia")
+for(i in 1:length(sp_names))
+{
+  create_var(occur_thinned[occur_thinned[, 1] == sp_names[i], ], sp_names[i])
+}
 
-
-## 05. Background Sampling ##############################################################################
+# ***************************************************************************************
+## 06. Background Sampling                          ----
 
 create_back <- function(sp, name)
 {
@@ -363,24 +330,26 @@ create_back <- function(sp, name)
   back_id <- sample(1:nrow(coord), nrow(sp))
   back <- extract(current_select, coord[back_id, ])
   back <- cbind(coord [back_id, ], back)
-  write.table(sp_var, filename = paste0("./data/ocurrences/", as.factor(name), ".txt"), row.names = F, sep = " ") 
+  write.table(back, paste0("./data/occurrences/back_", as.factor(name), ".txt"), row.names = F, sep = " ") 
   return(back)
 }
 
-back_huberi     <- create_back(huberi_var,     "back_huberi")
-back_asarifolia <- create_back(var_asarifolia, "back_asarifolia")
-back_bahiensis  <- create_back(var_bahiensis,  "back_bahiensis")
-back_cairica    <- create_back(var_cairica,    "back_cairica")
-back_indica     <- create_back(var_indica,     "back_indica")
-back_nil        <- create_back(var_nil,        "back_nil")
-back_purpuera   <- create_back(var_purpuera,   "back_purpuera")
-back_aegyptia   <- create_back(var_aegyptia,   "back_aegyptia")
+var_files <- list.files() #????----
+for(i in 1:length(var_files))
+{
+  create_back(var_files[[i]], sp_names[i])
+}
 
 
+### Plotting occurrences and background
+sp_names
+plot(current_select$bio01)
+points(occur_thinned[,-1], pch = "*", col = "blue")
+points(occur_thinned[, -1], pch = "*", col = "red")
 
+# ***************************************************************************************
+## 07. Modelling Predictions                        ----
 rm(list = ls())
-
-# 06. Modelling Predictions ##############################################################
 
 species_model <- function(occurrence, 
                       background, 
@@ -435,19 +404,18 @@ species_model <- function(occurrence,
     bioclim_c <- stack(bioclim_c, predict(object = bioclim_model, x = current_select))
     
     # Evaluating models
-    bioclim_eval <- evaluate(p=testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = bioclim_model)
+    bioclim_eval <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = bioclim_model, tr = "no_omission")c
     str(bioclim_eval)
-    bioclim_e <- c(bioclim_e, bioclim_eval@tpr) # ?? TPR----
-    bioclim_t <- c(bioclim_t, threshold(bioclim_eval, "boyce")) # ?? boyce threshold----
-    # hirzel 2006 ecological modeling
+    bioclim_e <- c(bioclim_e, bioclim_eval@TPR) # TPR - True positive rate ?`ModelEvaluation-class`
+    bioclim_t <- c(bioclim_t, threshold(bioclim_eval, "no_omission")) # the highest threshold at which there is no omission
+    
+    bioclim_e <- bioclim_eval@TPR
     
     # calculating predicted area
     n_cells <- nrow(na.omit(values(current_select))) 
-    pi <- sum(bioclim_c >= bioclim_t) / n_cells
-    TPR <- bioclim_e
-    bioclim_d <- TPR * (1 - pi)
-    
-
+    pi <- sum(bioclim_c >= threshold(bioclim_eval, "no_omission")) / n_cells #????----
+    bioclim_d <- bioclim_eval@TPR * (1 - pi)
+plot(bioclim_c)
     ### Gower ---------------------
     ## huberi
     # adjusting models
@@ -457,15 +425,14 @@ species_model <- function(occurrence,
     gower_c <- stack(gower_c, predict(object = gower_model, x = current_select))
     
     # Evaluating models
-    gower_eval <- evaluate(p=testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = gower_model)
-    gower_e <- c(gower_e, gower_eval@tpr)
-    gower_t <- c(gower_t, threshold(gower_eval, "boyce"))
+    gower_eval <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = gower_model)
+    gower_e <- c(gower_e, gower_eval@TPR)
+    gower_t <- c(gower_t, threshold(gower_eval, "no-omission"))
     
     # calculating predicted area
     n_cells <- nrow(na.omit(values(current_select))) 
-    pi <- sum(gower_c >= gower_t) / n_cells
-    TPR <- gower_e
-    gower_d <- TPR * (1 - pi)
+    pi <- sum(gower_c >= threshold(gower_eval, "no-omission")) / n_cells
+    gower_d <- gower_eval@TPR * (1 - pi)
     
     
     ### Maxent ----
@@ -478,15 +445,15 @@ species_model <- function(occurrence,
     maxent_c <- stack(maxent_c, predict(object = maxent_model, x = current_select))
     
     # Evaluating models
-    maxent_eval <- evaluate(p=testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = maxent_model)
-    maxent_e <- c(maxent_e, maxent_eval@tpr) 
-    maxent_t <- c(maxent_t, threshold(maxent_eval, "boyce"))
+    maxent_eval <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = maxent_model)
+    maxent_e <- c(maxent_e, maxent_eval@TPR) 
+    maxent_t <- c(maxent_t, threshold(maxent_eval, "no-omission"))
     
     # calculating predicted area
     n_cells <- nrow(na.omit(values(current_select))) 
-    pi <- sum(maxent_c >= maxent_t) / n_cells
+    pi <- sum(maxent_c >= threshold(maxent_eval, "no-omission")) / n_cells
     TPR <- maxent_e
-    maxent_d <- TPR * (1 - pi)
+    maxent_d <- maxent_eval@TPR * (1 - pi)
     
     ### SVM ----
     # adjusting models
@@ -496,15 +463,15 @@ species_model <- function(occurrence,
     SVM_c <- stack(SVM_c, predict(model = SVM_model, object = current_select)) 
     
     # Evaluating models
-    SVM_eval <- evaluate(p=testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = SVM_model)
-    SVM_e <- c(SVM_e, SVM_eval@trp)
-    SVM_t <- c(SVM_t, threshold(SVM_eval, "boyce"))
+    SVM_eval <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = SVM_model)
+    SVM_e <- c(SVM_e, SVM_eval@TPR)
+    SVM_t <- c(SVM_t, threshold(SVM_eval, "no-omission"))
     
     # calculating predicted area
     n_cells <- nrow(na.omit(values(current_select))) 
-    pi <- sum(SVM_c >= SVM_t) / n_cells
+    pi <- sum(SVM_c >= threshold(SVM_eval, "no-omission")) / n_cells
     TPR <- SVM_e
-    SVM_d <- TPR * (1 - pi)
+    SVM_d <- SVM_eval@TPR * (1 - pi)
     
     
     ### Making predictions for the RCPs
@@ -584,8 +551,8 @@ species_model <- function(occurrence,
   
 } # closes the function "modelling"
 
-
-# 07. Running our model ################################################################################
+# ***************************************************************************************
+## 08. Running our model                            ----
 
 # Option 1 - substite especies name manually in "occurrence" and "background", running each species one at the time.
 # huberi, asarifolia, bahiensis, cairica, indica, nil, purpuera, aegyptia
@@ -614,8 +581,8 @@ species_model(occurrence       = "./data/occurrences/var-huberi.txt",
 #                 cross_validation = 20)
 # }
 
-
-# 08. Selecting models (auc) ############################################################################
+# ***************************************************************************************
+## 09. Selecting models (auc)                       ----
 
 ### Huberi
 auc_h <- read.table("./data/outputs/AUC_huberi.txt", h = T)
@@ -816,8 +783,8 @@ GLM_auc_p <- auc_p[which(auc_p[,"GLM"] >= 0.7),"GLM"]
 GLM_method_p <- rep("GLM", nlayers(GLM_p))
 GLM_period_p <- rep(c("pres","fut"), each = nlayers(GLM_p))
 
-
-# 09. Standardize suitabilities (suit) #######################################################
+# ***************************************************************************************
+## 10. Standardize suitabilities (suit)             ----
 # If having error messages, try "range" instead of "standardize"
 ## Huberi
 
@@ -943,7 +910,8 @@ GLM_rcp85_p_val <- values(GLM_rcp85_p)
 GLM_p_val <- rbind(GLM_c_p_val, GLM_rcp26_p_val, GLM_rcp45_p_val, GLM_rcp60_p_val, GLM_rcp85_p_val)
 GLM_p_stand <- decostand(GLM_p_val, "standardize", 2)
 
-# 10. Ensemble ####################################################################################
+# ***************************************************************************************
+## 11. Ensemble                                     ----
 
 ## huberi
 suit <- data.frame(bioclim_h_stand, gower_h_stand, maha_h_stand, maxent_h_stand, SVM_h_stand, GLM_h_stand)
@@ -973,7 +941,8 @@ auc  <- c(bioclim_auc_p, gower_auc_p, maha_auc_p, maxent_auc_p, SVM_auc_p, GLM_a
 # host plants rcp85.
 
 
-# 11. Uncertainty Evaluation ######################################################################
+# ***************************************************************************************
+## 12. Uncertainty Evaluation                       ----
 
 ## huberi
 data   <- values(stack(bioclim_h, gower_h, maha_h, maxent_h, SVM_h, GLM_h))
