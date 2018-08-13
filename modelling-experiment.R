@@ -170,7 +170,7 @@ rm(rcp26_list, rcp45_list, rcp60_list, rcp85_list)
 fa.parallel(current[ , -c(1:2)], fa = 'fa') #scree plot
 current_fa <- fa(current[ , -c(1:2)], nfactors = 5, rotate = 'varimax')
 loadings <- loadings(current_fa)
-write.table(loadings, "./data/climatic_vars/selected/varimax-loadings.txt")
+write.table(loadings, "./data/climatic_vars/selected/varimax_loadings.txt")
 
 ### Selected variables 
 # bio02, bio03, bio10, bio14, bio16.
@@ -204,7 +204,6 @@ write.table(loadings, "./data/climatic_vars/selected/varimax-loadings.txt")
 write.table(current[,c("x", "y", "bio02", "bio03", "bio10", "bio14", "bio16")], "./data/climatic_vars/selected/current/current-select.txt", row.names = F, sep = " ")  
 
 ### 3.1b. current - saving as raster ----
-
 variables <- as.factor(c("bio02", "bio03", "bio10", "bio14", "bio16"))
 for (i in 1:length(variables))
 {
@@ -214,18 +213,10 @@ rm(variables)
 
 
 current_select <- stack(list.files("./data/climatic_vars/selected/current/",  pattern = ".grd$", full.names = TRUE))
-# plot(current_select)
 
 #### RCPs
 
 ### 3.2a. rcp - saving table ----
-
-# variables <- as.factor(c("rcp26", "rcp45", "rcp60", "rcp85"))
-# for (i in 1:length(variables))
-# {
-#   write.table(variables[i][ ,c("x", "y", "bio02", "bio03", "bio10", "bio14", "bio16" ), ], filename = paste0("./data/climatic_vars/selected/select-", variables[i], ".txt"), sep = "")
-# }
-
 write.table(rcp26 [ ,c("x", "y", "bio02", "bio03", "bio10", "bio14", "bio16" ), ], "./data/climatic_vars/selected/rcp26/rcp26-select.txt", row.names = F, sep = "	")
 write.table(rcp45 [ ,c("x", "y", "bio02", "bio03", "bio10", "bio14", "bio16" ), ], "./data/climatic_vars/selected/rcp45/rcp45-select.txt", row.names = F, sep = "	")
 write.table(rcp60 [ ,c("x", "y", "bio02", "bio03", "bio10", "bio14", "bio16" ), ], "./data/climatic_vars/selected/rcp60/rcp60-select.txt", row.names = F, sep = "	")
@@ -233,7 +224,8 @@ write.table(rcp85 [ ,c("x", "y", "bio02", "bio03", "bio10", "bio14", "bio16" ), 
 
 
 ### 3.2b. rcp - saving as raster ----
-# Creating rasters with the selected variables from each aogcm
+
+### Creating rasters with the selected variables from each aogcm
 variables <- as.factor(c("bio02.1", "bio03.1", "bio10.1", "bio14.1", "bio16.1", "bio02.2", "bio03.2", "bio10.2", "bio14.2", "bio16.2", "bio02.3", "bio03.3", "bio10.3", "bio14.3", "bio16.3"))
 
 ## RCP26
@@ -255,7 +247,6 @@ for (i in 1:length(variables))
 }
 
 ## RCP85
-# Saving selected variables from CCSM4
 for (i in 1:length(variables))
 {
   writeRaster (rcp85_spatial[[i]], filename = paste0("./data/climatic_vars/selected/rcp85/rcp85-", variables[i], ".grd"), format = "raster")
@@ -263,24 +254,6 @@ for (i in 1:length(variables))
 
 rm(variables)
 
-
-### Reading selected RCP variables.
-
-
-rcp26_select <- stack(list.files("./data/climatic_vars/selected/rcp26",  pattern = ".grd$", full.names = TRUE))
-
-rcp45_select <- stack(list.files("./data/climatic_vars/selected/rcp45",  pattern = ".grd$", full.names = TRUE))
-
-rcp60_select <- stack(list.files("./data/climatic_vars/selected/rcp60",  pattern = ".grd$", full.names = TRUE))
-
-rcp85_select <- stack(list.files("./data/climatic_vars/selected/rcp85",  pattern = ".grd$", full.names = TRUE)) 
-
-# par (mfrow = c(2,2))
-# plot(rcp26_select)
-# plot(rcp45_select)
-# plot(rcp60_select)
-# plot(rcp85_select)
-# dev.off()
 
 # ***************************************************************************************
 ## 04. Occurrences data                             ----
@@ -618,11 +591,11 @@ species_model <- function(occurrence,
   
   #*************************** Saving data ***************************
   ## Saving predictions
-  writeRaster(output_current, "./data/outputs/result_current.bil", format = "EHdr")
-  writeRaster(output_rcp26, "./data/outputs/result_rcp26.bil", format = "EHdr")
-  writeRaster(output_rcp45, "./data/outputs/result_rcp45.bil", format = "EHdr")
-  writeRaster(output_rcp60, "./data/outputs/result_rcp60.bil", format = "EHdr")
-  writeRaster(output_rcp85, "./data/outputs/result_rcp85.bil", format = "EHdr")
+  writeRaster(output_current, "./data/outputs/output_current.bil", format = "EHdr")
+  writeRaster(output_rcp26, "./data/outputs/output_rcp26.bil", format = "EHdr")
+  writeRaster(output_rcp45, "./data/outputs/output_rcp45.bil", format = "EHdr")
+  writeRaster(output_rcp60, "./data/outputs/output_rcp60.bil", format = "EHdr")
+  writeRaster(output_rcp85, "./data/outputs/output_rcp85.bil", format = "EHdr")
   
   ## Saving evaluation data
   write.table(data.frame(bioclim = bioclim_e ,gower = gower_e, maha = maha_e, maxent = maxent_e, SVM = SVM_e, GLM = GLM_e), "./data/outputs/AUCuberi.txt", sep = "\t", row.names = F)
@@ -636,11 +609,11 @@ species_model <- function(occurrence,
 
 # ***************************************************************************************
 ## 08. Running our model                            ----
-
-# Option 1 - substitute especies name manually in "occurrence" and "background", running each species one at the time.
-# huberi, asarifolia, bahiensis, cairica, indica, nil, purpuera, aegyptia
-species_model(occurrence       = "./data/occurrences/var_huberi.txt",
-              background       = "./data/occurrences/back_huberi.txt",
+# Substitute especies name manually in "occurrence" and "background", running each species one at the time.
+# Lithurgus_huberi, Ipomoea_asarifolia, Ipomoea_bahiensis, Ipomoea_cairica, Ipomoea_indica, Ipomoea_nil, Ipomoea_purpuera, Merremia_aegyptia
+# Afer running for one species, remove all the contend out of ./data/outputs
+species_model(occurrence       = "./data/occurrences/var_Lithurgus_huberi.txt",
+              background       = "./data/occurrences/back_Lithurgus_huberi.txt",
               biovar_current   = "./data/climatic_vars/selected/current/",
               biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
               biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
