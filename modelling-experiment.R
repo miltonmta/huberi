@@ -266,12 +266,13 @@ huberi [1:5, ]
 str(occur_raw) # object type: 3 columms matrix
  
 ### Filtering occurrences in the geographical space
-occur_thinned <- thin(occur, out.dir = "./data/occurrences/", out.base = "occur", thin.par = 20, reps = 100, max.files = 1, locs.thinned.list.return = T)
+occur_thinned <- thin(occur_raw, out.dir = "./data/occurrences/", out.base = "occur", thin.par = 20, reps = 100, max.files = 1, locs.thinned.list.return = T)
 summaryThin(occur_thinned)
 
 ### Species names
-sp <- gsub("C[1-9]","", occur_thinned$SPEC)
+sp <- gsub("C[1-9]","", occur_raw$SPEC)
 sp_names <- unique(sp)
+sp_names
 
 # ***************************************************************************************
 ## 05. Extracting variables                         ----
@@ -591,27 +592,30 @@ species_model <- function(occurrence,
   
   #*************************** Saving data ***************************
   ## Saving predictions
-  writeRaster(output_current, "./data/outputs/output_current.bil", format = "EHdr")
-  writeRaster(output_rcp26, "./data/outputs/output_rcp26.bil", format = "EHdr")
-  writeRaster(output_rcp45, "./data/outputs/output_rcp45.bil", format = "EHdr")
-  writeRaster(output_rcp60, "./data/outputs/output_rcp60.bil", format = "EHdr")
-  writeRaster(output_rcp85, "./data/outputs/output_rcp85.bil", format = "EHdr")
+  writeRaster(output_current, "./data/outputs/huberi_current.bil", format = "EHdr")
+  writeRaster(output_rcp26, "./data/outputs/huberi_rcp26.bil", format = "EHdr")
+  writeRaster(output_rcp45, "./data/outputs/huberi_rcp45.bil", format = "EHdr")
+  writeRaster(output_rcp60, "./data/outputs/huberi_rcp60.bil", format = "EHdr")
+  writeRaster(output_rcp85, "./data/outputs/huberi_rcp85.bil", format = "EHdr")
   
   ## Saving evaluation data
-  write.table(data.frame(bioclim = bioclim_e ,gower = gower_e, maha = maha_e, maxent = maxent_e, SVM = SVM_e, GLM = GLM_e), "./data/outputs/AUCuberi.txt", sep = "\t", row.names = F)
+  write.table(data.frame(bioclim = bioclim_e ,gower = gower_e, maha = maha_e, maxent = maxent_e, SVM = SVM_e, GLM = GLM_e), "./data/outputs/huberi_TPR.txt", sep = "\t", row.names = F)
 
-  write.table(data.frame(bioclim = bioclim_t ,gower = gower_t, maha = maha_t, maxent = maxent_t, SVM = SVM_t, GLM = GLM_t), "./data/outputs/Thresholduberi.txt", sep = "\t", row.names = F)
+  write.table(data.frame(bioclim = bioclim_t ,gower = gower_t, maha = maha_t, maxent = maxent_t, SVM = SVM_t, GLM = GLM_t), "./data/outputs/huberi_t.txt", sep = "\t", row.names = F)
 
-  write.table(data.frame(bioclim = bioclim_d ,gower = gower_d, maha = maha_d, maxent = maxent_d, SVM = SVM_d, GLM = GLM_d), "./data/outputs/Thresholduberi.txt", sep = "\t", row.names = F)
+  write.table(data.frame(bioclim = bioclim_d ,gower = gower_d, maha = maha_d, maxent = maxent_d, SVM = SVM_d, GLM = GLM_d), "./data/outputs/huberi_d.txt", sep = "\t", row.names = F)
   
   
-} # closes the function "species_model"
+} # CLOSE "species_model"----
 
 # ***************************************************************************************
 ## 08. Running our model                            ----
 # Substitute especies name manually in "occurrence" and "background", running each species one at the time.
+sp_names
 # Lithurgus_huberi, Ipomoea_asarifolia, Ipomoea_bahiensis, Ipomoea_cairica, Ipomoea_indica, Ipomoea_nil, Ipomoea_purpuera, Merremia_aegyptia
+# Change the filenames for the outputed files in the "Saving data" section in modelling predictions.
 # Afer running for one species, remove all the contend out of ./data/outputs
+
 species_model(occurrence       = "./data/occurrences/var_Lithurgus_huberi.txt",
               background       = "./data/occurrences/back_Lithurgus_huberi.txt",
               biovar_current   = "./data/climatic_vars/selected/current/",
@@ -625,7 +629,18 @@ species_model(occurrence       = "./data/occurrences/var_Lithurgus_huberi.txt",
 ## 09. Selecting models (TRP)                       ----
 
 ### Huberi
-auc_h <- read.table("./data/outputs/AUC_huberi.txt", h = T)
+TPR_h <- read.table("./data/results/huberi_TPR.txt", h = T)
+
+# Selecting models with TPR values ≥ 0.7
+huberi_c     <- raster("./data/results/huberi_current.bil")[[which(TPR_h[,c("bioclim", "gower", "maxent", "SVM" )] >= 0.7)]]
+huberi_rcp26 <- raster("./data/results/huberi_rcp26.bil")[[which(TPR_h[,c("bioclim", "gower", "maxent", "SVM" )] >= 0.7)]]
+huberi_rcp45 <- raster("./data/results/huberi_rcp45.bil")[[which(TPR_h[,c("bioclim", "gower", "maxent", "SVM" )] >= 0.7)]]
+huberi_rcp60 <- raster("./data/results/huberi_rcp60.bil")[[which(TPR_h[,c("bioclim", "gower", "maxent", "SVM" )] >= 0.7)]]
+huberi_rcp85 <- raster("./data/results/huberi_rcp85.bil")[[which(TPR_h[,c("bioclim", "gower", "maxent", "SVM" )] >= 0.7)]]
+
+huberi_TPR <- 
+  
+# Creating ANOVA Factors to be used at Uncertainty Evaluation
 
 ## bioclim
 
@@ -637,7 +652,7 @@ bioclim_rcp60_h <- stack("./data/outputs/bioclim_rcp60_h.bil")[[which(auc_h[,"bi
 bioclim_rcp85_h <- stack("./data/outputs/bioclim_rcp85_h.bil")[[which(auc_h[,"bioclim"] >= 0.7)]]
 
 bioclim_h <- stack(bioclim_c_h, bioclim_rcp26_h, bioclim_rcp45_h, bioclim_rcp60_h, bioclim_rcp85_h)
-bioclim_auc_h <- auc_h[which(auc_h[,"bioclim"] >= 0.7),"bioclim"]
+bioclim_auc_h <-  
 
 #  Creating ANOVA Factors to be used at Uncertainty Evaluation
 bioclim_method_h <- rep("bioclim", nlayers(bioclim_h))
@@ -724,104 +739,7 @@ GLM_method_h <- rep("GLM", nlayers(GLM_h))
 GLM_period_h <- rep(c("pres","fut"), each = nlayers(GLM_h))
 
 
-### Host plants
-auc_p <- read.table("./data/outputs/AUC_plants.txt", h = T)
 
-## bioclim
-
-#Selecting models with auc values ≥ 0.7
-bioclim_c_p <- stack("./data/outputs/bioclim_c_p.bil")[[which(auc_p[,"bioclim"] >= 0.7)]]
-bioclim_rcp26_p <- stack("./data/outputs/bioclim_rcp26_p.bil")[[which(auc_p[,"bioclim"] >= 0.7)]]
-bioclim_rcp45_p <- stack("./data/outputs/bioclim_rcp45_p.bil")[[which(auc_p[,"bioclim"] >= 0.7)]]
-bioclim_rcp60_p <- stack("./data/outputs/bioclim_rcp60_p.bil")[[which(auc_p[,"bioclim"] >= 0.7)]]
-bioclim_rcp85_p <- stack("./data/outputs/bioclim_rcp85_p.bil")[[which(auc_p[,"bioclim"] >= 0.7)]]
-
-bioclim_p <- stack(bioclim_c_p, bioclim_rcp26_p, bioclim_rcp45_p, bioclim_rcp60_p, bioclim_rcp85_p)
-bioclim_auc_p <- auc_p[which(auc_p[,"bioclim"] >= 0.7),"bioclim"]
-
-#  Creating ANOVA Factors to be used at Uncertainty Evaluation
-bioclim_method_p <- rep("bioclim", nlayers(bioclim_p))
-bioclim_period_p <- rep(c("pres","fut"), each = nlayers(bioclim_p))
-
-## gower
-
-#Selecting models with auc values ≥ 0.7
-gower_c_p <- stack("./data/outputs/gower_c_p.bil")[[which(auc_p[,"gower"] >= 0.7)]]
-gower_rcp26_p <- stack("./data/outputs/gower_rcp26_p.bil")[[which(auc_p[,"gower"] >= 0.7)]]
-gower_rcp45_p <- stack("./data/outputs/gower_rcp45_p.bil")[[which(auc_p[,"gower"] >= 0.7)]]
-gower_rcp60_p <- stack("./data/outputs/gower_rcp60_p.bil")[[which(auc_p[,"gower"] >= 0.7)]]
-gower_rcp85_p <- stack("./data/outputs/gower_rcp85_p.bil")[[which(auc_p[,"gower"] >= 0.7)]]
-
-gower_p <- stack(gower_c_p, gower_rcp26_p, gower_rcp45_p, gower_rcp60_p, gower_rcp85_p)
-gower_auc_p <- auc_p[which(auc_p[,"gower"] >= 0.7),"gower"]
-
-#  Creating ANOVA Factors to be used at Uncertainty Evaluation
-gower_method_p <- rep("gower", nlayers(gower_p))
-gower_period_p <- rep(c("pres","fut"), each = nlayers(gower_p))
-
-## maha
-
-#Selecting models with auc values ≥ 0.7
-maha_c_p <- stack("./data/outputs/maha_c_p.bil")[[which(auc_p[,"maha"] >= 0.7)]]
-maha_rcp26_p <- stack("./data/outputs/maha_rcp26_p.bil")[[which(auc_p[,"maha"] >= 0.7)]]
-maha_rcp45_p <- stack("./data/outputs/maha_rcp45_p.bil")[[which(auc_p[,"maha"] >= 0.7)]]
-maha_rcp60_p <- stack("./data/outputs/maha_rcp60_p.bil")[[which(auc_p[,"maha"] >= 0.7)]]
-maha_rcp85_p <- stack("./data/outputs/maha_rcp85_p.bil")[[which(auc_p[,"maha"] >= 0.7)]]
-
-maha_p <- stack(maha_c_p, maha_rcp26_p, maha_rcp45_p, maha_rcp60_p, maha_rcp85_p)
-maha_auc_p <- auc_p[which(auc_p[,"maha"] >= 0.7),"maha"]
-
-#  Creating ANOVA Factors to be used at Uncertainty Evaluation
-maha_method_p <- rep("maha", nlayers(maha_p))
-maha_period_p <- rep(c("pres","fut"), each = nlayers(maha_p))
-
-## maxent
-
-#Selecting models with auc values ≥ 0.7
-maxent_c_p <- stack("./data/outputs/maxent_c_p.bil")[[which(auc_p[,"maxent"] >= 0.7)]]
-maxent_rcp26_p <- stack("./data/outputs/maxent_rcp26_p.bil")[[which(auc_p[,"maxent"] >= 0.7)]]
-maxent_rcp45_p <- stack("./data/outputs/maxent_rcp45_p.bil")[[which(auc_p[,"maxent"] >= 0.7)]]
-maxent_rcp60_p <- stack("./data/outputs/maxent_rcp60_p.bil")[[which(auc_p[,"maxent"] >= 0.7)]]
-maxent_rcp85_p <- stack("./data/outputs/maxent_rcp85_p.bil")[[which(auc_p[,"maxent"] >= 0.7)]]
-
-maxent_p <- stack(maxent_c_p, maxent_rcp26_p, maxent_rcp45_p, maxent_rcp60_p, maxent_rcp85_p)
-maxent_auc_p <- auc_p[which(auc_p[,"maxent"] >= 0.7),"maxent"]
-
-#  Creating ANOVA Factors to be used at Uncertainty Evaluation
-maxent_method_p <- rep("maxent", nlayers(maxent_p))
-maxent_period_p <- rep(c("pres","fut"), each = nlayers(maxent_p))
-
-## SVM
-
-#Selecting models with auc values ≥ 0.7
-SVM_c_p <- stack("./data/outputs/SVM_c_p.bil")[[which(auc_p[,"SVM"] >= 0.7)]]
-SVM_rcp26_p <- stack("./data/outputs/SVM_rcp26_p.bil")[[which(auc_p[,"SVM"] >= 0.7)]]
-SVM_rcp45_p <- stack("./data/outputs/SVM_rcp45_p.bil")[[which(auc_p[,"SVM"] >= 0.7)]]
-SVM_rcp60_p <- stack("./data/outputs/SVM_rcp60_p.bil")[[which(auc_p[,"SVM"] >= 0.7)]]
-SVM_rcp85_p <- stack("./data/outputs/SVM_rcp85_p.bil")[[which(auc_p[,"SVM"] >= 0.7)]]
-
-SVM_p <- stack(SVM_c_p, SVM_rcp26_p, SVM_rcp45_p, SVM_rcp60_p, SVM_rcp85_p)
-SVM_auc_p <- auc_p[which(auc_p[,"SVM"] >= 0.7),"SVM"]
-
-#  Creating ANOVA Factors to be used at Uncertainty Evaluation
-SVM_method_p <- rep("SVM", nlayers(SVM_p))
-SVM_period_p <- rep(c("pres","fut"), each = nlayers(SVM_p))
-
-## GLM
-
-#Selecting models with auc values ≥ 0.7
-GLM_c_p <- stack("./data/outputs/GLM_c_p.bil")[[which(auc_p[,"GLM"] >= 0.7)]]
-GLM_rcp26_p <- stack("./data/outputs/GLM_rcp26_p.bil")[[which(auc_p[,"GLM"] >= 0.7)]]
-GLM_rcp45_p <- stack("./data/outputs/GLM_rcp45_p.bil")[[which(auc_p[,"GLM"] >= 0.7)]]
-GLM_rcp60_p <- stack("./data/outputs/GLM_rcp60_p.bil")[[which(auc_p[,"GLM"] >= 0.7)]]
-GLM_rcp85_p <- stack("./data/outputs/GLM_rcp85_p.bil")[[which(auc_p[,"GLM"] >= 0.7)]]
-
-GLM_p <- stack(GLM_c_p, GLM_rcp26_p, GLM_rcp45_p, GLM_rcp60_p, GLM_rcp85_p)
-GLM_auc_p <- auc_p[which(auc_p[,"GLM"] >= 0.7),"GLM"]
-
-#  Creating ANOVA Factors to be used at Uncertainty Evaluation
-GLM_method_p <- rep("GLM", nlayers(GLM_p))
-GLM_period_p <- rep(c("pres","fut"), each = nlayers(GLM_p))
 
 # ***************************************************************************************
 ## 10. Standardize suitabilities (suit)             ----
