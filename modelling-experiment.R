@@ -316,6 +316,7 @@ create_var <- function(sp,name)
   return(sp_var)
 }
 
+# Creating and saving the object "var" for each study species
 for(i in 1:length(sp_names))
 {
   create_var(occur_thinned[occur_thinned[, 1] == sp_names[i], ], sp_names[i])
@@ -334,10 +335,12 @@ create_back <- function(sp, name)
   return(back)
 }
 
-var_files <- list.files() #????----
+# Creating and saving the object "back" for each study species
+var_files <- list.files("./data/occurrences/", pattern = "var", full.names = TRUE)
 for(i in 1:length(var_files))
 {
-  create_back(var_files[[i]], sp_names[i])
+  var_file <- read.table(var_files[i], h = T, sep = "")
+  create_back(var_file, sp_names[i]) # ??? check if the names match -----
 }
 
 
@@ -361,11 +364,10 @@ species_model <- function(occurrence,
                       cross_validation)
 {
  
-  # output_current <- output_rcp26 <- output_rcp45 <- output_rcp60 <- output_rcp85 <- NULL ## saves the mean of the predictions line 548.
+  output_current <- output_rcp26 <- output_rcp45 <- output_rcp60 <- output_rcp85 <- NULL ## saves the mean of the predictions line 548.
   
   ### Reading the selected bioclimatic variables
-  AOGCM_CURRENT <- paste("be_biovar_", biovar_current, sep="")
-  current_select <- stack(list.files(AOGCM_CURRENT,  pattern = ".grd$", full.names = TRUE))
+  current_select <- stack(list.files(biovar_current,  pattern = ".grd$", full.names = TRUE))
   
   ### Reading ocurrence and background
   occur <- read.table(occurrence, h = T)
@@ -382,113 +384,128 @@ species_model <- function(occurrence,
   ## Evaluation
   bioclim_e <- gower_e <- maha_e <- maxent_e <- SVM_e <- GLM_e <- NULL # TRF
   bioclim_t <- gower_t <- maha_t <- maxent_t <- SVM_t <- GLM_t <- NULL # Threshold type comission
-  bioclim_d <- gower_d <- maha_d <- maxent_d <- SVM_d <- GLM_d <- NULL # Predicted area
+  bioclim_d <- gower_d <- maha_d <- maxent_d <- SVM_d <- GLM_d <- NULL # Area predicted as presence
   
   for (j in 1:cross_validation)
   {
     ### OPEN "j" ----
-    # loop - cross-validation
     
-    ### creating trainning-testing subsets
+    ######### Creating trainning-testing subsets
     
     sample_occur <- sample(1:nrow(occur), round(0.75 * nrow(occur), 0))
     trainning <- prepareData(x = current_select, p = occur[sample_occur,  1:2], b = back[sample_occur,  1:2]) 
     testing   <- prepareData(x = current_select, p = occur[-sample_occur, 1:2], b = back[-sample_occur, 1:2])
     
-    ### Bioclim -------------------
     
-    # adjusting models
+    # ***************************************************************************************
+    ######### Predictive models
+    ## Bioclim -----------------------------------------------------------------------------
+    
+    ## Adjusting models
     bioclim_model <- bioclim(trainning[trainning[, "pb"] == 1, -1])
   
-    # making predictions
+    ## Predicting
     bioclim_c <- stack(bioclim_c, predict(object = bioclim_model, x = current_select))
     
-    # Evaluating models
-    bioclim_eval <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = bioclim_model, tr = "no_omission")c
-    str(bioclim_eval)
-    bioclim_e <- c(bioclim_e, bioclim_eval@TPR) # TPR - True positive rate ?`ModelEvaluation-class`
+    ## Evaluating models
+    bioclim_eval <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = bioclim_model, tr = 0.05395405) 
+    # tr is threshold(t) "no_omission" value from all t (threshold(bioclim_eval, "no_omission")). We need to fix it here so bioclim_eval@TPR returns a value not the vector of TPRs from all possible t. # Each model will have its particular t value.
+     
+    ## Saving evaluation metrics
+    bioclim_e <- c(bioclim_e, bioclim_eval@TPR) # TPR - True positive rate 
     bioclim_t <- c(bioclim_t, threshold(bioclim_eval, "no_omission")) # the highest threshold at which there is no omission
-    
-    bioclim_e <- bioclim_eval@TPR
-    
-    # calculating predicted area
+    str(bioclim_e)
+    ## Study area predicted as presence (d = TPR*(1-pi))
     n_cells <- nrow(na.omit(values(current_select))) 
-    pi <- sum(bioclim_c >= threshold(bioclim_eval, "no_omission")) / n_cells #????----
+    pi <- sum(values(bioclim_c >= threshold(bioclim_eval, "no_omission")), na.rm = T) / n_cells # predicted area proportion. pi = sum(prediction >= threshold)/ n_cells
     bioclim_d <- bioclim_eval@TPR * (1 - pi)
-plot(bioclim_c)
-    ### Gower ---------------------
-    ## huberi
-    # adjusting models
+    
+    
+    ### Gower -------------------------------------------------------------------------------
+   
+    ## Adjusting models
     gower_model <- domain(trainning[trainning[,"pb"] == 1, -1]) 
     
-    # making predictions
+    ## Predicting
     gower_c <- stack(gower_c, predict(object = gower_model, x = current_select))
     
-    # Evaluating models
-    gower_eval <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = gower_model)
-    gower_e <- c(gower_e, gower_eval@TPR)
-    gower_t <- c(gower_t, threshold(gower_eval, "no-omission"))
+    ## Evaluating models
+    gower_eval <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = gower_model, tr = 0.4756034)
     
-    # calculating predicted area
+    ## Saving evaluation metrics
+    gower_e <- c(gower_e, gower_eval@TPR)
+    gower_t <- c(gower_t, threshold(gower_eval, "no_omission"))
+    
+    ## Study area predicted as presence (d = TPR*(1-pi))
     n_cells <- nrow(na.omit(values(current_select))) 
-    pi <- sum(gower_c >= threshold(gower_eval, "no-omission")) / n_cells
+    pi <- sum(values(gower_c >= threshold(gower_eval, "no_omission")), na.rm = T) / n_cells
     gower_d <- gower_eval@TPR * (1 - pi)
     
     
-    ### Maxent ----
+    ### Maxent -------------------------------------------------------------------------------
     
-    # adjusting models
+    ## Adjusting models
     Sys.setenv(NOAWT = TRUE)
     maxent_model <- maxent(x = trainning[, -1], p = trainning[, 1])
     
-    # making predictions
+    ## Predicting
     maxent_c <- stack(maxent_c, predict(object = maxent_model, x = current_select))
     
-    # Evaluating models
-    maxent_eval <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = maxent_model)
-    maxent_e <- c(maxent_e, maxent_eval@TPR) 
-    maxent_t <- c(maxent_t, threshold(maxent_eval, "no-omission"))
+    ## Evaluating models
+    maxent_eval <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = maxent_model, tr = 0.5414856)
     
-    # calculating predicted area
+    ## Saving evaluation metrics
+    maxent_e <- c(maxent_e, maxent_eval@TPR) 
+    maxent_t <- c(maxent_t, threshold(maxent_eval, "no_omission"))
+    
+    ## Study area predicted as presence (d = TPR*(1-pi))
     n_cells <- nrow(na.omit(values(current_select))) 
-    pi <- sum(maxent_c >= threshold(maxent_eval, "no-omission")) / n_cells
+    pi <- sum(values(maxent_c >= threshold(maxent_eval, "no_omission")), na.rm = T) / n_cells
     TPR <- maxent_e
     maxent_d <- maxent_eval@TPR * (1 - pi)
     
-    ### SVM ----
-    # adjusting models
+    ### SVM ----------------------------------------------------------------------------------
+    
+    ## Adjusting models
     SVM_model <- ksvm(pb ~ ., data = trainning)
     
-    # making predictions
+    ## Predicting
     SVM_c <- stack(SVM_c, predict(model = SVM_model, object = current_select)) 
     
-    # Evaluating models
-    SVM_eval <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = SVM_model)
-    SVM_e <- c(SVM_e, SVM_eval@TPR)
-    SVM_t <- c(SVM_t, threshold(SVM_eval, "no-omission"))
+    ## Evaluating models
+    SVM_eval <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = SVM_model, tr = 0.5566005)
     
-    # calculating predicted area
+    ## Saving evaluation metrics
+    SVM_e <- c(SVM_e, SVM_eval@TPR)
+    SVM_t <- c(SVM_t, threshold(SVM_eval, "no_omission"))
+    
+    ## Study area predicted as presence (d = TPR*(1-pi))
     n_cells <- nrow(na.omit(values(current_select))) 
-    pi <- sum(SVM_c >= threshold(SVM_eval, "no-omission")) / n_cells
+    pi <- sum(values(SVM_c >= threshold(SVM_eval, "no_omission")), na.rm = T) / n_cells
     TPR <- SVM_e
     SVM_d <- SVM_eval@TPR * (1 - pi)
     
     
-    ### Making predictions for the RCPs
+    # ***************************************************************************************
+    
+    ######### Saving partial outputs for current model
+    bioclim_Pout_c <- cbind(bioclim_Pout_c, values(bioclim_c))
+    gower_Pout_c   <- cbind(gower_Pout_c,   values(gower_c))
+    maxent_Pout_c  <- cbind(maxent_Pout_c,  values(maxent_c))
+    SVM_Pout_c     <- cbind(SVM_Pout_c,     values(SVM_c))
+    
+    
+    ######### Making predictions for the RCPs
     AOGCMs <- c("CCSM4", "IPSL-CM5A-LR", "MIROC-ESM")
     for (i in AOGCMs)
     {
-      
+      # OPEN "i" ----
       ### Reading the selected aogcm models
-      AOGCM_RCP26   <- paste("be_biovar_", i, biovar_rcp26,   sep="")
-      AOGCM_RCP45   <- paste("be_biovar_", i, biovar_rcp45,   sep="")
-      AOGCM_RCP60   <- paste("be_biovar_", i, biovar_rcp60,   sep="")
-      AOGCM_RCP85   <- paste("be_biovar_", i, biovar_rcp85,   sep="")
       
-      rcp26_select   <- stack(list.files(AOGCM_RCP26,    pattern = ".grd$", full.names = TRUE))
-      rcp45_select   <- stack(list.files(AOGCM_RCP45,    pattern = ".grd$", full.names = TRUE))
-      rcp60_select   <- stack(list.files(AOGCM_RCP60,    pattern = ".grd$", full.names = TRUE))
-      rcp85_select   <- stack(list.files(AOGCM_RCP85,    pattern = ".grd$", full.names = TRUE))
+      rcp26_select  <- stack(list.files(biovar_rcp26, pattern = ".grd$", full.names = TRUE))
+      rcp45_select  <- stack(list.files(biovar_rcp45, pattern = ".grd$", full.names = TRUE))
+      rcp60_select  <- stack(list.files(biovar_rcp60, pattern = ".grd$", full.names = TRUE))
+      rcp85_select  <- stack(list.files(biovar_rcp85, pattern = ".grd$", full.names = TRUE))
       
       ### Predicting
       bioclim_rcp26 <- stack(bioclim_rcp26, predict(object = bioclim_model, x = rcp26_select))
@@ -496,93 +513,143 @@ plot(bioclim_c)
       bioclim_rcp60 <- stack(bioclim_rcp60, predict(object = bioclim_model, x = rcp60_select))
       bioclim_rcp85 <- stack(bioclim_rcp85, predict(object = bioclim_model, x = rcp85_select))
       
-      gower_rcp26 <- stack(gower_rcp26, predict(object = gower_model, x = rcp26_select))
-      gower_rcp45 <- stack(gower_rcp45, predict(object = gower_model, x = rcp45_select))
-      gower_rcp60 <- stack(gower_rcp60, predict(object = gower_model, x = rcp60_select))
-      gower_rcp85 <- stack(gower_rcp85, predict(object = gower_model, x = rcp85_select))
+      gower_rcp26   <- stack(gower_rcp26,   predict(object = gower_model, x = rcp26_select))
+      gower_rcp45   <- stack(gower_rcp45,   predict(object = gower_model, x = rcp45_select))
+      gower_rcp60   <- stack(gower_rcp60,   predict(object = gower_model, x = rcp60_select))
+      gower_rcp85   <- stack(gower_rcp85,   predict(object = gower_model, x = rcp85_select))
       
-      maxent_rcp26 <- stack(maxent_rcp26, predict(object = maxent_model, x = rcp26_select))
-      maxent_rcp45 <- stack(maxent_rcp45, predict(object = maxent_model, x = rcp45_select))
-      maxent_rcp60 <- stack(maxent_rcp60, predict(object = maxent_model, x = rcp60_select))
-      maxent_rcp85 <- stack(maxent_rcp85, predict(object = maxent_model, x = rcp85_select))
+      maxent_rcp26  <- stack(maxent_rcp26,  predict(object = maxent_model, x = rcp26_select))
+      maxent_rcp45  <- stack(maxent_rcp45,  predict(object = maxent_model, x = rcp45_select))
+      maxent_rcp60  <- stack(maxent_rcp60,  predict(object = maxent_model, x = rcp60_select))
+      maxent_rcp85  <- stack(maxent_rcp85,  predict(object = maxent_model, x = rcp85_select))
       
-      SVM_rcp26 <- stack(SVM_rcp26, predict(model = SVM_model, object = rcp26_select))
-      SVM_rcp45 <- stack(SVM_rcp45, predict(model = SVM_model, object = rcp45_select))
-      SVM_rcp60 <- stack(SVM_rcp60, predict(model = SVM_model, object = rcp60_select))
-      SVM_rcp85 <- stack(SVM_rcp85, predict(model = SVM_model, object = rcp85_select))
+      SVM_rcp26     <- stack(SVM_rcp26,     predict(model = SVM_model, object = rcp26_select))
+      SVM_rcp45     <- stack(SVM_rcp45,     predict(model = SVM_model, object = rcp45_select))
+      SVM_rcp60     <- stack(SVM_rcp60,     predict(model = SVM_model, object = rcp60_select))
+      SVM_rcp85     <- stack(SVM_rcp85,     predict(model = SVM_model, object = rcp85_select))
       
+      
+      ### Saving partial outputs for the RCPs
+      
+      bioclim_Pout_rcp26 <- cbind(bioclim_Pout_rcp26, values(bioclim_rcp26))
+      bioclim_Pout_rcp45 <- cbind(bioclim_Pout_rcp45, values(bioclim_rcp45))
+      bioclim_Pout_rcp60 <- cbind(bioclim_Pout_rcp60, values(bioclim_rcp60))
+      bioclim_Pout_rcp85 <- cbind(bioclim_Pout_rcp85, values(bioclim_rcp85))
+      
+      gower_Pout_rcp26   <- cbind(gower_Pout_rcp26,   values(gower_rcp26))
+      gower_Pout_rcp45   <- cbind(gower_Pout_rcp45,   values(gower_rcp45))
+      gower_Pout_rcp60   <- cbind(gower_Pout_rcp60,   values(gower_rcp60))
+      gower_Pout_rcp85   <- cbind(gower_Pout_rcp85,   values(gower_rcp85))
+      
+      maxent_Pout_rcp26  <- cbind(maxent_Pout_rcp26,  values(maxent_rcp26))
+      maxent_Pout_rcp45  <- cbind(maxent_Pout_rcp45,  values(maxent_rcp45))
+      maxent_Pout_rcp60  <- cbind(maxent_Pout_rcp60,  values(maxent_rcp60))
+      maxent_Pout_rcp85  <- cbind(maxent_Pout_rcp85,  values(maxent_rcp85))
+      
+      SVM_Pout_rcp45     <- cbind(SVM_Pout_rcp45,     values(SVM_rcp45))
+      SVM_Pout_rcp26     <- cbind(SVM_Pout_rcp26,     values(SVM_rcp26))
+      SVM_Pout_rcp60     <- cbind(SVM_Pout_rcp60,     values(SVM_rcp60))
+      SVM_Pout_rcp85     <- cbind(SVM_Pout_rcp85,     values(SVM_rcp85))
+     
+      # CLOSE "i" ----
+      # AOGCMs
     }
-    # ?? Calculating the mean of the models?----
     
     # CLOSE "j"  ---- 
+    # cross-validation
   }   
   
-  ## Saving predictions as raster
-  writeRaster(bioclim_c,     "./data/outputs/bioclim_c.bil",     format = "EHdr")
-  writeRaster(bioclim_rcp26, "./data/outputs/bioclim_rcp26.bil", format = "EHdr")
-  writeRaster(bioclim_rcp45, "./data/outputs/bioclim_rcp45.bil", format = "EHdr")
-  writeRaster(bioclim_rcp60, "./data/outputs/bioclim_rcp60.bil", format = "EHdr")
-  writeRaster(bioclim_rcp85, "./data/outputs/bioclim_rcp85.bil", format = "EHdr")
+  ### Calculating mean of partial models outputs
+  bioclim_Pout_c_mean     <- apply(bioclim_Pout_c, 1,     mean)
+  bioclim_Pout_rcp26_mean <- apply(bioclim_Pout_rcp26, 1, mean)
+  bioclim_Pout_rcp45_mean <- apply(bioclim_Pout_rcp45, 1, mean)
+  bioclim_Pout_rcp60_mean <- apply(bioclim_Pout_rcp60, 1, mean)
+  bioclim_Pout_rcp85_mean <- apply(bioclim_Pout_rcp85, 1, mean)
   
-  writeRaster(gower_c,     "./data/outputs/gower_c.bil",     format = "EHdr")
-  writeRaster(gower_rcp26, "./data/outputs/gower_rcp26.bil", format = "EHdr")
-  writeRaster(gower_rcp45, "./data/outputs/gower_rcp45.bil", format = "EHdr")
-  writeRaster(gower_rcp60, "./data/outputs/gower_rcp60.bil", format = "EHdr")
-  writeRaster(gower_rcp85, "./data/outputs/gower_rcp85.bil", format = "EHdr")
+  gower_Pout_c_mean       <- apply(gower_Pout_c, 1,     mean)
+  gower_Pout_rcp26_mean   <- apply(gower_Pout_rcp26, 1, mean)
+  gower_Pout_rcp45_mean   <- apply(gower_Pout_rcp45, 1, mean)
+  gower_Pout_rcp60_mean   <- apply(gower_Pout_rcp60, 1, mean)
+  gower_Pout_rcp85_mean   <- apply(gower_Pout_rcp85, 1, mean)
   
-  writeRaster(maxent_c,     "./data/outputs/maxent_c.bil",     format = "EHdr")
-  writeRaster(maxent_rcp26, "./data/outputs/maxent_rcp26.bil", format = "EHdr")
-  writeRaster(maxent_rcp45, "./data/outputs/maxent_rcp45.bil", format = "EHdr")
-  writeRaster(maxent_rcp60, "./data/outputs/maxent_rcp60.bil", format = "EHdr")
-  writeRaster(maxent_rcp85, "./data/outputs/maxent_rcp85.bil", format = "EHdr")
+  maxent_Pout_c_mean      <- apply(maxent_Pout_c, 1,     mean)
+  maxent_Pout_rcp26_mean  <- apply(maxent_Pout_rcp26, 1, mean)
+  maxent_Pout_rcp45_mean  <- apply(maxent_Pout_rcp45, 1, mean)
+  maxent_Pout_rcp60_mean  <- apply(maxent_Pout_rcp60, 1, mean)
+  maxent_Pout_rcp85_mean  <- apply(maxent_Pout_rcp85, 1, mean)
   
-  writeRaster(SVM_c,     "./data/outputs/SVM_c.bil",     format = "EHdr")
-  writeRaster(SVM_rcp26, "./data/outputs/SVM_rcp26.bil", format = "EHdr")
-  writeRaster(SVM_rcp45, "./data/outputs/SVM_rcp45.bil", format = "EHdr")
-  writeRaster(SVM_rcp60, "./data/outputs/SVM_rcp60.bil", format = "EHdr")
-  writeRaster(SVM_rcp85, "./data/outputs/SVM_rcp85.bil", format = "EHdr")
-
+  SVM_Pout_c_mean         <- apply(SVM_Pout_c, 1,     mean)
+  SVM_Pout_rcp26_mean     <- apply(SVM_Pout_rcp26, 1, mean)
+  SVM_Pout_rcp45_mean     <- apply(SVM_Pout_rcp45, 1, mean)
+  SVM_Pout_rcp60_mean     <- apply(SVM_Pout_rcp60, 1, mean)
+  SVM_Pout_rcp85_mean     <- apply(SVM_Pout_rcp85, 1, mean)
+  
+  
+  ### Saving data into the output objects
+  output_current <- cbind(output_current, Bioclim = bioclim_Pout_c_mean, Gower = gower_Pout_c_mean, Maxent = maxent_Pout_c_mean, SVM = SVM_Pout_c_mean )
+  
+  output_rcp26   <- cbind(output_rcp26, Bioclim = bioclim_Pout_rcp26_mean, Gower = gower_Pout_rcp26_mean, Maxent = maxent_Pout_rcp26_mean, SVM = SVM_Pout_rcp26_mean )
+  
+  output_rcp45   <- cbind(output_rcp45, Bioclim = bioclim_Pout_rcp45_mean, Gower = gower_Pout_rcp45_mean, Maxent = maxent_Pout_rcp45_mean, SVM = SVM_Pout_rcp45_mean )
+  
+  output_rcp60   <- cbind(output_rcp60, Bioclim = bioclim_Pout_rcp60_mean, Gower = gower_Pout_rcp60_mean, Maxent = maxent_Pout_rcp60_mean, SVM = SVM_Pout_rcp60_mean )
+  
+  output_rcp85   <- cbind(output_rcp85, Bioclim = bioclim_Pout_rcp85_mean, Gower = gower_Pout_rcp85_mean, Maxent = maxent_Pout_rcp85_mean, SVM = SVM_Pout_rcp85_mean )
+  
+  
+  ### Inserting coords to outputs
+  coords <- xyFromCell(current_select, 1:ncell(current_select))
+  
+  output_current <- cbind(coords,output_current)
+  output_rcp26   <- cbind(coords,output_rcp26)
+  output_rcp45   <- cbind(coords,output_rcp45)
+  output_rcp60   <- cbind(coords,output_rcp60)
+  output_rcp85   <- cbind(coords,output_rcp85)
+  
+  
+  ### Excluding NAs from outputs 
+  output_current <- na.omit(output_current)
+  output_rcp26   <- na.omit(output_rcp26)
+  output_rcp45   <- na.omit(output_rcp45)
+  output_rcp60   <- na.omit(output_rcp60)
+  output_rcp85   <- na.omit(output_rcp85)
+  
+  
+  
+  #*************************** Saving data ***************************
+  ## Saving predictions
+  writeRaster(output_current, "./data/outputs/result_current.bil", format = "EHdr")
+  writeRaster(output_rcp26, "./data/outputs/result_rcp26.bil", format = "EHdr")
+  writeRaster(output_rcp45, "./data/outputs/result_rcp45.bil", format = "EHdr")
+  writeRaster(output_rcp60, "./data/outputs/result_rcp60.bil", format = "EHdr")
+  writeRaster(output_rcp85, "./data/outputs/result_rcp85.bil", format = "EHdr")
+  
   ## Saving evaluation data
   write.table(data.frame(bioclim = bioclim_e ,gower = gower_e, maha = maha_e, maxent = maxent_e, SVM = SVM_e, GLM = GLM_e), "./data/outputs/AUCuberi.txt", sep = "\t", row.names = F)
-  
+
   write.table(data.frame(bioclim = bioclim_t ,gower = gower_t, maha = maha_t, maxent = maxent_t, SVM = SVM_t, GLM = GLM_t), "./data/outputs/Thresholduberi.txt", sep = "\t", row.names = F)
-  
+
   write.table(data.frame(bioclim = bioclim_d ,gower = gower_d, maha = maha_d, maxent = maxent_d, SVM = SVM_d, GLM = GLM_d), "./data/outputs/Thresholduberi.txt", sep = "\t", row.names = F)
   
-} # closes the function "modelling"
+  
+} # closes the function "species_model"
 
 # ***************************************************************************************
 ## 08. Running our model                            ----
 
-# Option 1 - substite especies name manually in "occurrence" and "background", running each species one at the time.
+# Option 1 - substitute especies name manually in "occurrence" and "background", running each species one at the time.
 # huberi, asarifolia, bahiensis, cairica, indica, nil, purpuera, aegyptia
-species_model(occurrence       = "./data/occurrences/var-huberi.txt",
-              background       = "./data/occurrences/var-huberi.txt",
-              biovar_current   = "./data/climatic_vars/selected/current/current-select.txt",
-              biovar_rcp26     = "./data/climatic_vars/selected/rcp26/rcp26-select.txt",
-              biovar_rcp45     = "./data/climatic_vars/selected/rcp45/rcp45-select.txt",
-              biovar_rcp60     = "./data/climatic_vars/selected/rcp60/rcp60-select.txt",
-              biovar_rcp85     = "./data/climatic_vars/selected/rcp85/rcp85-select.txt",
+species_model(occurrence       = "./data/occurrences/var_huberi.txt",
+              background       = "./data/occurrences/back_huberi.txt",
+              biovar_current   = "./data/climatic_vars/selected/current/",
+              biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
+              biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
+              biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
+              biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
               cross_validation = 20)
 
-# Option 2
-### working in progress
-# modelling_sp <- as.factor(c("huberi", "asarifolia", "bahiensis", "cairica", "indica", "nil", "purpuera", "aegyptia"))
-# 
-# for (i in 1:length(modelling_sp))
-# {
-#   species_model(occurrence       = filename = paste0("./data/occurrences/var-", modelling_sp[i], ".txt"),
-#                 background       = filename = paste0("./data/occurrences/back-", modelling_sp[i], ".txt"),
-#                 biovar_current   = "./data/climatic_vars/selected/current/current-select.txt",
-#                 biovar_rcp26     = "./data/climatic_vars/selected/rcp26/rcp26-select.txt",
-#                 biovar_rcp45     = "./data/climatic_vars/selected/rcp45/rcp45-select.txt",
-#                 biovar_rcp60     = "./data/climatic_vars/selected/rcp60/rcp60-select.txt",
-#                 biovar_rcp85     = "./data/climatic_vars/selected/rcp85/rcp85-select.txt",
-#                 cross_validation = 20)
-# }
-
 # ***************************************************************************************
-## 09. Selecting models (auc)                       ----
+## 09. Selecting models (TRP)                       ----
 
 ### Huberi
 auc_h <- read.table("./data/outputs/AUC_huberi.txt", h = T)
