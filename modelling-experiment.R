@@ -338,7 +338,7 @@ species_model <- function(occurrence,
                       cross_validation)
 {
  
-  output_current <- output_rcp26 <- output_rcp45 <- output_rcp60 <- output_rcp85 <- NULL ## saves the mean of the predictions line 548.
+  output_current <- output_rcp26 <- output_rcp45 <- output_rcp60 <- output_rcp85 <- NULL
   
   ### Reading the selected bioclimatic variables
   current_select <- stack(list.files(biovar_current,  pattern = ".grd$", full.names = TRUE))
@@ -348,24 +348,30 @@ species_model <- function(occurrence,
   back  <- read.table(background, h = T)
   
   ### Creating objects for saving results
-  ## predictive models
-  bioclim_c <- gower_c <- maha_c <- maxent_c <- SVM_c <- GLM_c <- stack()
-  bioclim_rcp26 <- gower_rcp26 <- maha_rcp26 <- maxent_rcp26 <- SVM_rcp26 <- GLM_rcp26 <- stack() 
-  bioclim_rcp45 <- gower_rcp45 <- maha_rcp45 <- maxent_rcp45 <- SVM_rcp45 <- GLM_rcp45 <- stack()
-  bioclim_rcp60 <- gower_rcp60 <- maha_rcp60 <- maxent_rcp60 <- SVM_rcp60 <- GLM_rcp60 <- stack()
-  bioclim_rcp85 <- gower_rcp85 <- maha_rcp85 <- maxent_rcp85 <- SVM_rcp85 <- GLM_rcp85 <- stack()
+  ## Predictions
+  bioclim_c <- gower_c  <- maxent_c <- SVM_c <- stack()
+  bioclim_rcp26 <- gower_rcp26 <- maxent_rcp26 <- SVM_rcp26 <- stack() 
+  bioclim_rcp45 <- gower_rcp45 <- maxent_rcp45 <- SVM_rcp45 <- stack()
+  bioclim_rcp60 <- gower_rcp60 <- maxent_rcp60 <- SVM_rcp60 <- stack()
+  bioclim_rcp85 <- gower_rcp85 <- maxent_rcp85 <- SVM_rcp85 <- stack()
   
   ## Evaluation
-  bioclim_e <- gower_e <- maha_e <- maxent_e <- SVM_e <- GLM_e <- NULL # TRF
-  bioclim_t <- gower_t <- maha_t <- maxent_t <- SVM_t <- GLM_t <- NULL # Threshold type comission
-  bioclim_d <- gower_d <- maha_d <- maxent_d <- SVM_d <- GLM_d <- NULL # Area predicted as presence
+  bioclim_e <- gower_e <- maxent_e <- SVM_e <- NULL # TRF
+  bioclim_t <- gower_t <- maxent_t <- SVM_t <- NULL # Threshold type comission
+  bioclim_d <- gower_d <- maxent_d <- SVM_d <- NULL # Area predicted as presence
+  
+  ## Partial results
+  bioclim_Pout_c <- gower_Pout_c <- maxent_Pout_c <- SVM_Pout_c <- NULL
+  bioclim_Pout_rcp26 <- gower_Pout_rcp26 <- maxent_Pout_rcp26 <- SVM_Pout_rcp26 <- NULL
+  bioclim_Pout_rcp45 <- gower_Pout_rcp45 <- maxent_Pout_rcp45 <- SVM_Pout_rcp45 <- NULL
+  bioclim_Pout_rcp60 <- gower_Pout_rcp60 <- maxent_Pout_rcp60 <- SVM_Pout_rcp60 <- NULL
+  bioclim_Pout_rcp85 <- gower_Pout_rcp85 <- maxent_Pout_rcp85 <- SVM_Pout_rcp85 <- NULL
   
   for (j in 1:cross_validation)
   {
     ### OPEN "j" ----
     
     ######### Creating trainning-testing subsets
-    
     sample_occur <- sample(1:nrow(occur), round(0.75 * nrow(occur), 0))
     trainning <- prepareData(x = current_select, p = occur[sample_occur,  1:2], b = back[sample_occur,  1:2]) 
     testing   <- prepareData(x = current_select, p = occur[-sample_occur, 1:2], b = back[-sample_occur, 1:2])
@@ -382,17 +388,18 @@ species_model <- function(occurrence,
     bioclim_c <- stack(bioclim_c, predict(object = bioclim_model, x = current_select))
     
     ## Evaluating models
-    bioclim_eval <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = bioclim_model, tr = 0.05395405) 
-    # tr is threshold(t) "no_omission" value from all t (threshold(bioclim_eval, "no_omission")). We need to fix it here so bioclim_eval@TPR returns a value not the vector of TPRs from all possible t. # Each model will have its particular t value.
-     
+    bioclim_eval <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = bioclim_model)
+    
     ## Saving evaluation metrics
-    bioclim_e <- c(bioclim_e, bioclim_eval@TPR) # TPR - True positive rate 
-    bioclim_t <- c(bioclim_t, threshold(bioclim_eval, "no_omission")) # the highest threshold at which there is no omission
-    str(bioclim_e)
-    ## Study area predicted as presence (d = TPR*(1-pi))
+    thr <- threshold(bioclim_eval, "no_omission") # the highest threshold at which there is no omission
+    TPR <- bioclim_eval@TPR[which( bioclim_eval@t == thr)]
+    bioclim_e <- c(bioclim_e, TPR) # TPR - True positive rate 
+    bioclim_t <- c(bioclim_t, thr) 
+    
+    ## Study area predicted as presence
     n_cells <- nrow(na.omit(values(current_select))) 
-    pi <- sum(values(bioclim_c >= threshold(bioclim_eval, "no_omission")), na.rm = T) / n_cells # predicted area proportion. pi = sum(prediction >= threshold)/ n_cells
-    bioclim_d <- bioclim_eval@TPR * (1 - pi)
+    pi <- sum(values(bioclim_c >= thr), na.rm = T) / n_cells # predicted area proportion.
+    bioclim_d <- TPR * (1 - pi)
     
     
     ### Gower -------------------------------------------------------------------------------
@@ -404,16 +411,18 @@ species_model <- function(occurrence,
     gower_c <- stack(gower_c, predict(object = gower_model, x = current_select))
     
     ## Evaluating models
-    gower_eval <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = gower_model, tr = 0.4756034)
+    gower_eval <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = gower_model)
     
     ## Saving evaluation metrics
-    gower_e <- c(gower_e, gower_eval@TPR)
-    gower_t <- c(gower_t, threshold(gower_eval, "no_omission"))
+    thr <- threshold(gower_eval, "no_omission")
+    TPR <- gower_eval@TPR[which( gower_eval@t == thr)]
+    gower_e <- c(gower_e, TPR)
+    gower_t <- c(gower_t, thr)
     
     ## Study area predicted as presence (d = TPR*(1-pi))
     n_cells <- nrow(na.omit(values(current_select))) 
-    pi <- sum(values(gower_c >= threshold(gower_eval, "no_omission")), na.rm = T) / n_cells
-    gower_d <- gower_eval@TPR * (1 - pi)
+    pi <- sum(values(gower_c >= thr), na.rm = T) / n_cells
+    gower_d <- TPR * (1 - pi)
     
     
     ### Maxent -------------------------------------------------------------------------------
@@ -429,14 +438,17 @@ species_model <- function(occurrence,
     maxent_eval <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = maxent_model, tr = 0.5414856)
     
     ## Saving evaluation metrics
-    maxent_e <- c(maxent_e, maxent_eval@TPR) 
-    maxent_t <- c(maxent_t, threshold(maxent_eval, "no_omission"))
+    thr <- threshold(maxent_eval, "no_omission")
+    TPR <- maxent_eval@TPR[which( maxent_eval@t == thr)]
+    maxent_e <- c(maxent_e, TPR) 
+    maxent_t <- c(maxent_t, thr)
     
     ## Study area predicted as presence (d = TPR*(1-pi))
     n_cells <- nrow(na.omit(values(current_select))) 
-    pi <- sum(values(maxent_c >= threshold(maxent_eval, "no_omission")), na.rm = T) / n_cells
+    pi <- sum(values(maxent_c >= thr), na.rm = T) / n_cells
     TPR <- maxent_e
-    maxent_d <- maxent_eval@TPR * (1 - pi)
+    maxent_d <- TPR * (1 - pi)
+    
     
     ### SVM ----------------------------------------------------------------------------------
     
@@ -450,14 +462,16 @@ species_model <- function(occurrence,
     SVM_eval <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = SVM_model, tr = 0.5566005)
     
     ## Saving evaluation metrics
-    SVM_e <- c(SVM_e, SVM_eval@TPR)
-    SVM_t <- c(SVM_t, threshold(SVM_eval, "no_omission"))
+    thr <- threshold(SVM_eval, "no_omission")
+    TPR <- SVM_eval@TPR[which( SVM_eval@t == thr)]
+    SVM_e <- c(SVM_e, TPR)
+    SVM_t <- c(SVM_t, thr)
     
     ## Study area predicted as presence (d = TPR*(1-pi))
     n_cells <- nrow(na.omit(values(current_select))) 
-    pi <- sum(values(SVM_c >= threshold(SVM_eval, "no_omission")), na.rm = T) / n_cells
+    pi <- sum(values(SVM_c >= thr), na.rm = T) / n_cells
     TPR <- SVM_e
-    SVM_d <- SVM_eval@TPR * (1 - pi)
+    SVM_d <- TPR * (1 - pi)
     
     
     # ***************************************************************************************
@@ -590,7 +604,8 @@ species_model <- function(occurrence,
   
   
   
-  #*************************** Saving data ***************************
+  #\o/\o/\o/\o/\o/\o/ SAVING DATA \o/\o/\o/\o/\o/\o/
+  
   ## Saving predictions
   writeRaster(output_current, "./data/outputs/huberi_current.bil", format = "EHdr")
   writeRaster(output_rcp26, "./data/outputs/huberi_rcp26.bil", format = "EHdr")
@@ -610,11 +625,10 @@ species_model <- function(occurrence,
 
 # ***************************************************************************************
 ## 08. Running our model                            ----
-# Substitute especies name manually in "occurrence" and "background", running each species one at the time.
-sp_names
-# Lithurgus_huberi, Ipomoea_asarifolia, Ipomoea_bahiensis, Ipomoea_cairica, Ipomoea_indica, Ipomoea_nil, Ipomoea_purpuera, Merremia_aegyptia
+# Substitute especies name manually in the filename in "occurrence" and "background" at "SAVING DATA"  section right above this topic, running each species one at the time.
 # Change the filenames for the outputed files in the "Saving data" section in modelling predictions.
-# Afer running for one species, remove all the contend out of ./data/outputs
+# After running the function call for one species, remove all the contend out of ./data/outputs and paste at ./data/results
+sp_names
 
 species_model(occurrence       = "./data/occurrences/var_Lithurgus_huberi.txt",
               background       = "./data/occurrences/back_Lithurgus_huberi.txt",
@@ -628,116 +642,44 @@ species_model(occurrence       = "./data/occurrences/var_Lithurgus_huberi.txt",
 # ***************************************************************************************
 ## 09. Selecting models (TRP)                       ----
 
-### Huberi
-TPR_h <- read.table("./data/results/huberi_TPR.txt", h = T)
-
-# Selecting models with TPR values ≥ 0.7
-huberi_c     <- raster("./data/results/huberi_current.bil")[[which(TPR_h[,c("bioclim", "gower", "maxent", "SVM" )] >= 0.7)]]
-huberi_rcp26 <- raster("./data/results/huberi_rcp26.bil")[[which(TPR_h[,c("bioclim", "gower", "maxent", "SVM" )] >= 0.7)]]
-huberi_rcp45 <- raster("./data/results/huberi_rcp45.bil")[[which(TPR_h[,c("bioclim", "gower", "maxent", "SVM" )] >= 0.7)]]
-huberi_rcp60 <- raster("./data/results/huberi_rcp60.bil")[[which(TPR_h[,c("bioclim", "gower", "maxent", "SVM" )] >= 0.7)]]
-huberi_rcp85 <- raster("./data/results/huberi_rcp85.bil")[[which(TPR_h[,c("bioclim", "gower", "maxent", "SVM" )] >= 0.7)]]
-
-huberi_TPR <- 
   
-# Creating ANOVA Factors to be used at Uncertainty Evaluation
+### asarifolia
 
-## bioclim
 
-#Selecting models with auc values ≥ 0.7
-bioclim_c_h <- stack("./data/outputs/bioclim_c_h.bil")[[which(auc_h[,"bioclim"] >= 0.7)]]
-bioclim_rcp26_h <- stack("./data/outputs/bioclim_rcp26_h.bil")[[which(auc_h[,"bioclim"] >= 0.7)]]
-bioclim_rcp45_h <- stack("./data/outputs/bioclim_rcp45_h.bil")[[which(auc_h[,"bioclim"] >= 0.7)]]
-bioclim_rcp60_h <- stack("./data/outputs/bioclim_rcp60_h.bil")[[which(auc_h[,"bioclim"] >= 0.7)]]
-bioclim_rcp85_h <- stack("./data/outputs/bioclim_rcp85_h.bil")[[which(auc_h[,"bioclim"] >= 0.7)]]
+### bahiensis
 
-bioclim_h <- stack(bioclim_c_h, bioclim_rcp26_h, bioclim_rcp45_h, bioclim_rcp60_h, bioclim_rcp85_h)
-bioclim_auc_h <-  
 
-#  Creating ANOVA Factors to be used at Uncertainty Evaluation
-bioclim_method_h <- rep("bioclim", nlayers(bioclim_h))
-bioclim_period_h <- rep(c("pres","fut"), each = nlayers(bioclim_h))
+### cairica
 
-## gower
 
-#Selecting models with auc values ≥ 0.7
-gower_c_h <- stack("./data/outputs/gower_c_h.bil")[[which(auc_h[,"gower"] >= 0.7)]]
-gower_rcp26_h <- stack("./data/outputs/gower_rcp26_h.bil")[[which(auc_h[,"gower"] >= 0.7)]]
-gower_rcp45_h <- stack("./data/outputs/gower_rcp45_h.bil")[[which(auc_h[,"gower"] >= 0.7)]]
-gower_rcp60_h <- stack("./data/outputs/gower_rcp60_h.bil")[[which(auc_h[,"gower"] >= 0.7)]]
-gower_rcp85_h <- stack("./data/outputs/gower_rcp85_h.bil")[[which(auc_h[,"gower"] >= 0.7)]]
+### indica
 
-gower_h <- stack(gower_c_h, gower_rcp26_h, gower_rcp45_h, gower_rcp60_h, gower_rcp85_h)
-gower_auc_h <- auc_h[which(auc_h[,"gower"] >= 0.7),"gower"]
 
-#  Creating ANOVA Factors to be used at Uncertainty Evaluation
-gower_method_h <- rep("gower", nlayers(gower_h))
-gower_period_h <- rep(c("pres","fut"), each = nlayers(gower_h))
+### nil
 
-## maha
 
-#Selecting models with auc values ≥ 0.7
-maha_c_h <- stack("./data/outputs/maha_c_h.bil")[[which(auc_h[,"maha"] >= 0.7)]]
-maha_rcp26_h <- stack("./data/outputs/maha_rcp26_h.bil")[[which(auc_h[,"maha"] >= 0.7)]]
-maha_rcp45_h <- stack("./data/outputs/maha_rcp45_h.bil")[[which(auc_h[,"maha"] >= 0.7)]]
-maha_rcp60_h <- stack("./data/outputs/maha_rcp60_h.bil")[[which(auc_h[,"maha"] >= 0.7)]]
-maha_rcp85_h <- stack("./data/outputs/maha_rcp85_h.bil")[[which(auc_h[,"maha"] >= 0.7)]]
+### purpurea
 
-maha_h <- stack(maha_c_h, maha_rcp26_h, maha_rcp45_h, maha_rcp60_h, maha_rcp85_h)
-maha_auc_h <- auc_h[which(auc_h[,"maha"] >= 0.7),"maha"]
 
-#  Creating ANOVA Factors to be used at Uncertainty Evaluation
-maha_method_h <- rep("maha", nlayers(maha_h))
-maha_period_h <- rep(c("pres","fut"), each = nlayers(maha_h))
+### huberi
+TPR_huberi <- read.table("./data/results/huberi_TPR.txt", h = T)
 
-## maxent
+## Selecting models with TPR values ≥ 0.7
+huberi_c     <- raster("./data/results/huberi_current.bil")[[which(TPR_huberi[,] >= 0.7)]]
+huberi_rcp26 <- raster("./data/results/huberi_rcp26.bil")[[which(TPR_huberi[,] >= 0.7)]]
+huberi_rcp45 <- raster("./data/results/huberi_rcp45.bil")[[which(TPR_huberi[,] >= 0.7)]]
+huberi_rcp60 <- raster("./data/results/huberi_rcp60.bil")[[which(TPR_huberi[,] >= 0.7)]]
+huberi_rcp85 <- raster("./data/results/huberi_rcp85.bil")[[which(TPR_huberi[,] >= 0.7)]]
 
-#Selecting models with auc values ≥ 0.7
-maxent_c_h <- stack("./data/outputs/maxent_c_h.bil")[[which(auc_h[,"maxent"] >= 0.7)]]
-maxent_rcp26_h <- stack("./data/outputs/maxent_rcp26_h.bil")[[which(auc_h[,"maxent"] >= 0.7)]]
-maxent_rcp45_h <- stack("./data/outputs/maxent_rcp45_h.bil")[[which(auc_h[,"maxent"] >= 0.7)]]
-maxent_rcp60_h <- stack("./data/outputs/maxent_rcp60_h.bil")[[which(auc_h[,"maxent"] >= 0.7)]]
-maxent_rcp85_h <- stack("./data/outputs/maxent_rcp85_h.bil")[[which(auc_h[,"maxent"] >= 0.7)]]
+all_huberi <- stack(huberi_c, huberi_rcp26, huberi_rcp45, huberi_rcp60, huberi_rcp85)
+TPR_huberi <- TPR_h[which(TPR_h)]
 
-maxent_h <- stack(maxent_c_h, maxent_rcp26_h, maxent_rcp45_h, maxent_rcp60_h, maxent_rcp85_h)
-maxent_auc_h <- auc_h[which(auc_h[,"maxent"] >= 0.7),"maxent"]
+##  Creating ANOVA Factors to be used at Uncertainty Evaluation
+# huberi_metodo <- rep("bioclim", nlayers(all_huberi)) #???
+# huberi_tempo  <- rep(c("pres","fut"), each = nlayers(all_huberi))
 
-#  Creating ANOVA Factors to be used at Uncertainty Evaluation
-maxent_method_h <- rep("maxent", nlayers(maxent_h))
-maxent_period_h <- rep(c("pres","fut"), each = nlayers(maxent_h))
 
-## SVM
-
-#Selecting models with auc values ≥ 0.7
-SVM_c_h <- stack("./data/outputs/SVM_c_h.bil")[[which(auc_h[,"SVM"] >= 0.7)]]
-SVM_rcp26_h <- stack("./data/outputs/SVM_rcp26_h.bil")[[which(auc_h[,"SVM"] >= 0.7)]]
-SVM_rcp45_h <- stack("./data/outputs/SVM_rcp45_h.bil")[[which(auc_h[,"SVM"] >= 0.7)]]
-SVM_rcp60_h <- stack("./data/outputs/SVM_rcp60_h.bil")[[which(auc_h[,"SVM"] >= 0.7)]]
-SVM_rcp85_h <- stack("./data/outputs/SVM_rcp85_h.bil")[[which(auc_h[,"SVM"] >= 0.7)]]
-
-SVM_h <- stack(SVM_c_h, SVM_rcp26_h, SVM_rcp45_h, SVM_rcp60_h, SVM_rcp85_h)
-SVM_auc_h <- auc_h[which(auc_h[,"SVM"] >= 0.7),"SVM"]
-
-#  Creating ANOVA Factors to be used at Uncertainty Evaluation
-SVM_method_h <- rep("SVM", nlayers(SVM_h))
-SVM_period_h <- rep(c("pres","fut"), each = nlayers(SVM_h))
-
-## GLM
-
-#Selecting models with auc values ≥ 0.7
-GLM_c_h <- stack("./data/outputs/GLM_c_h.bil")[[which(auc_h[,"GLM"] >= 0.7)]]
-GLM_rcp26_h <- stack("./data/outputs/GLM_rcp26_h.bil")[[which(auc_h[,"GLM"] >= 0.7)]]
-GLM_rcp45_h <- stack("./data/outputs/GLM_rcp45_h.bil")[[which(auc_h[,"GLM"] >= 0.7)]]
-GLM_rcp60_h <- stack("./data/outputs/GLM_rcp60_h.bil")[[which(auc_h[,"GLM"] >= 0.7)]]
-GLM_rcp85_h <- stack("./data/outputs/GLM_rcp85_h.bil")[[which(auc_h[,"GLM"] >= 0.7)]]
-
-GLM_h <- stack(GLM_c_h, GLM_rcp26_h, GLM_rcp45_h, GLM_rcp60_h, GLM_rcp85_h)
-GLM_auc_h <- auc_h[which(auc_h[,"GLM"] >= 0.7),"GLM"]
-
-#  Creating ANOVA Factors to be used at Uncertainty Evaluation
-GLM_method_h <- rep("GLM", nlayers(GLM_h))
-GLM_period_h <- rep(c("pres","fut"), each = nlayers(GLM_h))
-
+### aegyptia
 
 
 
