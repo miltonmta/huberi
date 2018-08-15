@@ -60,6 +60,7 @@ browseURL("https://1drv.ms/f/s!ApJZaitgpPr7gZtfS9n9mU9DDzXQMg")
 # Worldclim variables for current conditions (~1960-1990), by the spatial resolution of 2.5min. 
 # browseURL("http://www.worldclim.org/current")
 
+###.............. processing the current climatic model
 read_current <- function (dir)                                
 {
   model_raw <- stack(list.files(dir,  pattern = ".bil$", full.names = TRUE))
@@ -72,10 +73,10 @@ read_current <- function (dir)
   return(model)
 }
 
-## Creating a matrix
+###.............. Creating a matrix
 current <- read_current(dir = "./data/climatic_vars/current")
 
-## Creating a RasterBrick
+###.............. Creating a RasterBrick
 current_spatial <- rasterFromXYZ(current) 
 
 
@@ -83,7 +84,7 @@ current_spatial <- rasterFromXYZ(current)
 # Worldclim variables for the RCPs, projected to 2070(average for 2061-2080), by the spatial resolution of 2.5min. 
 # browseURL("http://www.worldclim.org/cmip5_2.5m")
 
-## wolrdclim GCM codes
+###.............. wolrdclim GCM codes
 
 # BCC-CSM1-1	      BC
 # CCSM4	            CC
@@ -97,6 +98,7 @@ current_spatial <- rasterFromXYZ(current)
 # MIROC-ESM    	    MR
 # NorESM1-M	        NO
 
+###.............. selected AOGCMs
 # based on the cluster analysis we'll import only the selected variables at each RCP scenario.
 
 # RCP 26: CCSM4(CC), HADGEM2-AO(HD),   IPSL-CMSA-LR(IP), MIROC-ESM(MR) 
@@ -111,11 +113,10 @@ current_spatial <- rasterFromXYZ(current)
 # RCP 60: CCSM4(CC), IPSL-CMSA-LR(IP),                   MIROC-ESM(MR)
 # RCP 85: CCSM4(CC), IPSL-CMSA-LR(IP),                   MIROC-ESM(MR)
 
-
-# naming must be in the exact order of the origin directory. Best practice would be renaming the origin folders with the corresponding model.
+# naming must be in the exact order of the origin directory.
 model_names <- c("CCSM4", "IPSL-CM5A-LR", "MIROC-ESM")
 
-
+###.............. processing rcps
 read_rcp <- function (x)
 {
   directories <- list.dirs( x, full.names = TRUE)[-1]
@@ -141,13 +142,13 @@ rcp45_list <- read_rcp( x = "./data/climatic_vars/selected/45bi70/")
 rcp60_list <- read_rcp( x = "./data/climatic_vars/selected/60bi70/")
 rcp85_list <- read_rcp( x = "./data/climatic_vars/selected/85bi70/")
 
-# object type: array
+###.............. object type: array
 rcp26 <- rcp26_list[["array"]]
 rcp45 <- rcp45_list[["array"]]
 rcp60 <- rcp60_list[["array"]]
 rcp85 <- rcp85_list[["array"]]
 
-# object type: RasterStack
+###.............. object type: RasterStack
 rcp26_spatial <- rcp26_list[["rasters"]]
 rcp26_spatial <- stack(rcp26_spatial[[1]], rcp26_spatial[[2]], rcp26_spatial[[3]])
 
@@ -165,17 +166,17 @@ rm(rcp26_list, rcp45_list, rcp60_list, rcp85_list)
 
 # ***************************************************************************************
 ## 02. Variable selection                           ----
-### by exploratory factor analysis
+###.............. by exploratory factor analysis
 
 fa.parallel(current[ , -c(1:2)], fa = 'fa') #scree plot
 current_fa <- fa(current[ , -c(1:2)], nfactors = 5, rotate = 'varimax')
 loadings <- loadings(current_fa)
 write.table(loadings, "./data/climatic_vars/selected/varimax_loadings.txt")
 
-### Selected variables 
+###.............. Selected variables 
 # bio02, bio03, bio10, bio14, bio16.
 
-## bioclimatic variables descriptions
+###.............. bioclimatic variables descriptions
 
 #BIO01 = Annual Mean Temperature
 #BIO02 = Mean Diurnal Range (Mean of monthly (max temp - min temp))
@@ -204,6 +205,7 @@ write.table(loadings, "./data/climatic_vars/selected/varimax_loadings.txt")
 write.table(current[,c("x", "y", "bio02", "bio03", "bio10", "bio14", "bio16")], "./data/climatic_vars/selected/current/current-select.txt", row.names = F, sep = " ")  
 
 ### 3.1b. current - saving as raster ----
+
 variables <- as.factor(c("bio02", "bio03", "bio10", "bio14", "bio16"))
 for (i in 1:length(variables))
 {
@@ -211,12 +213,12 @@ for (i in 1:length(variables))
 }
 rm(variables)
 
-
 current_select <- stack(list.files("./data/climatic_vars/selected/current/",  pattern = ".grd$", full.names = TRUE))
 
 #### RCPs
 
 ### 3.2a. rcp - saving table ----
+
 write.table(rcp26 [ ,c("x", "y", "bio02", "bio03", "bio10", "bio14", "bio16" ), ], "./data/climatic_vars/selected/rcp26/rcp26-select.txt", row.names = F, sep = "	")
 write.table(rcp45 [ ,c("x", "y", "bio02", "bio03", "bio10", "bio14", "bio16" ), ], "./data/climatic_vars/selected/rcp45/rcp45-select.txt", row.names = F, sep = "	")
 write.table(rcp60 [ ,c("x", "y", "bio02", "bio03", "bio10", "bio14", "bio16" ), ], "./data/climatic_vars/selected/rcp60/rcp60-select.txt", row.names = F, sep = "	")
@@ -225,9 +227,9 @@ write.table(rcp85 [ ,c("x", "y", "bio02", "bio03", "bio10", "bio14", "bio16" ), 
 
 ### 3.2b. rcp - saving as raster ----
 
-### Creating rasters with the selected variables from each aogcm
-variables <- as.factor(c("bio02.1", "bio03.1", "bio10.1", "bio14.1", "bio16.1", "bio02.2", "bio03.2", "bio10.2", "bio14.2", "bio16.2", "bio02.3", "bio03.3", "bio10.3", "bio14.3", "bio16.3"))
+###.............. Creating rasters with the selected variables from each aogcm
 
+variables <- as.factor(c("bio02.1", "bio03.1", "bio10.1", "bio14.1", "bio16.1", "bio02.2", "bio03.2", "bio10.2", "bio14.2", "bio16.2", "bio02.3", "bio03.3", "bio10.3", "bio14.3", "bio16.3"))
 ## RCP26
 for (i in 1:length(variables))
 {
@@ -258,21 +260,25 @@ rm(variables)
 # ***************************************************************************************
 ## 04. Occurrences data                             ----
 
-### Reading data
+###.............. Reading data
 # if you have more than one species, all of them should be in the file raw_data.
 # the names of columms in this file must be: "SPEC", "LONG", "LAT".
 occur_raw <- read.table("./data/occurrences/raw_data.txt", h = T)
-huberi [1:5, ] 
-str(occur_raw) # object type: 3 columms matrix
  
-### Filtering occurrences in the geographical space
-occur_thinned <- thin(occur_raw, out.dir = "./data/occurrences/", out.base = "occur", thin.par = 20, reps = 100, max.files = 1, locs.thinned.list.return = T)
-summaryThin(occur_thinned)
-
-### Species names
+###.............. Filtering occurrences in the geographical space
 sp <- gsub("C[1-9]","", occur_raw$SPEC)
 sp_names <- unique(sp)
-sp_names
+occur_thinned <- NULL
+for(i in 1:length(sp_names))
+{
+  sp <- occur_raw[occur_raw[, 1] == sp_names[i], ]
+  occur <- thin(sp, thin.par = 20, reps = 100, max.files = 1, locs.thinned.list.return = T)
+  summaryThin(occur)
+  occur_thinned <- rbind(occur_thinned, occur)
+}
+write.table(occur_thinned, "./data/occurrences/occur_thinned.txt", sep = ";", row.names = FALSE)
+
+# occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",", h = T)
 
 # ***************************************************************************************
 ## 05. Extracting variables                         ----
@@ -285,70 +291,68 @@ create_var <- function(sp,name)
   sp_coord <- xyFromCell(current_select, sp_cell)
   sp_var <- raster::extract(current_select, sp_cell)
   sp_var <- na.omit(cbind(sp_coord, sp_var))
-  write.table(sp_var, file = paste0("./data/occurrences/var_", as.factor(name), ".txt"), row.names = F, sep = " ")
-  
+  write.table(sp_var, file = paste0("./data/occurrences/var_", as.factor(name), ".txt"), row.names = F, sep = ";")
   return(sp_var)
 }
 
-# Creating and saving the object "var" for each study species
+# Creating and saving the object "var" for each studied species
 for(i in 1:length(sp_names))
 {
-  create_var(occur_thinned[occur_thinned[, 1] == sp_names[i], ], sp_names[i])
+  var <- create_var(occur_thinned[occur_thinned[, 1] == sp_names[i], ], sp_names[i])
 }
 
 # ***************************************************************************************
 ## 06. Background Sampling                          ----
 
+###.............. Creating and saving the object "back" for each studied species
 create_back <- function(sp, name)
 {
   coord <- rasterToPoints(current_select)[, 1:2]
   back_id <- sample(1:nrow(coord), nrow(sp))
   back <- extract(current_select, coord[back_id, ])
   back <- cbind(coord [back_id, ], back)
-  write.table(back, paste0("./data/occurrences/back_", as.factor(name), ".txt"), row.names = F, sep = " ") 
+  write.table(back, paste0("./data/occurrences/back_", as.factor(name), ".txt"), row.names = F, sep = ";") 
   return(back)
 }
 
-# Creating and saving the object "back" for each study species
 var_files <- list.files("./data/occurrences/", pattern = "var", full.names = TRUE)
 for(i in 1:length(var_files))
 {
-  var_file <- read.table(var_files[i], h = T, sep = "")
-  create_back(var_file, sp_names[i]) # ??? check if the names match -----
+  var_file <- read.table(var_files[i], h = T, sep = ";")
+  create_back(var_file, sp_names[i])
 }
 
-
-### Plotting occurrences and background
+###.............. Plotting occurrences and background
 sp_names
 plot(current_select$bio01)
-points(occur_thinned[,-1], pch = "*", col = "blue")
-points(occur_thinned[, -1], pch = "*", col = "red")
+points(occur_thinned[-(occur_thinned[, 1] == "Lithurgus_huberi"), ][, -1], pch = "*", col = "red")
+points(occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ][,-1], pch = "*", col = "blue")
+# points(back[, "x"], back[, "y"], pch = "*", col = 'black')
+# points(back[, "x"], back[, "y"], pch = "*", col = 'magenta')
 
 # ***************************************************************************************
 ## 07. Modelling Predictions                        ----
 rm(list = ls())
 
 species_model <- function(occurrence, 
-                      background, 
-                      biovar_current,
-                      biovar_rcp26,
-                      biovar_rcp45,
-                      biovar_rcp60,
-                      biovar_rcp85 ,
-                      cross_validation)
+                          background, 
+                          biovar_current,
+                          biovar_rcp26,
+                          biovar_rcp45,
+                          biovar_rcp60,
+                          biovar_rcp85 ,
+                          cross_validation)
 {
- 
-  output_current <- output_rcp26 <- output_rcp45 <- output_rcp60 <- output_rcp85 <- NULL
-  
-  ### Reading the selected bioclimatic variables
+
+  ###.............. Reading the selected bioclimatic variables
   current_select <- stack(list.files(biovar_current,  pattern = ".grd$", full.names = TRUE))
   
-  ### Reading ocurrence and background
-  occur <- read.table(occurrence, h = T)
-  back  <- read.table(background, h = T)
+  ###.............. Reading ocurrence and background
+  occur <- read.table(occurrence, sep = ";", h = T)
+  back  <- read.table(background, sep = ";", h = T)
   
-  ### Creating objects for saving results
-  ## Predictions
+  ###.............. Creating objects for saving the results
+  ## Predictive models
   bioclim_c <- gower_c  <- maxent_c <- SVM_c <- stack()
   bioclim_rcp26 <- gower_rcp26 <- maxent_rcp26 <- SVM_rcp26 <- stack() 
   bioclim_rcp45 <- gower_rcp45 <- maxent_rcp45 <- SVM_rcp45 <- stack()
@@ -367,19 +371,24 @@ species_model <- function(occurrence,
   bioclim_Pout_rcp60 <- gower_Pout_rcp60 <- maxent_Pout_rcp60 <- SVM_Pout_rcp60 <- NULL
   bioclim_Pout_rcp85 <- gower_Pout_rcp85 <- maxent_Pout_rcp85 <- SVM_Pout_rcp85 <- NULL
   
+  ## Predictions results
+  output_current <- output_rcp26 <- output_rcp45 <- output_rcp60 <- output_rcp85 <- NULL
+  
+  
   for (j in 1:cross_validation)
   {
     ### OPEN "j" ----
     
-    ######### Creating trainning-testing subsets
+    ###.............. Creating trainning-testing subsets
     sample_occur <- sample(1:nrow(occur), round(0.75 * nrow(occur), 0))
     trainning <- prepareData(x = current_select, p = occur[sample_occur,  1:2], b = back[sample_occur,  1:2]) 
     testing   <- prepareData(x = current_select, p = occur[-sample_occur, 1:2], b = back[-sample_occur, 1:2])
     
     
     # ***************************************************************************************
-    ######### Predictive models
-    ## Bioclim -----------------------------------------------------------------------------
+    ###.............. Predictive models
+    
+    ### Bioclim -----------------------------------------------------------------------------
     
     ## Adjusting models
     bioclim_model <- bioclim(trainning[trainning[, "pb"] == 1, -1])
@@ -419,7 +428,7 @@ species_model <- function(occurrence,
     gower_e <- c(gower_e, TPR)
     gower_t <- c(gower_t, thr)
     
-    ## Study area predicted as presence (d = TPR*(1-pi))
+    ## Study area predicted as presence
     n_cells <- nrow(na.omit(values(current_select))) 
     pi <- sum(values(gower_c >= thr), na.rm = T) / n_cells
     gower_d <- TPR * (1 - pi)
@@ -443,7 +452,7 @@ species_model <- function(occurrence,
     maxent_e <- c(maxent_e, TPR) 
     maxent_t <- c(maxent_t, thr)
     
-    ## Study area predicted as presence (d = TPR*(1-pi))
+    ## Study area predicted as presence
     n_cells <- nrow(na.omit(values(current_select))) 
     pi <- sum(values(maxent_c >= thr), na.rm = T) / n_cells
     TPR <- maxent_e
@@ -467,7 +476,7 @@ species_model <- function(occurrence,
     SVM_e <- c(SVM_e, TPR)
     SVM_t <- c(SVM_t, thr)
     
-    ## Study area predicted as presence (d = TPR*(1-pi))
+    ## Study area predicted as presence 
     n_cells <- nrow(na.omit(values(current_select))) 
     pi <- sum(values(SVM_c >= thr), na.rm = T) / n_cells
     TPR <- SVM_e
@@ -476,14 +485,15 @@ species_model <- function(occurrence,
     
     # ***************************************************************************************
     
-    ######### Saving partial outputs for current model
+    ###.............. Saving partial outputs for current model
     bioclim_Pout_c <- cbind(bioclim_Pout_c, values(bioclim_c))
     gower_Pout_c   <- cbind(gower_Pout_c,   values(gower_c))
     maxent_Pout_c  <- cbind(maxent_Pout_c,  values(maxent_c))
     SVM_Pout_c     <- cbind(SVM_Pout_c,     values(SVM_c))
     
     
-    ######### Making predictions for the RCPs
+    ###.............. Making predictions for the RCPs
+    
     AOGCMs <- c("CCSM4", "IPSL-CM5A-LR", "MIROC-ESM")
     for (i in AOGCMs)
     {
@@ -547,7 +557,7 @@ species_model <- function(occurrence,
     # cross-validation
   }   
   
-  ### Calculating mean of partial models outputs
+  ###.............. Calculating mean of partial models outputs
   bioclim_Pout_c_mean     <- apply(bioclim_Pout_c, 1,     mean)
   bioclim_Pout_rcp26_mean <- apply(bioclim_Pout_rcp26, 1, mean)
   bioclim_Pout_rcp45_mean <- apply(bioclim_Pout_rcp45, 1, mean)
@@ -573,7 +583,7 @@ species_model <- function(occurrence,
   SVM_Pout_rcp85_mean     <- apply(SVM_Pout_rcp85, 1, mean)
   
   
-  ### Saving data into the output objects
+  ###.............. Saving data into the output objects
   output_current <- cbind(output_current, Bioclim = bioclim_Pout_c_mean, Gower = gower_Pout_c_mean, Maxent = maxent_Pout_c_mean, SVM = SVM_Pout_c_mean )
   
   output_rcp26   <- cbind(output_rcp26, Bioclim = bioclim_Pout_rcp26_mean, Gower = gower_Pout_rcp26_mean, Maxent = maxent_Pout_rcp26_mean, SVM = SVM_Pout_rcp26_mean )
@@ -585,7 +595,7 @@ species_model <- function(occurrence,
   output_rcp85   <- cbind(output_rcp85, Bioclim = bioclim_Pout_rcp85_mean, Gower = gower_Pout_rcp85_mean, Maxent = maxent_Pout_rcp85_mean, SVM = SVM_Pout_rcp85_mean )
   
   
-  ### Inserting coords to outputs
+  ###.............. Inserting coords to outputs
   coords <- xyFromCell(current_select, 1:ncell(current_select))
   
   output_current <- cbind(coords,output_current)
@@ -595,7 +605,7 @@ species_model <- function(occurrence,
   output_rcp85   <- cbind(coords,output_rcp85)
   
   
-  ### Excluding NAs from outputs 
+  ###.............. Excluding NAs from outputs 
   output_current <- na.omit(output_current)
   output_rcp26   <- na.omit(output_rcp26)
   output_rcp45   <- na.omit(output_rcp45)
@@ -603,65 +613,81 @@ species_model <- function(occurrence,
   output_rcp85   <- na.omit(output_rcp85)
   
   
-  
-  #\o/\o/\o/\o/\o/\o/ SAVING DATA \o/\o/\o/\o/\o/\o/
-  
-  ## Saving predictions
-  writeRaster(output_current, "./data/outputs/huberi_current.bil", format = "EHdr")
-  writeRaster(output_rcp26, "./data/outputs/huberi_rcp26.bil", format = "EHdr")
-  writeRaster(output_rcp45, "./data/outputs/huberi_rcp45.bil", format = "EHdr")
-  writeRaster(output_rcp60, "./data/outputs/huberi_rcp60.bil", format = "EHdr")
-  writeRaster(output_rcp85, "./data/outputs/huberi_rcp85.bil", format = "EHdr")
-  
-  ## Saving evaluation data
-  write.table(data.frame(bioclim = bioclim_e ,gower = gower_e, maha = maha_e, maxent = maxent_e, SVM = SVM_e, GLM = GLM_e), "./data/outputs/huberi_TPR.txt", sep = "\t", row.names = F)
+  ###.............. Evaluation data
+  models_e <- data.frame("bioclim" = bioclim_e , "gower" = gower_e, "maxent" = maxent_e, "SVM" = SVM_e)
 
-  write.table(data.frame(bioclim = bioclim_t ,gower = gower_t, maha = maha_t, maxent = maxent_t, SVM = SVM_t, GLM = GLM_t), "./data/outputs/huberi_t.txt", sep = "\t", row.names = F)
+  models_t <- data.frame("bioclim" = bioclim_t , "gower" = gower_t, "maxent" = maxent_t, "SVM" = SVM_t)
 
-  write.table(data.frame(bioclim = bioclim_d ,gower = gower_d, maha = maha_d, maxent = maxent_d, SVM = SVM_d, GLM = GLM_d), "./data/outputs/huberi_d.txt", sep = "\t", row.names = F)
+  models_d <- data.frame("bioclim" = bioclim_d , "gower" = gower_d, "maxent" = maxent_d, "SVM" = SVM_d)
   
+  
+  
+  #\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/
+  return(list(c("output_current" = output_current, 
+                "output_rcp26"   = output_rcp26, 
+                "output_rcp45"   = output_rcp45, 
+                "output_rcp60"   = output_rcp60, 
+                "output_rcp85"   = output_rcp85, 
+                "TPR"            = models_e, 
+                "Threshold"      = models_t, 
+                "Predicted_area" = models_d)))
   
 } # CLOSE "species_model"----
 
 # ***************************************************************************************
 ## 08. Running our model                            ----
-# Substitute especies name manually in the filename in "occurrence" and "background" at "SAVING DATA"  section right above this topic, running each species one at the time.
-# Change the filenames for the outputed files in the "Saving data" section in modelling predictions.
-# After running the function call for one species, remove all the contend out of ./data/outputs and paste at ./data/results
-sp_names
 
-species_model(occurrence       = "./data/occurrences/var_Lithurgus_huberi.txt",
-              background       = "./data/occurrences/back_Lithurgus_huberi.txt",
-              biovar_current   = "./data/climatic_vars/selected/current/",
-              biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
-              biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
-              biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
-              biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
-              cross_validation = 20)
+sp_names
+for (i in 1:length(sp_names))
+{
+  ###.............. Running the modedelling experiment
+  result <- species_model(occurrence       = paste("./data/occurrences/var_", sp_names[i], ".txt"),
+                          background       = paste("./data/occurrences/back_", sp_names[i],".txt"),
+                          biovar_current   = "./data/climatic_vars/selected/current/",
+                          biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
+                          biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
+                          biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
+                          biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
+                          cross_validation = 20)
+  
+  ###.............. Saving predictions
+  writeRaster(result[["output_current"]], paste0("./data/outputs/", sp_names[i],"_current.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/", sp_names[i],"_rcp26.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/", sp_names[i],"_rcp45.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/", sp_names[i],"_rcp60.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/", sp_names[i],"_rcp85.bil"), format = "EHdr")
+  
+  ###.............. Saving evaluation data
+  write.table(result[["TPR"]], paste0("./data/outputs/", sp_names[i], "_TPR.txt"), sep = "\t", row.names = F)
+  
+  write.table(result[["Threshold"]], paste0("./data/outputs/", sp_names[i], "_t.txt"), sep = "\t", row.names = F)
+  
+  write.table(result[["Predicted_area"]], paste0("./data/outputs/", sp_names[i], "_d.txt"), sep = "\t", row.names = F)
+}
 
 # ***************************************************************************************
 ## 09. Selecting models (TRP)                       ----
 
   
-### asarifolia
+###.............. asarifolia
 
 
-### bahiensis
+###.............. bahiensis
 
 
-### cairica
+###.............. cairica
 
 
-### indica
+###.............. indica
 
 
-### nil
+###.............. nil
 
 
-### purpurea
+###.............. purpurea
 
 
-### huberi
+###.............. huberi
 TPR_huberi <- read.table("./data/results/huberi_TPR.txt", h = T)
 
 ## Selecting models with TPR values ≥ 0.7
