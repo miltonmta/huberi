@@ -1,5 +1,5 @@
 # --- Packages                                      ----
-# install.packages(c("tidyverse", "raster", "rgdal", "abind", "spThin", "vegan", "maps", "mask","pcych", "kernlab", "dismo", "rJava")
+# install.packages(c("tidyverse", "raster", "rgdal", "abind", "spThin", "vegan", "maps", "mask","pcych", "kernlab", "dismo", "rJava"))
 require(tidyverse)
 require(raster)
 require(rgdal)
@@ -32,8 +32,8 @@ require(rJava)
 # browseURL("http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html")
 
 # 2. Checking if the jar file is present. 
-# jar <- paste(system.file(package="dismo"), "/java/maxent.jar", sep='')
-# file.exists(jar)
+jar <- paste(system.file(package="dismo"), "/java/maxent.jar", sep='')
+file.exists(jar)
 
 # 3. Use dyn.load for ataching the libjvm.dylib file before running the `rJava` Package.
 # dyn.load('/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home/jre/lib/server/libjvm.dylib')
@@ -74,7 +74,7 @@ read_current <- function (dir)
 }
 
 ###.............. Creating a matrix
-current <- read_current(dir = "./data/climatic_vars/current")
+current <- read_current(dir = "./data/climatic_vars/current/")
 
 ###.............. Creating a RasterBrick
 current_spatial <- rasterFromXYZ(current) 
@@ -360,9 +360,30 @@ species_model <- function(occurrence,
   bioclim_rcp85 <- gower_rcp85 <- maxent_rcp85 <- SVM_rcp85 <- stack()
   
   ## Evaluation
-  bioclim_e <- gower_e <- maxent_e <- SVM_e <- NULL # TRF
-  bioclim_t <- gower_t <- maxent_t <- SVM_t <- NULL # Threshold type comission
+  # present
+  bioclim_e <- gower_e <- maxent_e <- SVM_e <- NULL # True presence rate (TPR)
+  bioclim_t <- gower_t <- maxent_t <- SVM_t <- NULL # The highest threshold at which there is no omission
   bioclim_d <- gower_d <- maxent_d <- SVM_d <- NULL # Area predicted as presence
+  
+  # rcp26
+  bioclim_e_rcp26 <- gower_e_rcp26 <- maxent_e_rcp26 <- SVM_e_rcp26 <- NULL 
+  bioclim_t_rcp26 <- gower_t_rcp26 <- maxent_t_rcp26 <- SVM_t_rcp26 <- NULL 
+  bioclim_d_rcp26 <- gower_d_rcp26 <- maxent_d_rcp26 <- SVM_d_rcp26 <- NULL 
+  
+  # rcp45
+  bioclim_e_rcp45 <- gower_e_rcp45 <- maxent_e_rcp45 <- SVM_e_rcp45 <- NULL 
+  bioclim_t_rcp45 <- gower_t_rcp45 <- maxent_t_rcp45 <- SVM_t_rcp45 <- NULL 
+  bioclim_d_rcp45 <- gower_d_rcp45 <- maxent_d_rcp45 <- SVM_d_rcp45 <- NULL 
+  
+  # rcp60
+  bioclim_e_rcp60 <- gower_e_rcp60 <- maxent_e_rcp60 <- SVM_e_rcp60 <- NULL 
+  bioclim_t_rcp60 <- gower_t_rcp60 <- maxent_t_rcp60 <- SVM_t_rcp60 <- NULL 
+  bioclim_d_rcp60 <- gower_d_rcp60 <- maxent_d_rcp60 <- SVM_d_rcp60 <- NULL 
+  
+  # rcp85
+  bioclim_e_rcp85 <- gower_e_rcp85 <- maxent_e_rcp85 <- SVM_e_rcp85 <- NULL 
+  bioclim_t_rcp85 <- gower_t_rcp85 <- maxent_t_rcp85 <- SVM_t_rcp85 <- NULL 
+  bioclim_d_rcp85 <- gower_d_rcp85 <- maxent_d_rcp85 <- SVM_d_rcp85 <- NULL 
   
   ## Partial results
   bioclim_Pout_c <- gower_Pout_c <- maxent_Pout_c <- SVM_Pout_c <- NULL
@@ -386,8 +407,6 @@ species_model <- function(occurrence,
     
     
     # ***************************************************************************************
-    ###.............. Predictive models
-    
     ### Bioclim -----------------------------------------------------------------------------
     
     ## Adjusting models
@@ -400,14 +419,13 @@ species_model <- function(occurrence,
     bioclim_eval <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = bioclim_model)
     
     ## Saving evaluation metrics
-    thr <- threshold(bioclim_eval, "no_omission") # the highest threshold at which there is no omission
+    thr <- threshold(bioclim_eval, "no_omission") 
     TPR <- bioclim_eval@TPR[which( bioclim_eval@t == thr)]
-    bioclim_e <- c(bioclim_e, TPR) # TPR - True positive rate 
-    bioclim_t <- c(bioclim_t, thr) 
-    
-    ## Study area predicted as presence
     n_cells <- nrow(na.omit(values(current_select))) 
     pi <- sum(values(bioclim_c >= thr), na.rm = T) / n_cells # predicted area proportion.
+    
+    bioclim_e <- c(bioclim_e, TPR)
+    bioclim_t <- c(bioclim_t, thr) 
     bioclim_d <- TPR * (1 - pi)
     
     
@@ -425,12 +443,11 @@ species_model <- function(occurrence,
     ## Saving evaluation metrics
     thr <- threshold(gower_eval, "no_omission")
     TPR <- gower_eval@TPR[which( gower_eval@t == thr)]
-    gower_e <- c(gower_e, TPR)
-    gower_t <- c(gower_t, thr)
-    
-    ## Study area predicted as presence
     n_cells <- nrow(na.omit(values(current_select))) 
     pi <- sum(values(gower_c >= thr), na.rm = T) / n_cells
+    
+    gower_e <- c(gower_e, TPR)
+    gower_t <- c(gower_t, thr)
     gower_d <- TPR * (1 - pi)
     
     
@@ -449,13 +466,11 @@ species_model <- function(occurrence,
     ## Saving evaluation metrics
     thr <- threshold(maxent_eval, "no_omission")
     TPR <- maxent_eval@TPR[which( maxent_eval@t == thr)]
-    maxent_e <- c(maxent_e, TPR) 
-    maxent_t <- c(maxent_t, thr)
-    
-    ## Study area predicted as presence
     n_cells <- nrow(na.omit(values(current_select))) 
     pi <- sum(values(maxent_c >= thr), na.rm = T) / n_cells
-    TPR <- maxent_e
+    
+    maxent_e <- c(maxent_e, TPR) 
+    maxent_t <- c(maxent_t, thr)
     maxent_d <- TPR * (1 - pi)
     
     
@@ -473,13 +488,11 @@ species_model <- function(occurrence,
     ## Saving evaluation metrics
     thr <- threshold(SVM_eval, "no_omission")
     TPR <- SVM_eval@TPR[which( SVM_eval@t == thr)]
-    SVM_e <- c(SVM_e, TPR)
-    SVM_t <- c(SVM_t, thr)
-    
-    ## Study area predicted as presence 
     n_cells <- nrow(na.omit(values(current_select))) 
     pi <- sum(values(SVM_c >= thr), na.rm = T) / n_cells
-    TPR <- SVM_e
+    
+    SVM_e <- c(SVM_e, TPR)
+    SVM_t <- c(SVM_t, thr)
     SVM_d <- TPR * (1 - pi)
     
     
@@ -525,6 +538,139 @@ species_model <- function(occurrence,
       SVM_rcp45     <- stack(SVM_rcp45,     predict(model = SVM_model, object = rcp45_select))
       SVM_rcp60     <- stack(SVM_rcp60,     predict(model = SVM_model, object = rcp60_select))
       SVM_rcp85     <- stack(SVM_rcp85,     predict(model = SVM_model, object = rcp85_select))
+      
+      ### Salving evaluation metrics
+      ###.............. bioclim
+      
+      thr <- threshold(bioclim_eval, "no_omission")
+      TPR <- bioclim_eval@TPR[which( bioclim_eval@t == thr)]
+      
+      ### rcp26
+      n_cells <- nrow(na.omit(values(rcp26_select))) 
+      pi <- sum(values(bioclim_rcp26 >= thr), na.rm = T) / n_cells
+      bioclim_e_rcp26 <- c(bioclim_e, TPR)
+      bioclim_t_rcp26 <- c(bioclim_t, thr)
+      bioclim_d_rcp26 <- TPR * (1 - pi)
+      
+      ### rcp45
+      n_cells <- nrow(na.omit(values(rcp45_select))) 
+      pi <- sum(values(bioclim_rcp45 >= thr), na.rm = T) / n_cells
+      bioclim_e_rcp45 <- c(bioclim_e, TPR)
+      bioclim_t_rcp45 <- c(bioclim_t, thr)
+      bioclim_d_rcp45 <- TPR * (1 - pi)
+      
+      ### rcp60
+      n_cells <- nrow(na.omit(values(rcp60_select))) 
+      pi <- sum(values(bioclim_rcp60 >= thr), na.rm = T) / n_cells
+      bioclim_e_rcp60 <- c(bioclim_e, TPR)
+      bioclim_t_rcp60 <- c(bioclim_t, thr)
+      bioclim_d_rcp60 <- TPR * (1 - pi)
+      
+      ### rcp85
+      n_cells <- nrow(na.omit(values(rcp85_select))) 
+      pi <- sum(values(bioclim_rcp85 >= thr), na.rm = T) / n_cells
+      bioclim_e_rcp85 <- c(bioclim_e, TPR)
+      bioclim_t_rcp85 <- c(bioclim_t, thr)
+      bioclim_d_rcp85 <- TPR * (1 - pi)
+      
+      ###.............. gower
+      
+      thr <- threshold(gower_eval, "no_omission")
+      TPR <- gower_eval@TPR[which( gower_eval@t == thr)]
+      
+      ### rcp26
+      n_cells <- nrow(na.omit(values(rcp26_select))) 
+      pi <- sum(values(gower_rcp26 >= thr), na.rm = T) / n_cells
+      gower_e_rcp26 <- c(gower_e, TPR)
+      gower_t_rcp26 <- c(gower_t, thr)
+      gower_d_rcp26 <- TPR * (1 - pi)
+      
+      ### rcp45
+      n_cells <- nrow(na.omit(values(rcp45_select))) 
+      pi <- sum(values(gower_rcp45 >= thr), na.rm = T) / n_cells
+      gower_e_rcp45 <- c(gower_e, TPR)
+      gower_t_rcp45 <- c(gower_t, thr)
+      gower_d_rcp45 <- TPR * (1 - pi)
+      
+      ### rcp60
+      n_cells <- nrow(na.omit(values(rcp60_select))) 
+      pi <- sum(values(gower_rcp60 >= thr), na.rm = T) / n_cells
+      gower_e_rcp60 <- c(gower_e, TPR)
+      gower_t_rcp60 <- c(gower_t, thr)
+      gower_d_rcp60 <- TPR * (1 - pi)
+      
+      ### rcp85
+      n_cells <- nrow(na.omit(values(rcp85_select))) 
+      pi <- sum(values(gower_rcp85 >= thr), na.rm = T) / n_cells
+      gower_e_rcp85 <- c(gower_e, TPR)
+      gower_t_rcp85 <- c(gower_t, thr)
+      gower_d_rcp85 <- TPR * (1 - pi)
+      
+      ###.............. maxent
+      
+      thr <- threshold(maxent_eval, "no_omission")
+      TPR <- maxent_eval@TPR[which( maxent_eval@t == thr)]
+      
+      ### rcp26
+      n_cells <- nrow(na.omit(values(rcp26_select))) 
+      pi <- sum(values(maxent_rcp26 >= thr), na.rm = T) / n_cells
+      maxent_e_rcp26 <- c(maxent_e, TPR)
+      maxent_t_rcp26 <- c(maxent_t, thr)
+      maxent_d_rcp26 <- TPR * (1 - pi)
+      
+      ### rcp45
+      n_cells <- nrow(na.omit(values(rcp45_select))) 
+      pi <- sum(values(maxent_rcp45 >= thr), na.rm = T) / n_cells
+      maxent_e_rcp45 <- c(maxent_e, TPR)
+      maxent_t_rcp45 <- c(maxent_t, thr)
+      maxent_d_rcp45 <- TPR * (1 - pi)
+      
+      ### rcp60
+      n_cells <- nrow(na.omit(values(rcp60_select))) 
+      pi <- sum(values(maxent_rcp60 >= thr), na.rm = T) / n_cells
+      maxent_e_rcp60 <- c(maxent_e, TPR)
+      maxent_t_rcp60 <- c(maxent_t, thr)
+      maxent_d_rcp60 <- TPR * (1 - pi)
+      
+      ### rcp85
+      n_cells <- nrow(na.omit(values(rcp85_select))) 
+      pi <- sum(values(maxent_rcp85 >= thr), na.rm = T) / n_cells
+      maxent_e_rcp85 <- c(maxent_e, TPR)
+      maxent_t_rcp85 <- c(maxent_t, thr)
+      maxent_d_rcp85 <- TPR * (1 - pi)
+      
+      ###.............. SVM
+      
+      thr <- threshold(SVM_eval, "no_omission")
+      TPR <- SVM_eval@TPR[which( SVM_eval@t == thr)]
+      
+      ### rcp26
+      n_cells <- nrow(na.omit(values(rcp26_select))) 
+      pi <- sum(values(SVM_rcp26 >= thr), na.rm = T) / n_cells
+      SVM_e_rcp26 <- c(SVM_e, TPR)
+      SVM_t_rcp26 <- c(SVM_t, thr)
+      SVM_d_rcp26 <- TPR * (1 - pi)
+      
+      ### rcp45
+      n_cells <- nrow(na.omit(values(rcp45_select))) 
+      pi <- sum(values(SVM_rcp45 >= thr), na.rm = T) / n_cells
+      SVM_e_rcp45 <- c(SVM_e, TPR)
+      SVM_t_rcp45 <- c(SVM_t, thr)
+      SVM_d_rcp45 <- TPR * (1 - pi)
+      
+      ### rcp60
+      n_cells <- nrow(na.omit(values(rcp60_select))) 
+      pi <- sum(values(SVM_rcp60 >= thr), na.rm = T) / n_cells
+      SVM_e_rcp60 <- c(SVM_e, TPR)
+      SVM_t_rcp60 <- c(SVM_t, thr)
+      SVM_d_rcp60 <- TPR * (1 - pi)
+      
+      ### rcp85
+      n_cells <- nrow(na.omit(values(rcp85_select))) 
+      pi <- sum(values(SVM_rcp85 >= thr), na.rm = T) / n_cells
+      SVM_e_rcp85 <- c(SVM_e, TPR)
+      SVM_t_rcp85 <- c(SVM_t, thr)
+      SVM_d_rcp85 <- TPR * (1 - pi)
       
       
       ### Saving partial outputs for the RCPs
@@ -614,35 +760,65 @@ species_model <- function(occurrence,
   
   
   ###.............. Evaluation data
-  models_e <- data.frame("bioclim" = bioclim_e , "gower" = gower_e, "maxent" = maxent_e, "SVM" = SVM_e)
-
-  models_t <- data.frame("bioclim" = bioclim_t , "gower" = gower_t, "maxent" = maxent_t, "SVM" = SVM_t)
-
-  models_d <- data.frame("bioclim" = bioclim_d , "gower" = gower_d, "maxent" = maxent_d, "SVM" = SVM_d)
+  models_e <- data.frame(bioclim = bioclim_e, gower = gower_e, maxent = maxent_e, SVM = SVM_e)
+  models_t <- data.frame(bioclim = bioclim_t, gower = gower_t, maxent = maxent_t, SVM = SVM_t)
+  models_d <- data.frame(bioclim = bioclim_d, gower = gower_d, maxent = maxent_d, SVM = SVM_d)
+  
+  models_e_rcp26 <- data.frame(bioclim = bioclim_e_rcp26, gower = gower_e_rcp26, maxent = maxent_e_rcp26, SVM = SVM_e_rcp26)
+  models_t_rcp26 <- data.frame(bioclim = bioclim_t_rcp26, gower = gower_t_rcp26, maxent = maxent_t_rcp26, SVM = SVM_t_rcp26)
+  models_d_rcp26 <- data.frame(bioclim = bioclim_d_rcp26, gower = gower_d_rcp26, maxent = maxent_d_rcp26, SVM = SVM_d_rcp26)
+  
+  models_e_rcp45 <- data.frame(bioclim = bioclim_e_rcp45, gower = gower_e_rcp45, maxent = maxent_e_rcp45, SVM = SVM_e_rcp45)
+  models_t_rcp45 <- data.frame(bioclim = bioclim_t_rcp45, gower = gower_t_rcp45, maxent = maxent_t_rcp45, SVM = SVM_t_rcp45)
+  models_d_rcp45 <- data.frame(bioclim = bioclim_d_rcp45, gower = gower_d_rcp45, maxent = maxent_d_rcp45, SVM = SVM_d_rcp45)
+  
+  models_e_rcp60 <- data.frame(bioclim = bioclim_e_rcp60, gower = gower_e_rcp60, maxent = maxent_e_rcp60, SVM = SVM_e_rcp60)
+  models_t_rcp60 <- data.frame(bioclim = bioclim_t_rcp60, gower = gower_t_rcp60, maxent = maxent_t_rcp60, SVM = SVM_t_rcp60)
+  models_d_rcp60 <- data.frame(bioclim = bioclim_d_rcp60, gower = gower_d_rcp60, maxent = maxent_d_rcp60, SVM = SVM_d_rcp60)
+  
+  models_e_rcp85 <- data.frame(bioclim = bioclim_e_rcp85, gower = gower_e_rcp85, maxent = maxent_e_rcp85, SVM = SVM_e_rcp85)
+  models_t_rcp85 <- data.frame(bioclim = bioclim_t_rcp85, gower = gower_t_rcp85, maxent = maxent_t_rcp85, SVM = SVM_t_rcp85)
+  models_d_rcp85 <- data.frame(bioclim = bioclim_d_rcp85, gower = gower_d_rcp85, maxent = maxent_d_rcp85, SVM = SVM_d_rcp85)
   
   
+  #\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/   YOU SHALL... PASS!  \o/\o/\o/\o/\o/\o/\o/\o/\o/\o/
   
-  #\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/
-  return(list(c("output_current" = output_current, 
-                "output_rcp26"   = output_rcp26, 
-                "output_rcp45"   = output_rcp45, 
-                "output_rcp60"   = output_rcp60, 
-                "output_rcp85"   = output_rcp85, 
-                "TPR"            = models_e, 
-                "Threshold"      = models_t, 
-                "Predicted_area" = models_d)))
+  return(list(c("output_current"       = output_current, 
+                "output_rcp26"         = output_rcp26, 
+                "output_rcp45"         = output_rcp45, 
+                "output_rcp60"         = output_rcp60, 
+                "output_rcp85"         = output_rcp85, 
+                "TPR_c"                = models_e, 
+                "Threshold_c"          = models_t, 
+                "Predicted_area_c"     = models_d,
+                "TPR_rcp26"            = models_e_rcp26, 
+                "Threshold_rcp26"      = models_t_rcp26, 
+                "Predicted_area_rcp26" = models_d_rcp26,
+                "TPR_rcp45"            = models_e_rcp45, 
+                "Threshold_rcp45"      = models_t_rcp45, 
+                "Predicted_area_rcp45" = models_d_rcp45,
+                "TPR_rcp60"            = models_e_rcp60, 
+                "Threshold_rcp60"      = models_t_rcp60, 
+                "Predicted_area_rcp60" = models_d_rcp60,
+                "TPR_rcp85"            = models_e_rcp85, 
+                "Threshold_rcp85"      = models_t_rcp85, 
+                "Predicted_area_rcp85" = models_d_rcp85
+                )))
   
-} # CLOSE "species_model"----
+} # CLOSE "species_model"
 
 # ***************************************************************************************
 ## 08. Running our model                            ----
-
+# Running atempt: 15/08/2018 13:44
+occur_raw <- read.table("./data/occurrences/raw_data.txt", h = T)
+sp <- gsub("C[1-9]","", occur_raw$SPEC)
+sp_names <- unique(sp)
 sp_names
 for (i in 1:length(sp_names))
 {
   ###.............. Running the modedelling experiment
-  result <- species_model(occurrence       = paste("./data/occurrences/var_", sp_names[i], ".txt"),
-                          background       = paste("./data/occurrences/back_", sp_names[i],".txt"),
+  result <- species_model(occurrence       = paste0("./data/occurrences/var_", sp_names[i], ".txt"),
+                          background       = paste0("./data/occurrences/back_", sp_names[i],".txt"),
                           biovar_current   = "./data/climatic_vars/selected/current/",
                           biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
                           biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
@@ -658,12 +834,33 @@ for (i in 1:length(sp_names))
   writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/", sp_names[i],"_rcp85.bil"), format = "EHdr")
   
   ###.............. Saving evaluation data
-  write.table(result[["TPR"]], paste0("./data/outputs/", sp_names[i], "_TPR.txt"), sep = "\t", row.names = F)
   
-  write.table(result[["Threshold"]], paste0("./data/outputs/", sp_names[i], "_t.txt"), sep = "\t", row.names = F)
+  #..... current
+  write.table(result[["TPR_c"]], paste0("./data/outputs/", sp_names[i], "_TPR_current.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_c"]], paste0("./data/outputs/", sp_names[i], "_t_current.txt"), sep = "\t", row.names = F)
+  write.table(result[["Predicted_area_c"]], paste0("./data/outputs/", sp_names[i], "_d_current.txt"), sep = "\t", row.names = F)
   
-  write.table(result[["Predicted_area"]], paste0("./data/outputs/", sp_names[i], "_d.txt"), sep = "\t", row.names = F)
+  #..... rcp26
+  write.table(result[["TPR_rcp26"]], paste0("./data/outputs/", sp_names[i], "_TPR_rcp26.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp26"]], paste0("./data/outputs/", sp_names[i], "_t_rcp26.txt"), sep = "\t", row.names = F)
+  write.table(result[["Predicted_area_rcp26"]], paste0("./data/outputs/", sp_names[i], "_d_rcp26.txt"), sep = "\t", row.names = F)
+  
+  #..... rcp45
+  write.table(result[["TPR_rcp45"]], paste0("./data/outputs/", sp_names[i], "_TPR_rcp45.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp45"]], paste0("./data/outputs/", sp_names[i], "_t_rcp45.txt"), sep = "\t", row.names = F)
+  write.table(result[["Predicted_area_rcp45"]], paste0("./data/outputs/", sp_names[i], "_d_rcp45.txt"), sep = "\t", row.names = F)
+  
+  #..... rcp60
+  write.table(result[["TPR_rcp60"]], paste0("./data/outputs/", sp_names[i], "_TPR_rcp60.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp60"]], paste0("./data/outputs/", sp_names[i], "_t_rcp60.txt"), sep = "\t", row.names = F)
+  write.table(result[["Predicted_area_rcp60"]], paste0("./data/outputs/", sp_names[i], "_d_rcp60.txt"), sep = "\t", row.names = F)
+  
+  #..... rcp85
+  write.table(result[["TPR_rcp85"]], paste0("./data/outputs/", sp_names[i], "_TPR_rcp85.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp85"]], paste0("./data/outputs/", sp_names[i], "_t_rcp85.txt"), sep = "\t", row.names = F)
+  write.table(result[["Predicted_area_rcp85"]], paste0("./data/outputs/", sp_names[i], "_d_rcp85.txt"), sep = "\t", row.names = F)
 }
+  
 
 # ***************************************************************************************
 ## 09. Selecting models (TRP)                       ----
