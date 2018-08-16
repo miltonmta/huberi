@@ -1,5 +1,5 @@
 # --- Packages                                      ----
-# install.packages(c("tidyverse", "raster", "rgdal", "abind", "spThin", "vegan", "maps", "mask","pcych", "kernlab", "dismo", "rJava"))
+# install.packages(c("tidyverse", "raster", "rgdal", "abind", "spThin", "vegan", "maps", "pcych", "kernlab", "dismo", "rJava"))
 require(tidyverse)
 require(raster)
 require(rgdal)
@@ -7,7 +7,6 @@ require(abind)
 require(spThin)
 require(vegan)
 require(maps)
-require(mask)
 require(kernlab)
 require(dismo)
 require(rJava)
@@ -21,45 +20,11 @@ require(rJava)
 # 5. Reduce code by implementing subfunctions, lopps.
 # 6. Rewrite the code using tidy
 
-# --- Maxent/rJava troubleshoot                     ----
-
-# MaxEnt is available as a standalone Java program. Dismo has a function 'maxent' that communicates with this program. To use it you must first download the program from:
-# browseURL("http://www.cs.princeton.edu/~schapire/maxent/")
-# Put the file 'maxent.jar' in the 'java' folder of the 'dismo' package. That is the folder returned by system.file("java", package="dismo"). You need MaxEnt version 3.3.3b or higher.
-
-# While loagind the package rJava, if you have the error image not found, follow the steps:
-# 1. Check if JDK is installed in you machine. If not:
-# browseURL("http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html")
-
-# 2. Checking if the jar file is present. 
-jar <- paste(system.file(package="dismo"), "/java/maxent.jar", sep='')
-file.exists(jar)
-
-# 3. Use dyn.load for ataching the libjvm.dylib file before running the `rJava` Package.
-# dyn.load('/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home/jre/lib/server/libjvm.dylib')
-
-# 4. If you are in MacOS, a permanent solution is to link libjvm.dylib to /usr/local.lib at terminal:
-# sudo ln -f -s $(/usr/libexec/java_home)/jre/lib/server/libjvm.dylib /usr/local/lib
-# browseURL ("https://stackoverflow.com/questions/30738974/rjava-load-error-in-rstudio-r-after-upgrading-to-osx-yosemite")
-
-# --- General Info                                  ----
-
-# This script has an index table. If you are in RStudio go to Code > Show Document Outline (shift + command / clrt + o)
-
-# The directories with the data utilized and the ones outputted here can be downloaded from the following OneDrive repositorium:
-browseURL("https://1drv.ms/f/s!ApJZaitgpPr7gZtfS9n9mU9DDzXQMg")
-
-# The models projected for 2070 (average for 2061-2080) were obtain at "worldclim.com" by the spatial resolution of 2.5min (0.04º or ≈ 4.4km). We selected the variables that appear simultaneously in all the representative concentration pathways scnarios (RCP26, RCP45, RCP60, RCP80). The codes of the 11 GCMs utilized are: bc, cc, gs, hd, he, ip, mi, mr, mc, mg, no.
-# browseURL("http://www.worldclim.org/cmip5_2.5m")
-
 
 # ***************************************************************************************
 ## 01. Read aogcms models                           ----
 
-### 1.1 current ----
-# Worldclim variables for current conditions (~1960-1990), by the spatial resolution of 2.5min. 
-# browseURL("http://www.worldclim.org/current")
-
+##### 1.1.............. current                                     
 ###.............. processing the current climatic model
 read_current <- function (dir)                                
 {
@@ -80,41 +45,8 @@ current <- read_current(dir = "./data/climatic_vars/current/")
 current_spatial <- rasterFromXYZ(current) 
 
 
-### 1.2 rcp  ----
-# Worldclim variables for the RCPs, projected to 2070(average for 2061-2080), by the spatial resolution of 2.5min. 
-# browseURL("http://www.worldclim.org/cmip5_2.5m")
-
-###.............. wolrdclim GCM codes
-
-# BCC-CSM1-1	      BC
-# CCSM4	            CC
-# GISS-E2-R	        GS
-# HadGEM2-AO	      HD
-# HadGEM2-ES        HE	
-# IPSL-CM5A-LR	    IP
-# MIROC5            MC
-# MRI-CGCM3	        MG
-# MIROC-ESM-CHEM    MI
-# MIROC-ESM    	    MR
-# NorESM1-M	        NO
-
-###.............. selected AOGCMs
-# based on the cluster analysis we'll import only the selected variables at each RCP scenario.
-
-# RCP 26: CCSM4(CC), HADGEM2-AO(HD),   IPSL-CMSA-LR(IP), MIROC-ESM(MR) 
-# RCP 45: CCSM4(CC), HADGEM2-AO(HD),   IPSL-CMSA-LR(IP), MIROC-ESM(MR) 
-# RCP 60: CCSM4(CC), IPSL-CMSA-LR(IP), MRI-CGCM3(MG),    MIROC-ESM(MR)
-# RCP 85: CCSM4(CC), IPSL-CMSA-LR(IP), MIROC5(MC),       MIROC-ESM(MR)
-
-# for maintanining comparability... 
-
-# RCP 26: CCSM4(CC),                   IPSL-CMSA-LR(IP), MIROC-ESM(MR) 
-# RCP 45: CCSM4(CC),                   IPSL-CMSA-LR(IP), MIROC-ESM(MR) 
-# RCP 60: CCSM4(CC), IPSL-CMSA-LR(IP),                   MIROC-ESM(MR)
-# RCP 85: CCSM4(CC), IPSL-CMSA-LR(IP),                   MIROC-ESM(MR)
-
-# naming must be in the exact order of the origin directory.
-model_names <- c("CCSM4", "IPSL-CM5A-LR", "MIROC-ESM")
+##### 1.2.............. rcp
+model_names <- c("CCSM4", "IPSL-CM5A-LR", "MIROC-ESM") # naming must be in the exact order of the origin directory.
 
 ###.............. processing rcps
 read_rcp <- function (x)
@@ -176,35 +108,13 @@ write.table(loadings, "./data/climatic_vars/selected/varimax_loadings.txt")
 ###.............. Selected variables 
 # bio02, bio03, bio10, bio14, bio16.
 
-###.............. bioclimatic variables descriptions
-
-#BIO01 = Annual Mean Temperature
-#BIO02 = Mean Diurnal Range (Mean of monthly (max temp - min temp))
-#BIO03 = Isothermality (BIO2/BIO7) (* 100)
-#BIO04 = Temperature Seasonality (standard deviation *100)
-#BIO05 = Max Temperature of Warmest Month
-#BIO06 = Min Temperature of Coldest Month
-#BIO07 = Temperature Annual Range (BIO5-BIO6)
-#BIO08 = Mean Temperature of Wettest Quarter
-#BIO09 = Mean Temperature of Driest Quarter
-#BIO10 = Mean Temperature of Warmest Quarter
-#BIO11 = Mean Temperature of Coldest Quarter
-#BIO12 = Annual Precipitation
-#BIO13 = Precipitation of Wettest Month
-#BIO14 = Precipitation of Driest Month
-#BIO15 = Precipitation Seasonality (Coefficient of Variation)
-#BIO16 = Precipitation of Wettest Quarter
-#BIO17 = Precipitation of Driest Quarter
-#BIO18 = Precipitation of Warmest Quarter
-#BIO19 = Precipitation of Coldest Quarter
-
 # ***************************************************************************************
 ## 03. Saving selected variables                    ----
-### 3.1a. current - saving as table ----
+### 3.1a................ current - saving as table 
 
 write.table(current[,c("x", "y", "bio02", "bio03", "bio10", "bio14", "bio16")], "./data/climatic_vars/selected/current/current-select.txt", row.names = F, sep = " ")  
 
-### 3.1b. current - saving as raster ----
+### 3.1b............... current - saving as raster
 
 variables <- as.factor(c("bio02", "bio03", "bio10", "bio14", "bio16"))
 for (i in 1:length(variables))
@@ -215,9 +125,8 @@ rm(variables)
 
 current_select <- stack(list.files("./data/climatic_vars/selected/current/",  pattern = ".grd$", full.names = TRUE))
 
-#### RCPs
 
-### 3.2a. rcp - saving table ----
+### 3.2a...............  rcp - saving table
 
 write.table(rcp26 [ ,c("x", "y", "bio02", "bio03", "bio10", "bio14", "bio16" ), ], "./data/climatic_vars/selected/rcp26/rcp26-select.txt", row.names = F, sep = "	")
 write.table(rcp45 [ ,c("x", "y", "bio02", "bio03", "bio10", "bio14", "bio16" ), ], "./data/climatic_vars/selected/rcp45/rcp45-select.txt", row.names = F, sep = "	")
@@ -225,11 +134,10 @@ write.table(rcp60 [ ,c("x", "y", "bio02", "bio03", "bio10", "bio14", "bio16" ), 
 write.table(rcp85 [ ,c("x", "y", "bio02", "bio03", "bio10", "bio14", "bio16" ), ], "./data/climatic_vars/selected/rcp85/rcp85-select.txt", row.names = F, sep = "	")
 
 
-### 3.2b. rcp - saving as raster ----
-
-###.............. Creating rasters with the selected variables from each aogcm
+### 3.2b...............  rcp - saving as raster
 
 variables <- as.factor(c("bio02.1", "bio03.1", "bio10.1", "bio14.1", "bio16.1", "bio02.2", "bio03.2", "bio10.2", "bio14.2", "bio16.2", "bio02.3", "bio03.3", "bio10.3", "bio14.3", "bio16.3"))
+
 ## RCP26
 for (i in 1:length(variables))
 {
@@ -507,17 +415,19 @@ species_model <- function(occurrence,
     
     ###.............. Making predictions for the RCPs
     
-    AOGCMs <- c("CCSM4", "IPSL-CM5A-LR", "MIROC-ESM")
+    # AOGCMs <- c("CCSM4", "IPSL-CM5A-LR", "MIROC-ESM")
+    AOGCMS <- c(1,2,3)
     for (i in AOGCMs)
     {
       # OPEN "i" ----
       ### Reading the selected aogcm models
       
-      rcp26_select  <- stack(list.files(biovar_rcp26, pattern = ".grd$", full.names = TRUE))
+      rcp26_select  <- stack(list.files("./data/climatic_vars/selected/rcp26/", pattern = ".grd$", full.names = TRUE))
       rcp45_select  <- stack(list.files(biovar_rcp45, pattern = ".grd$", full.names = TRUE))
       rcp60_select  <- stack(list.files(biovar_rcp60, pattern = ".grd$", full.names = TRUE))
       rcp85_select  <- stack(list.files(biovar_rcp85, pattern = ".grd$", full.names = TRUE))
       
+      names(rcp26_select) <- c("CCSM4", "IPSL-CM5A-LR", "MIROC-ESM")
       ### Predicting
       bioclim_rcp26 <- stack(bioclim_rcp26, predict(object = bioclim_model, x = rcp26_select))
       bioclim_rcp45 <- stack(bioclim_rcp45, predict(object = bioclim_model, x = rcp45_select))
@@ -809,7 +719,7 @@ species_model <- function(occurrence,
 
 # ***************************************************************************************
 ## 08. Running our model                            ----
-# Running atempt: 15/08/2018 13:44
+
 occur_raw <- read.table("./data/occurrences/raw_data.txt", h = T)
 sp <- gsub("C[1-9]","", occur_raw$SPEC)
 sp_names <- unique(sp)
@@ -863,182 +773,16 @@ for (i in 1:length(sp_names))
   
 
 # ***************************************************************************************
-## 09. Selecting models (TRP)                       ----
 
-  
-###.............. asarifolia
-
-
-###.............. bahiensis
-
-
-###.............. cairica
-
-
-###.............. indica
-
-
-###.............. nil
-
-
-###.............. purpurea
-
-
-###.............. huberi
-TPR_huberi <- read.table("./data/results/huberi_TPR.txt", h = T)
-
-## Selecting models with TPR values ≥ 0.7
-huberi_c     <- raster("./data/results/huberi_current.bil")[[which(TPR_huberi[,] >= 0.7)]]
-huberi_rcp26 <- raster("./data/results/huberi_rcp26.bil")[[which(TPR_huberi[,] >= 0.7)]]
-huberi_rcp45 <- raster("./data/results/huberi_rcp45.bil")[[which(TPR_huberi[,] >= 0.7)]]
-huberi_rcp60 <- raster("./data/results/huberi_rcp60.bil")[[which(TPR_huberi[,] >= 0.7)]]
-huberi_rcp85 <- raster("./data/results/huberi_rcp85.bil")[[which(TPR_huberi[,] >= 0.7)]]
-
-all_huberi <- stack(huberi_c, huberi_rcp26, huberi_rcp45, huberi_rcp60, huberi_rcp85)
-TPR_huberi <- TPR_h[which(TPR_h)]
-
-##  Creating ANOVA Factors to be used at Uncertainty Evaluation
-# huberi_metodo <- rep("bioclim", nlayers(all_huberi)) #???
-# huberi_tempo  <- rep(c("pres","fut"), each = nlayers(all_huberi))
-
-
-### aegyptia
-
+# ***************************************************************************************
+## 09. Standardize suitabilities (suit)             ----
 
 
 # ***************************************************************************************
-## 10. Standardize suitabilities (suit)             ----
-# If having error messages, try "range" instead of "standardize"
-## Huberi
-
-bioclim_c_h_val <- values(bioclim_c_h)
-bioclim_rcp26_h_val <- values(bioclim_rcp26_h)
-bioclim_rcp45_h_val <- values(bioclim_rcp45_h)
-bioclim_rcp60_h_val <- values(bioclim_rcp60_h)
-bioclim_rcp85_h_val <- values(bioclim_rcp85_h)
-
-bioclim_h_val <- rbind(bioclim_c_h_val, bioclim_rcp26_h_val, bioclim_rcp45_h_val, bioclim_rcp60_h_val, bioclim_rcp85_h_val)
-bioclim_h_stand <- decostand(bioclim_h_val, "standardize", 2)
-
-
-gower_c_h_val <- values(gower_c_h)
-gower_rcp26_h_val <- values(gower_rcp26_h)
-gower_rcp45_h_val <- values(gower_rcp45_h)
-gower_rcp60_h_val <- values(gower_rcp60_h)
-gower_rcp85_h_val <- values(gower_rcp85_h)
-
-gower_h_val <- rbind(gower_c_h_val, gower_rcp26_h_val, gower_rcp45_h_val, gower_rcp60_h_val, gower_rcp85_h_val)
-gower_h_stand <- decostand(gower_h_val, "standardize", 2)
-
-
-maha_c_h_val <- values(maha_c_h)
-maha_rcp26_h_val <- values(maha_rcp26_h)
-maha_rcp45_h_val <- values(maha_rcp45_h)
-maha_rcp60_h_val <- values(maha_rcp60_h)
-maha_rcp85_h_val <- values(maha_rcp85_h)
-
-maha_h_val <- rbind(maha_c_h_val, maha_rcp26_h_val, maha_rcp45_h_val, maha_rcp60_h_val, maha_rcp85_h_val)
-maha_h_stand <- decostand(maha_h_val, "standardize", 2)
-
-
-maxent_c_h_val <- values(maxent_c_h)
-maxent_rcp26_h_val <- values(maxent_rcp26_h)
-maxent_rcp45_h_val <- values(maxent_rcp45_h)
-maxent_rcp60_h_val <- values(maxent_rcp60_h)
-maxent_rcp85_h_val <- values(maxent_rcp85_h)
-
-maxent_h_val <- rbind(maxent_c_h_val, maxent_rcp26_h_val, maxent_rcp45_h_val, maxent_rcp60_h_val, maxent_rcp85_h_val)
-maxent_h_stand <- decostand(maxent_h_val, "standardize", 2)
-
-
-SVM_c_h_val <- values(SVM_c_h)
-SVM_rcp26_h_val <- values(SVM_rcp26_h)
-SVM_rcp45_h_val <- values(SVM_rcp45_h)
-SVM_rcp60_h_val <- values(SVM_rcp60_h)
-SVM_rcp85_h_val <- values(SVM_rcp85_h)
-
-SVM_h_val <- rbind(SVM_c_h_val, SVM_rcp26_h_val, SVM_rcp45_h_val, SVM_rcp60_h_val, SVM_rcp85_h_val)
-SVM_h_stand <- decostand(SVM_h_val, "standardize", 2)
-
-
-GLM_c_h_val <- values(GLM_c_h)
-GLM_rcp26_h_val <- values(GLM_rcp26_h)
-GLM_rcp45_h_val <- values(GLM_rcp45_h)
-GLM_rcp60_h_val <- values(GLM_rcp60_h)
-GLM_rcp85_h_val <- values(GLM_rcp85_h)
-
-GLM_h_val <- rbind(GLM_c_h_val, GLM_rcp26_h_val, GLM_rcp45_h_val, GLM_rcp60_h_val, GLM_rcp85_h_val)
-GLM_h_stand <- decostand(GLM_h_val, "standardize", 2)
-
-
-## Host Plants
-
-
-bioclim_c_p_val <- values(bioclim_c_p)
-bioclim_rcp26_p_val <- values(bioclim_rcp26_p)
-bioclim_rcp45_p_val <- values(bioclim_rcp45_p)
-bioclim_rcp60_p_val <- values(bioclim_rcp60_p)
-bioclim_rcp85_p_val <- values(bioclim_rcp85_p)
-
-bioclim_p_val <- rbind(bioclim_c_p_val, bioclim_rcp26_p_val, bioclim_rcp45_p_val, bioclim_rcp60_p_val, bioclim_rcp85_p_val)
-bioclim_p_stand <- decostand(bioclim_p_val, "standardize", 2)
-
-
-gower_c_p_val <- values(gower_c_p)
-gower_rcp26_p_val <- values(gower_rcp26_p)
-gower_rcp45_p_val <- values(gower_rcp45_p)
-gower_rcp60_p_val <- values(gower_rcp60_p)
-gower_rcp85_p_val <- values(gower_rcp85_p)
-
-gower_p_val <- rbind(gower_c_p_val, gower_rcp26_p_val, gower_rcp45_p_val, gower_rcp60_p_val, gower_rcp85_p_val)
-gower_p_stand <- decostand(gower_p_val, "standardize", 2)
-
-
-maha_c_p_val <- values(maha_c_p)
-maha_rcp26_p_val <- values(maha_rcp26_p)
-maha_rcp45_p_val <- values(maha_rcp45_p)
-maha_rcp60_p_val <- values(maha_rcp60_p)
-maha_rcp85_p_val <- values(maha_rcp85_p)
-
-maha_p_val <- rbind(maha_c_p_val, maha_rcp26_p_val, maha_rcp45_p_val, maha_rcp60_p_val, maha_rcp85_p_val)
-maha_p_stand <- decostand(maha_p_val, "standardize", 2)
-
-
-maxent_c_p_val <- values(maxent_c_p)
-maxent_rcp26_p_val <- values(maxent_rcp26_p)
-maxent_rcp45_p_val <- values(maxent_rcp45_p)
-maxent_rcp60_p_val <- values(maxent_rcp60_p)
-maxent_rcp85_p_val <- values(maxent_rcp85_p)
-
-maxent_p_val <- rbind(maxent_c_p_val, maxent_rcp26_p_val, maxent_rcp45_p_val, maxent_rcp60_p_val, maxent_rcp85_p_val)
-maxent_p_stand <- decostand(maxent_p_val, "standardize", 2)
-
-
-SVM_c_p_val <- values(SVM_c_p)
-SVM_rcp26_p_val <- values(SVM_rcp26_p)
-SVM_rcp45_p_val <- values(SVM_rcp45_p)
-SVM_rcp60_p_val <- values(SVM_rcp60_p)
-SVM_rcp85_p_val <- values(SVM_rcp85_p)
-
-SVM_p_val <- rbind(SVM_c_p_val, SVM_rcp26_p_val, SVM_rcp45_p_val, SVM_rcp60_p_val, SVM_rcp85_p_val)
-SVM_p_stand <- decostand(SVM_p_val, "standardize", 2)
-
-
-GLM_c_p_val <- values(GLM_c_p)
-GLM_rcp26_p_val <- values(GLM_rcp26_p)
-GLM_rcp45_p_val <- values(GLM_rcp45_p)
-GLM_rcp60_p_val <- values(GLM_rcp60_p)
-GLM_rcp85_p_val <- values(GLM_rcp85_p)
-
-GLM_p_val <- rbind(GLM_c_p_val, GLM_rcp26_p_val, GLM_rcp45_p_val, GLM_rcp60_p_val, GLM_rcp85_p_val)
-GLM_p_stand <- decostand(GLM_p_val, "standardize", 2)
-
-# ***************************************************************************************
-## 11. Ensemble                                     ----
+## 10. Ensemble                                     ----
 
 ## huberi
-suit <- data.frame(bioclim_h_stand, gower_h_stand, maha_h_stand, maxent_h_stand, SVM_h_stand, GLM_h_stand)
-auc  <- c(bioclim_auc_h, gower_auc_h, maha_auc_h, maxent_auc_h, SVM_auc_h, GLM_auc_h)
+
 
 # loop Ensemble for huberi
 
@@ -1049,14 +793,8 @@ auc  <- c(bioclim_auc_h, gower_auc_h, maha_auc_h, maxent_auc_h, SVM_auc_h, GLM_a
 # huberi rcp60;
 # huberi rcp85.
 
- 
-## host plants
-suit <- data.frame(bioclim_p_stand, gower_p_stand, maha_p_stand, maxent_p_stand, SVM_p_stand, GLM_p_stand)
-auc  <- c(bioclim_auc_p, gower_auc_p, maha_auc_p, maxent_auc_p, SVM_auc_p, GLM_auc_p)
 
-# loop Ensemble for host plants
-
-# Expected of ensembles for host plants:
+# Expected of ensembles for each host plants:
 # host plants current;
 # host plants rcp26;
 # host plants rcp45;
@@ -1065,9 +803,16 @@ auc  <- c(bioclim_auc_p, gower_auc_p, maha_auc_p, maxent_auc_p, SVM_auc_p, GLM_a
 
 
 # ***************************************************************************************
-## 12. Uncertainty Evaluation                       ----
+## 11. Uncertainty Evaluation                       ----
 
+all_huberi <- stack(huberi_c, huberi_rcp26, huberi_rcp45, huberi_rcp60, huberi_rcp85)
+TPR_huberi <- TPR_h[which(TPR_h)]
+
+##  Creating ANOVA Factors to be used at Uncertainty Evaluation
+# huberi_metodo <- rep("bioclim", nlayers(all_huberi)) #???
+# huberi_tempo  <- rep(c("pres","fut"), each = nlayers(all_huberi))
 ## huberi
+
 data   <- values(stack(bioclim_h, gower_h, maha_h, maxent_h, SVM_h, GLM_h))
 method <- c(bioclim_method_h, gower_method_h, maha_method_h, maxent_method_h, SVM_method_h, GLM_method_h)
 period <- c(bioclim_period_h, gower_period_h, maha_period_h, maxent_period_h, SVM_period_h, GLM_period_h)
