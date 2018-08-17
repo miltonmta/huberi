@@ -3,12 +3,13 @@ file.edit("readme.R")
 
 source("./Auxiliary_functions.R")
 source("./Multiple_ENMs.R")
+file.edit(c("./Auxiliary_functions.R", "./Multiple_ENMs.R"))
 
 # *** Loading packages                              ----
 
-# install.packages(c("tidyverse", "raster", "rgdal", "abind", "spThin", "vegan", "maps", "pcych", "kernlab", "dismo", "rJava", "dendextend"))
+# install.packages(c("tidyverse", "raster", "rgdal", "abind", "spThin", "vegan", "maps", "pcych", "kernlab", "dismo", "rJava", "dendextend", "beepr"))
 
-load_pak(c("tidyverse", "raster", "rgdal", "abind", "spThin", "dismo", "kernlab", "vegan", "maps", "psych", "rJava", "dendextend"))
+load_pak(c("tidyverse", "raster", "rgdal", "abind", "spThin", "dismo", "kernlab", "vegan", "maps", "psych", "rJava", "dendextend", "beepr"))
 
 # ***************************************************************************************
 ## 01. Read aogcms models                           ----
@@ -42,6 +43,7 @@ rcp60 <- stack(rcp60[[1]], rcp60[[2]], rcp60[[3]])
 rcp85 <- rcp85_list[["rasters"]]
 rcp85 <- stack(rcp85[[1]], rcp85[[2]], rcp85[[3]])
 
+beep(2)
 rm(rcp26_list, rcp45_list, rcp60_list, rcp85_list)
 
 # ***************************************************************************************
@@ -52,6 +54,7 @@ fa.parallel(current[ , -c(1:2)], fa = 'fa') #scree plot
 current_fa <- fa(current[ , -c(1:2)], nfactors = 5, rotate = 'varimax')
 loadings <- loadings(current_fa)
 write.table(loadings, "./data/climatic_vars/selected/varimax_loadings.txt")
+beep(2)
 
 ### Selected variables 
 # bio02, bio03, bio10, bio14, bio16.
@@ -69,6 +72,7 @@ for (i in 1:length(variables))
 rm(variables)
 
 current_select <- stack(list.files("./data/climatic_vars/selected/current/",  pattern = ".grd$", full.names = TRUE))
+beep(2)
 
 ###................ RCPs
 
@@ -99,6 +103,7 @@ for (i in variables)
 {
   writeRaster (rcp85[[which(names(rcp85) %in% i)]], filename = paste0("./data/climatic_vars/selected/rcp85/rcp85-", i, ".grd"), format = "raster")
 }
+beep(2)
 
 rm(variables)
 
@@ -119,6 +124,7 @@ for(i in 1:length(sp_names))
   occur <- thin(sp, thin.par = 20, reps = 100, max.files = 1, locs.thinned.list.return = T)
   occur_thinned <- rbind(occur_thinned, occur)
 }
+beep(2)
 write.table(occur_thinned, "./data/occurrences/occur_thinned.txt", sep = ";", row.names = FALSE)
 
 # occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",", h = T)
@@ -129,7 +135,7 @@ for(i in 1:length(sp_names))
 {
   var <- create_var(occur_thinned[occur_thinned[, 1] == sp_names[i], ], sp_names[i])
 }
-
+beep(2)
 # ***************************************************************************************
 ## 05. Background Sampling                          ----
 
@@ -141,6 +147,7 @@ for(i in 1:length(var_files))
   var_file <- read.table(var_files[i], h = T, sep = ";")
   create_back(var_file, sp_names[i])
 }
+beep(2)
 
 ###.............. Plotting occurrences and background
 sp_names
@@ -154,7 +161,7 @@ points(occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ][,-1], pch = "*"
 # ***************************************************************************************
 ## 06. Running our model                            ----
 
-occur_thinned <- read.csv("./data/occurrences/raw_data.txt", sep = "")
+occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
 sp <- gsub("C[1-9]","", occur_thinned$SPEC)
 sp_names <- unique(sp)
 sp_names
@@ -202,34 +209,68 @@ for (i in 1:length(sp_names))
   write.table(result[["TPR_rcp85"]], paste0("./data/outputs/", sp_names[i], "_TPR_rcp85.txt"), sep = "\t", row.names = F)
   write.table(result[["Threshold_rcp85"]], paste0("./data/outputs/", sp_names[i], "_t_rcp85.txt"), sep = "\t", row.names = F)
   write.table(result[["Predicted_area_rcp85"]], paste0("./data/outputs/", sp_names[i], "_d_rcp85.txt"), sep = "\t", row.names = F)
+  
+  beep(8)
 }
   
 # ***************************************************************************************
-## 07. Standardize suitabilities (suit)             ----
+## 07. Preparing factors for analysis               ----
 
+### Reading predictions data
+all_outputs <- laaply (stack, list.files("./data/outputs/", patern = "_d_", full.names = TRUE))
+
+all_d <- laaply (read.table, list.files("./data/outputs/", patern = "_d_", full.names = TRUE))
+
+all_TRP <- laaply (read.table, list.files("./data/outputs/", patern = "_TRP_", full.names = TRUE))
+
+all_t <- laaply (read.table, list.files("./data/outputs/", patern = "_t_", full.names = TRUE))
+
+
+### Standardizing suitabilities
+all_val <- values(all_output)
+all_pad <- deconstante(all_val, "standardize", 2)
+
+
+### Getting data for each species
+# sp1
+sp_names[1]
+d_sp1    <- all_d[[1]]
+suit_sp1 <- all_pad[[1]]
+
+# sp2
+sp_names[2]
+d_sp2  <- all_d[[2]]
+
+# sp3
+sp_names[3]
+d_sp3  <- all_d[[3]]
+
+# sp4
+sp_names[4]
+d_sp4  <- all_d[[4]]
+
+# sp5
+sp_names[5]
+d_sp5  <- all_d[[5]]
+
+# sp6
+sp_names[6]
+d_sp6  <- all_d[[6]]
+
+# sp7
+sp_names[7]
+d_sp7  <- all_d[[7]]
+
+# sp8
+sp_names[8]
+d_sp8  <- all_d[[8]]
 
 # ***************************************************************************************
 ## 08. Ensemble                                     ----
 
-## huberi
 
 
-# loop Ensemble for huberi
 
-# Expected of ensembles for huberi:
-# huberi current;
-# huberi rcp26;
-# huberi rcp45;
-# huberi rcp60;
-# huberi rcp85.
-
-
-# Expected of ensembles for each host plants:
-# host plants current;
-# host plants rcp26;
-# host plants rcp45;
-# host plants rcp60;
-# host plants rcp85.
 
 
 # ***************************************************************************************
@@ -249,13 +290,6 @@ period <- c(bioclim_period_h, gower_period_h, maha_period_h, maxent_period_h, SV
 
 # loop the ANOVA
 
-## host plants
-data   <- values(stack(bioclim_p, gower_p, maha_p, maxent_p, SVM_p, GLM_p))
-method <- c(bioclim_method_p, gower_method_p, maha_method_p, maxent_method_p, SVM_method_p, GLM_method_p)
-period <- c(bioclim_period_p, gower_period_p, maha_period_p, maxent_period_p, SVM_period_p, GLM_period_p)
-
-# loop the ANOVA
-
 
 
 
@@ -269,4 +303,6 @@ period <- c(bioclim_period_p, gower_period_p, maha_period_p, maxent_period_p, SV
 # 4. Impelement multi cores for running several models simultaneously.
 # 5. Reduce code by implementing subfunctions, lopps.
 # 6. Rewrite the code using tidy
+
+
 
