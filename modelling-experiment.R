@@ -7,7 +7,7 @@ source("./Multiple_ENMs.R")
 
 # install.packages(c("tidyverse", "raster", "rgdal", "abind", "spThin", "vegan", "maps", "pcych", "kernlab", "dismo", "rJava", "dendextend"))
 
-load_pak(c("tidyverse", "raster", "rgdal", "abind", "spThin", "dismo", "kernlab", "vegan", "maps", "pcych", "rjava", "dendextend"))
+load_pak(c("tidyverse", "raster", "rgdal", "abind", "spThin", "dismo", "kernlab", "vegan", "maps", "psych", "rJava", "dendextend"))
 
 # ***************************************************************************************
 ## 01. Read aogcms models                           ----
