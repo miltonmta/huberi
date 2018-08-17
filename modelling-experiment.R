@@ -1,3 +1,4 @@
+file.edit("readme.R")
 # *** Loading functions                             ----
 
 source("./Auxiliary_functions.R")
@@ -14,7 +15,7 @@ load_pak(c("tidyverse", "raster", "rgdal", "abind", "spThin", "dismo", "kernlab"
 ##### 1.1.............. current                                     
 
 current <- read_current(dir = "./data/climatic_vars/current/")
-current_spatial <- rasterFromXYZ(current) 
+current <- rasterFromXYZ(current) 
 
 ##### 1.2.............. rcp
 
@@ -23,30 +24,23 @@ rcp45_list <- read_rcp( x = "./data/climatic_vars/selected/45bi70/")
 rcp60_list <- read_rcp( x = "./data/climatic_vars/selected/60bi70/")
 rcp85_list <- read_rcp( x = "./data/climatic_vars/selected/85bi70/")
 
-# ### Creating array
-# rcp26 <- rcp26_list[["array"]]
-# rcp45 <- rcp45_list[["array"]]
-# rcp60 <- rcp60_list[["array"]]
-# rcp85 <- rcp85_list[["array"]]
-
 ### Creating RasterStack
 #. Following the order of the models in the directory:
 # 1 == "CCS4"
 # 2 == "IPSL-CMSA-LR"
 # 3 == "MIROC-ESM"
 
-rcp26_spatial <- rcp26_list[["rasters"]]
-rcp26_spatial <- stack(rcp26_spatial[[1]], rcp26_spatial[[2]], rcp26_spatial[[3]])
+rcp26 <- rcp26_list[["rasters"]]
+rcp26 <- stack(rcp26[[1]], rcp26[[2]], rcp26[[3]])
 
-rcp45_spatial <- rcp45_list[["rasters"]]
-rcp45_spatial <- stack(rcp45_spatial[[1]], rcp45_spatial[[2]], rcp45_spatial[[3]])
+rcp45 <- rcp45_list[["rasters"]]
+rcp45 <- stack(rcp45[[1]], rcp45[[2]], rcp45[[3]])
 
-rcp60_spatial <- rcp60_list[["rasters"]]
-rcp60_spatial <- stack(rcp60_spatial[[1]], rcp60_spatial[[2]], rcp60_spatial[[3]])
+rcp60 <- rcp60_list[["rasters"]]
+rcp60 <- stack(rcp60[[1]], rcp60[[2]], rcp60[[3]])
 
-rcp85_spatial <- rcp85_list[["rasters"]]
-rcp85_spatial <- stack(rcp85_spatial[[1]], rcp85_spatial[[2]], rcp85_spatial[[3]])
-
+rcp85 <- rcp85_list[["rasters"]]
+rcp85 <- stack(rcp85[[1]], rcp85[[2]], rcp85[[3]])
 
 rm(rcp26_list, rcp45_list, rcp60_list, rcp85_list)
 
@@ -67,32 +61,16 @@ write.table(loadings, "./data/climatic_vars/selected/varimax_loadings.txt")
 
 ###................ CURRENT
 
-# ### 3.1a current - saving as table 
-# 
-# write.table(current[,c("x", "y", "bio02", "bio03", "bio10", "bio14", "bio16")], "./data/climatic_vars/selected/current/current-select.txt", row.names = F, sep = " ")  
-
-### 3.1b current - saving as raster
-
 variables <- as.factor(c("bio02", "bio03", "bio10", "bio14", "bio16"))
 for (i in 1:length(variables))
 {
-  writeRaster (current_spatial[[i]], filename = paste0("./data/climatic_vars/selected/current/current-", variables[i], ".grd"), format = "raster")
+  writeRaster (current[[i]], filename = paste0("./data/climatic_vars/selected/current/current-", variables[i], ".grd"), format = "raster")
 }
 rm(variables)
 
 current_select <- stack(list.files("./data/climatic_vars/selected/current/",  pattern = ".grd$", full.names = TRUE))
 
-###................ RCP
-
-# ### 3.2a rcp - saving table
-# 
-# write.table(rcp26 [ ,c("x", "y", "bio02", "bio03", "bio10", "bio14", "bio16" ), ], "./data/climatic_vars/selected/rcp26/rcp26-select.txt", row.names = F, sep = "	")
-# write.table(rcp45 [ ,c("x", "y", "bio02", "bio03", "bio10", "bio14", "bio16" ), ], "./data/climatic_vars/selected/rcp45/rcp45-select.txt", row.names = F, sep = "	")
-# write.table(rcp60 [ ,c("x", "y", "bio02", "bio03", "bio10", "bio14", "bio16" ), ], "./data/climatic_vars/selected/rcp60/rcp60-select.txt", row.names = F, sep = "	")
-# write.table(rcp85 [ ,c("x", "y", "bio02", "bio03", "bio10", "bio14", "bio16" ), ], "./data/climatic_vars/selected/rcp85/rcp85-select.txt", row.names = F, sep = "	")
-
-
-### 3.2b rcp - saving as raster
+###................ RCPs
 
 variables <- as.factor(c("bio02.1", "bio03.1", "bio10.1", "bio14.1", "bio16.1", 
                          "bio02.2", "bio03.2", "bio10.2", "bio14.2", "bio16.2", 
@@ -101,25 +79,25 @@ variables <- as.factor(c("bio02.1", "bio03.1", "bio10.1", "bio14.1", "bio16.1",
 ## RCP26
 for (i in variables)
 {
-  writeRaster(rcp26_spatial[[which(names(rcp26_spatial) %in% i)]], filename = paste0("./data/climatic_vars/selected/rcp26/rcp26-", i, ".grd"), format = "raster")
+  writeRaster(rcp26[[which(names(rcp26) %in% i)]], filename = paste0("./data/climatic_vars/selected/rcp26/rcp26-", i, ".grd"), format = "raster")
 }
 
 ## RCP45
 for (i in variables)
 {
-  writeRaster (rcp45_spatial[[which(names(rcp45_spatial) %in% i)]], filename = paste0("./data/climatic_vars/selected/rcp45/rcp45-", i, ".grd"), format = "raster")
+  writeRaster (rcp45[[which(names(rcp45) %in% i)]], filename = paste0("./data/climatic_vars/selected/rcp45/rcp45-", i, ".grd"), format = "raster")
 }
 
 ## RCP60
 for (i in variables)
 {
-  writeRaster (rcp60_spatial[[which(names(rcp60_spatial) %in% i)]], filename = paste0("./data/climatic_vars/selected/rcp60/rcp60-", i, ".grd"), format = "raster")
+  writeRaster (rcp60[[which(names(rcp60) %in% i)]], filename = paste0("./data/climatic_vars/selected/rcp60/rcp60-", i, ".grd"), format = "raster")
 }
 
 ## RCP85
 for (i in variables)
 {
-  writeRaster (rcp85_spatial[[which(names(rcp85_spatial) %in% i)]], filename = paste0("./data/climatic_vars/selected/rcp85/rcp85-", i, ".grd"), format = "raster")
+  writeRaster (rcp85[[which(names(rcp85) %in% i)]], filename = paste0("./data/climatic_vars/selected/rcp85/rcp85-", i, ".grd"), format = "raster")
 }
 
 rm(variables)
@@ -128,8 +106,7 @@ rm(variables)
 ## 04. Occurrences data                             ----
 
 ###.............. Reading data
-# if you have more than one species, all of them should be in the file raw_data.
-# the names of columms in this file must be: "SPEC", "LONG", "LAT".
+# the names of columms in the file raw_data must be: "SPEC", "LONG", "LAT".
 occur_raw <- read.table("./data/occurrences/raw_data.txt", h = T)
  
 ###.............. Filtering occurrences in the geographical space
@@ -146,9 +123,7 @@ write.table(occur_thinned, "./data/occurrences/occur_thinned.txt", sep = ";", ro
 
 # occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",", h = T)
 
-# ***************************************************************************************
-## 05. Extracting variables                         ----
-
+###.............. Extrancting bio variables based on the ocurrence cells
 # Creating and saving the object "var" for each studied species
 for(i in 1:length(sp_names))
 {
@@ -156,7 +131,7 @@ for(i in 1:length(sp_names))
 }
 
 # ***************************************************************************************
-## 06. Background Sampling                          ----
+## 05. Background Sampling                          ----
 
 ###.............. Creating and saving the object "back" for each studied species
 
@@ -175,10 +150,9 @@ points(occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ][,-1], pch = "*"
 # points(back[, "x"], back[, "y"], pch = "*", col = 'black')
 # points(back[, "x"], back[, "y"], pch = "*", col = 'magenta')
 
-
+# rm(list = ls())
 # ***************************************************************************************
-## 07. Running our model                            ----
-rm(list = ls())
+## 06. Running our model                            ----
 
 occur_thinned <- read.csv("./data/occurrences/raw_data.txt", sep = "")
 sp <- gsub("C[1-9]","", occur_thinned$SPEC)
@@ -231,11 +205,11 @@ for (i in 1:length(sp_names))
 }
   
 # ***************************************************************************************
-## 08. Standardize suitabilities (suit)             ----
+## 07. Standardize suitabilities (suit)             ----
 
 
 # ***************************************************************************************
-## 09. Ensemble                                     ----
+## 08. Ensemble                                     ----
 
 ## huberi
 
@@ -259,7 +233,7 @@ for (i in 1:length(sp_names))
 
 
 # ***************************************************************************************
-## 10. Uncertainty Evaluation                       ----
+## 09. Uncertainty Evaluation                       ----
 
 all_huberi <- stack(huberi_c, huberi_rcp26, huberi_rcp45, huberi_rcp60, huberi_rcp85)
 TPR_huberi <- TPR_h[which(TPR_h)]
