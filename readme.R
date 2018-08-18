@@ -1,5 +1,7 @@
+#### --- General Info                                  ----
 
-# --- General Info                                  ----
+### The directories with the data utilized and the ones outputted here can be downloaded from the following OneDrive repositorium:
+browseURL("https://1drv.ms/f/s!ApJZaitgpPr7gZtfS9n9mU9DDzXQMg")
 
 ### This script has an index table. If you are in RStudio go to Code > Show Document Outline (shift + command / clrt + o)
 
@@ -60,7 +62,7 @@
 #BIO19 = Precipitation of Coldest Quarter
 
 
-### --- Maxent/rJava troubleshoot                     ----
+#### --- Maxent/rJava troubleshoot                     ----
 
 ### MaxEnt is available as a standalone Java program. Dismo has a function 'maxent' that communicates with this program. To use it you must first download the program from:
 # browseURL("http://www.cs.princeton.edu/~schapire/maxent/")
@@ -71,9 +73,9 @@
 # browseURL("http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html")
 
 ### 2. Checking if the jar file is present. 
-jar <- paste(system.file(package="dismo"), "/java/maxent.jar/", sep='')
-jar
-file.exists(jar)
+# jar <- paste(system.file(package="dismo"), "/java/maxent.jar/", sep='')
+# jar
+# file.exists(jar)
 
 ### 3. Use dyn.load for ataching the libjvm.dylib file before running the `rJava` Package.
 # dyn.load('/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home/jre/lib/server/libjvm.dylib')

@@ -1,11 +1,11 @@
 file.edit("readme.R")
-# *** Loading functions                             ----
+# **** Loading functions                            ----
 
 source("./Auxiliary_functions.R")
 source("./Multiple_ENMs.R")
 file.edit(c("./Auxiliary_functions.R", "./Multiple_ENMs.R"))
 
-# *** Loading packages                              ----
+# **** Loading packages                             ----
 
 # install.packages(c("tidyverse", "raster", "rgdal", "abind", "spThin", "vegan", "maps", "pcych", "kernlab", "dismo", "rJava", "dendextend", "beepr"))
 
@@ -186,44 +186,44 @@ for (i in 1:length(sp_names))
   
   ###.............. Saving evaluation data
   #..... current
-  write.table(result[["TPR_c"]], paste0("./data/outputs/", sp_names[i], "_TPR_current.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_c"]], paste0("./data/outputs/", sp_names[i], "_t_current.txt"), sep = "\t", row.names = F)
-  write.table(result[["Predicted_area_c"]], paste0("./data/outputs/", sp_names[i], "_d_current.txt"), sep = "\t", row.names = F)
+  write.table(result[["TPR_c"]],       paste0("./data/outputs/", sp_names[i], "_TPR_current.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_c"]], paste0("./data/outputs/", sp_names[i], "_t_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_c"]], paste0("./data/outputs/", sp_names[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
   #..... rcp26
-  write.table(result[["TPR_rcp26"]], paste0("./data/outputs/", sp_names[i], "_TPR_rcp26.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_rcp26"]], paste0("./data/outputs/", sp_names[i], "_t_rcp26.txt"), sep = "\t", row.names = F)
-  write.table(result[["Predicted_area_rcp26"]], paste0("./data/outputs/", sp_names[i], "_d_rcp26.txt"), sep = "\t", row.names = F)
+  write.table(result[["TPR_rcp26"]],       paste0("./data/outputs/", sp_names[i], "_TPR_rcp26.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp26"]], paste0("./data/outputs/", sp_names[i], "_t_rcp26.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp26"]], paste0("./data/outputs/", sp_names[i], "_d_rcp26.txt"),   sep = "\t", row.names = F)
   
   #..... rcp45
-  write.table(result[["TPR_rcp45"]], paste0("./data/outputs/", sp_names[i], "_TPR_rcp45.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_rcp45"]], paste0("./data/outputs/", sp_names[i], "_t_rcp45.txt"), sep = "\t", row.names = F)
-  write.table(result[["Predicted_area_rcp45"]], paste0("./data/outputs/", sp_names[i], "_d_rcp45.txt"), sep = "\t", row.names = F)
+  write.table(result[["TPR_rcp45"]],       paste0("./data/outputs/", sp_names[i], "_TPR_rcp45.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp45"]], paste0("./data/outputs/", sp_names[i], "_t_rcp45.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp45"]], paste0("./data/outputs/", sp_names[i], "_d_rcp45.txt"),   sep = "\t", row.names = F)
   
   #..... rcp60
-  write.table(result[["TPR_rcp60"]], paste0("./data/outputs/", sp_names[i], "_TPR_rcp60.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_rcp60"]], paste0("./data/outputs/", sp_names[i], "_t_rcp60.txt"), sep = "\t", row.names = F)
-  write.table(result[["Predicted_area_rcp60"]], paste0("./data/outputs/", sp_names[i], "_d_rcp60.txt"), sep = "\t", row.names = F)
+  write.table(result[["TPR_rcp60"]],       paste0("./data/outputs/", sp_names[i], "_TPR_rcp60.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp60"]], paste0("./data/outputs/", sp_names[i], "_t_rcp60.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp60"]], paste0("./data/outputs/", sp_names[i], "_d_rcp60.txt"),   sep = "\t", row.names = F)
   
   #..... rcp85
-  write.table(result[["TPR_rcp85"]], paste0("./data/outputs/", sp_names[i], "_TPR_rcp85.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_rcp85"]], paste0("./data/outputs/", sp_names[i], "_t_rcp85.txt"), sep = "\t", row.names = F)
-  write.table(result[["Predicted_area_rcp85"]], paste0("./data/outputs/", sp_names[i], "_d_rcp85.txt"), sep = "\t", row.names = F)
+  write.table(result[["TPR_rcp85"]],       paste0("./data/outputs/", sp_names[i], "_TPR_rcp85.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp85"]], paste0("./data/outputs/", sp_names[i], "_t_rcp85.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp85"]], paste0("./data/outputs/", sp_names[i], "_d_rcp85.txt"),   sep = "\t", row.names = F)
   
   beep(8)
 }
   
 # ***************************************************************************************
-## 07. Preparing factors for analysis               ----
+## 07. Preparing analysis factors                   ----
 
 ### Reading predictions data
-all_outputs <- laaply (stack, list.files("./data/outputs/", patern = "_d_", full.names = TRUE))
+all_outputs  <- laaply (stack,      list.files("./data/outputs/", patern = ".bil$", full.names = TRUE))
 
-all_d <- laaply (read.table, list.files("./data/outputs/", patern = "_d_", full.names = TRUE))
+all_d        <- laaply (read.table, list.files("./data/outputs/", patern = "_d_",   full.names = TRUE))
 
-all_TRP <- laaply (read.table, list.files("./data/outputs/", patern = "_TRP_", full.names = TRUE))
+all_TRP      <- laaply (read.table, list.files("./data/outputs/", patern = "_TRP_", full.names = TRUE))
 
-all_t <- laaply (read.table, list.files("./data/outputs/", patern = "_t_", full.names = TRUE))
+all_t        <- laaply (read.table, list.files("./data/outputs/", patern = "_t_",   full.names = TRUE))
 
 
 ### Standardizing suitabilities
@@ -231,7 +231,7 @@ all_val <- values(all_output)
 all_pad <- deconstante(all_val, "standardize", 2)
 
 
-### Getting data for each species
+### Getting factors for each species
 # sp1
 sp_names[1]
 d_sp1    <- all_d[[1]]
@@ -292,10 +292,7 @@ period <- c(bioclim_period_h, gower_period_h, maha_period_h, maxent_period_h, SV
 
 
 
-
-
-
-#  *** List of improvements to the scritp           ----
+# **** List of improvements to the scritp           ----
 
 # 1. Implement validation by the checkerboards method.
 # 2. Implement occurrence filtering at the ambiental space and compare with spThin (geographical space)
