@@ -3,13 +3,13 @@ file.edit("readme.R")
 
 source("./Auxiliary_functions.R")
 source("./Multiple_ENMs.R")
-file.edit(c("./Auxiliary_functions.R", "./Multiple_ENMs.R"))
+# file.edit(c("./Auxiliary_functions.R", "./Multiple_ENMs.R"))
 
 # **** Loading packages                             ----
 
 # install.packages(c("tidyverse", "raster", "rgdal", "abind", "spThin", "vegan", "maps", "pcych", "kernlab", "dismo", "rJava", "dendextend", "beepr"))
 
-load_pak(c("tidyverse", "raster", "rgdal", "abind", "spThin", "dismo", "kernlab", "vegan", "maps", "psych", "rJava", "dendextend", "beepr"))
+load_pak(c("tidyverse", "raster", "rgdal", "abind", "spThin", "dismo", "kernlab", "vegan", "maps", "psych", "rJava", "dendextend", "beepr", "data.table"))
 
 # ***************************************************************************************
 ## 01. Read aogcms models                           ----
@@ -19,17 +19,16 @@ current <- read_current(dir = "./data/climatic_vars/current/")
 current <- rasterFromXYZ(current) 
 
 ##### 1.2.............. rcp
-
+#. Following the order of the models in the directory:
+# 1 == "CCS4"
+# 2 == "IPSL-CMSA-LR"
+# 3 == "MIROC-ESM"
+# 
 rcp26_list <- read_rcp( x = "./data/climatic_vars/selected/26bi70/")
 rcp45_list <- read_rcp( x = "./data/climatic_vars/selected/45bi70/")
 rcp60_list <- read_rcp( x = "./data/climatic_vars/selected/60bi70/")
 rcp85_list <- read_rcp( x = "./data/climatic_vars/selected/85bi70/")
 
-### Creating RasterStack
-#. Following the order of the models in the directory:
-# 1 == "CCS4"
-# 2 == "IPSL-CMSA-LR"
-# 3 == "MIROC-ESM"
 
 rcp26 <- rcp26_list[["rasters"]]
 rcp26 <- stack(rcp26[[1]], rcp26[[2]], rcp26[[3]])
@@ -65,13 +64,13 @@ beep(2)
 ###................ CURRENT
 
 variables <- as.factor(c("bio02", "bio03", "bio10", "bio14", "bio16"))
-for (i in 1:length(variables))
+for (i in variables)
 {
-  writeRaster (current[[i]], filename = paste0("./data/climatic_vars/selected/current/current-", variables[i], ".grd"), format = "raster")
+  writeRaster (current[[which(names(current) %in% i)]], filename = paste0("./data/climatic_vars/selected/current/current-", i, ".grd"), format = "raster")
 }
 rm(variables)
 
-current_select <- stack(list.files("./data/climatic_vars/selected/current/",  pattern = ".grd$", full.names = TRUE))
+current_select <- stack(list.files("./data/climatic_vars/selected/current",  pattern = ".grd$", full.names = TRUE))
 beep(2)
 
 ###................ RCPs
@@ -127,7 +126,7 @@ for(i in 1:length(sp_names))
 beep(2)
 write.table(occur_thinned, "./data/occurrences/occur_thinned.txt", sep = ";", row.names = FALSE)
 
-# occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",", h = T)
+occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",", h = T)
 
 ###.............. Extrancting bio variables based on the ocurrence cells
 # Creating and saving the object "var" for each studied species
@@ -136,6 +135,7 @@ for(i in 1:length(sp_names))
   var <- create_var(occur_thinned[occur_thinned[, 1] == sp_names[i], ], sp_names[i])
 }
 beep(2)
+
 # ***************************************************************************************
 ## 05. Background Sampling                          ----
 
@@ -147,15 +147,18 @@ for(i in 1:length(var_files))
   var_file <- read.table(var_files[i], h = T, sep = ";")
   create_back(var_file, sp_names[i])
 }
-beep(2)
 
 ###.............. Plotting occurrences and background
+back <- list.files("./data/occurrences/", pattern = "back", full.names = TRUE)
+back <- bind_rows(lapply(back, fread))
+back <- as.data.frame(back)
+beep(2)
+
 sp_names
-plot(current_select$bio01)
+plot(current_select$bio02)
 points(occur_thinned[-(occur_thinned[, 1] == "Lithurgus_huberi"), ][, -1], pch = "*", col = "red")
 points(occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ][,-1], pch = "*", col = "blue")
-# points(back[, "x"], back[, "y"], pch = "*", col = 'black')
-# points(back[, "x"], back[, "y"], pch = "*", col = 'magenta')
+points(back[, "x"], back[, "y"], pch = "*", col = 'magenta')
 
 # rm(list = ls())
 # ***************************************************************************************
@@ -216,15 +219,18 @@ for (i in 1:length(sp_names))
 # ***************************************************************************************
 ## 07. Preparing analysis factors                   ----
 
+back <- list.files("./data/occurrences/", pattern = "back", full.names = TRUE)
+back <- bind_rows(lapply(back, fread))
+back <- as.data.frame(back)
+
 ### Reading predictions data
-all_outputs  <- laaply (stack,      list.files("./data/outputs/", patern = ".bil$", full.names = TRUE))
+all_outputs  <- laaply (list.files("./data/outputs/", patern = ".bil$", full.names = TRUE), stack)
 
-all_d        <- laaply (read.table, list.files("./data/outputs/", patern = "_d_",   full.names = TRUE))
+all_d        <- laaply (list.files("./data/outputs/", patern = "_d_",   full.names = TRUE), fread)
 
-all_TRP      <- laaply (read.table, list.files("./data/outputs/", patern = "_TRP_", full.names = TRUE))
+all_TRP      <- laaply (list.files("./data/outputs/", patern = "_TRP_", full.names = TRUE), fread)
 
-all_t        <- laaply (read.table, list.files("./data/outputs/", patern = "_t_",   full.names = TRUE))
-
+all_t        <- laaply (list.files("./data/outputs/", patern = "_t_",   full.names = TRUE), fread)
 
 ### Standardizing suitabilities
 all_val <- values(all_output)
