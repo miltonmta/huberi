@@ -180,16 +180,16 @@ multiple_ENMs <- function(occurrence,
     SVM_d <- TPR * (1 - pi)
     
     
-    ### Saving partial outputs for current model ----------------------------------------------
+    # ***************************************************************************************
+    ###.............. Saving partial outputs for current model 
     
     bioclim_Pout_c <- cbind(bioclim_Pout_c, values(bioclim_c))
     gower_Pout_c   <- cbind(gower_Pout_c,   values(gower_c))
     maxent_Pout_c  <- cbind(maxent_Pout_c,  values(maxent_c))
     SVM_Pout_c     <- cbind(SVM_Pout_c,     values(SVM_c))
     
-    # ***************************************************************************************
     
-    ### Making predictions for the RCPs
+    ###.............. Making predictions for the RCPs
     
     AOGCMs <- c("CCSM4", "IPSL-CM5A-LR", "MIROC-ESM")
     for (i in AOGCMs)
