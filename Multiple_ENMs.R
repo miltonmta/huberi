@@ -13,27 +13,6 @@ multiple_ENMs <- function(occurrence,
   ## Reading the selected current model
   current <- stack(list.files(biovar_current,  pattern = ".grd$", full.names = TRUE))
   
-  
-  ## Reading the selected aogcm models
-  mdid <- paste0('.',1:3,'.grd$') # models identification. 
-  model_names <- c("CCSM4", "IPSL-CM5A-LR", "MIROC-ESM") # for changing mdid to the proper models names
-  
-  mdls <- lapply(mdid, function(x){stack(list.files(biovar_rcp26, pattern = x, full.names = TRUE))})
-  names(mdls) <- model_names
-  rcp26  <- mdls[[i]] # now only the ith model will be extracted from the mdls.
-  
-  mdls <- lapply(mdid, function(x){stack(list.files(biovar_rcp45, pattern = x, full.names = TRUE))})
-  names(mdls) <- model_names
-  rcp45  <- mdls[[i]]
-  
-  mdls  <- lapply(mdid, function(x){stack(list.files(biovar_rcp60, pattern = x, full.names = TRUE))})
-  names(mdls) <- model_names
-  rcp60  <- mdls[[i]]
-  
-  mdls  <- lapply(mdid, function(x){stack(list.files(biovar_rcp85, pattern = x, full.names = TRUE))})
-  names(mdls) <- model_names
-  rcp85  <- mdls[[i]]
-  
   ###.............. Reading ocurrence and background
   occur <- read.table(occurrence, sep = ";", h = T)
   back  <- read.table(background, sep = ";", h = T)
@@ -82,9 +61,10 @@ multiple_ENMs <- function(occurrence,
   ## Predictions results
   output_current <- output_rcp26 <- output_rcp45 <- output_rcp60 <- output_rcp85 <- NULL
   
-  
+  pb = txtProgressBar(min = 0, max = length(cross_validation), initial = 0) 
   for (j in 1:cross_validation)
   {
+    setTxtProgressBar(pb,j)
     ### OPEN "j" ----
     
     ###.............. Creating trainning-testing subsets
@@ -194,10 +174,31 @@ multiple_ENMs <- function(occurrence,
     
     ###.............. Making predictions for the RCPs
     
-    AOGCMs <- c("CCSM4", "IPSL-CM5A-LR", "MIROC-ESM")
+   
+    # AOGCMs <- c("CCSM4", "IPSL-CM5A-LR", "MIROC-ESM")
+    AOGCMs <- c(1, 2, 3)
     for (i in AOGCMs)
     {
       # OPEN "i" ----
+      ### Reading the selected aogcm models
+      mdid <- paste0('.',1:3,'.grd$') # models identification. 
+      
+      mdls <- lapply(mdid, function(x){stack(list.files(biovar_rcp26, pattern = x, full.names = TRUE))})
+      # names(mdls) <- AOGCMs
+      rcp26  <- mdls[[i]] # now only the jth model will be extracted from the mdls.
+      
+      mdls <- lapply(mdid, function(x){stack(list.files(biovar_rcp45, pattern = x, full.names = TRUE))})
+      # names(mdls) <- AOGCMs
+      rcp45  <- mdls[[i]]
+      
+      mdls  <- lapply(mdid, function(x){stack(list.files(biovar_rcp60, pattern = x, full.names = TRUE))})
+      # names(mdls) <- AOGCMs
+      rcp60  <- mdls[[i]]
+      
+      mdls  <- lapply(mdid, function(x){stack(list.files(biovar_rcp85, pattern = x, full.names = TRUE))})
+      # names(mdls) <- AOGCMs
+      rcp85  <- mdls[[i]]
+      
       
       ### Predicting
       bioclim_rcp26 <- stack(bioclim_rcp26, predict(object = bioclim_model, x = rcp26))
