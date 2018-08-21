@@ -14,9 +14,11 @@ load_pak(c("tidyverse", "raster", "rgdal", "abind", "spThin", "dismo", "kernlab"
 # ***************************************************************************************
 ## 01. Read aogcms models                           ----
 ##### 1.1.............. current                                     
+current_list <- read_current(dir = "./data/climatic_vars/current/")
 
-current <- read_current(dir = "./data/climatic_vars/current/")
-current <- rasterFromXYZ(current) 
+current_mat <- current_list[["matrix"]] # required at Exploratoty Factor Analysis
+current     <- current_list[["raster"]] # required for salving selected variables and creating "back"
+beep(2)
 
 ##### 1.2.............. rcp
 #. Following the order of the models in the directory:
@@ -31,8 +33,7 @@ rcp85_list <- read_rcp( x = "./data/climatic_vars/selected/85bi70/")
 
 
 rcp26 <- rcp26_list[["rasters"]]
-rcp26 <- stack(rcp26[[1]], rcp26[[2]], rcp26[[3]])
-
+rcp26 <- stack(rcp26[[1]], rcp26[[2]], rcp26[[3]]) # this stack is adding .1, .2, .3 to the variables as models id. It needs to be removed when running the model. See line 189 from Multiple_ENMs.R
 rcp45 <- rcp45_list[["rasters"]]
 rcp45 <- stack(rcp45[[1]], rcp45[[2]], rcp45[[3]])
 
@@ -49,8 +50,8 @@ rm(rcp26_list, rcp45_list, rcp60_list, rcp85_list)
 ## 02. Variable selection                           ----
 ### By exploratory factor analysis
 
-fa.parallel(current[ , -c(1:2)], fa = 'fa') #scree plot
-current_fa <- fa(current[ , -c(1:2)], nfactors = 5, rotate = 'varimax')
+fa.parallel(current_mat[ , -c(1:2)], fa = 'fa') #scree plot
+current_fa <- fa(current_mat[ , -c(1:2)], nfactors = 5, rotate = 'varimax')
 loadings <- loadings(current_fa)
 write.table(loadings, "./data/climatic_vars/selected/varimax_loadings.txt")
 beep(2)
@@ -212,9 +213,8 @@ for (i in 1:length(sp_names))
   write.table(result[["TPR_rcp85"]],       paste0("./data/outputs/", sp_names[i], "_TPR_rcp85.txt"), sep = "\t", row.names = F)
   write.table(result[["Threshold_rcp85"]], paste0("./data/outputs/", sp_names[i], "_t_rcp85.txt"),   sep = "\t", row.names = F)
   write.table(result[["Pred_area_rcp85"]], paste0("./data/outputs/", sp_names[i], "_d_rcp85.txt"),   sep = "\t", row.names = F)
-  
-  beep(8)
 }
+beep(8)
   
 # ***************************************************************************************
 ## 07. Preparing analysis factors                   ----
