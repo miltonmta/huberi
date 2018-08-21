@@ -61,10 +61,9 @@ multiple_ENMs <- function(occurrence,
   ## Predictions results
   output_current <- output_rcp26 <- output_rcp45 <- output_rcp60 <- output_rcp85 <- NULL
   
-  pb = txtProgressBar(min = 0, max = length(cross_validation), initial = 0) 
+  
   for (j in 1:cross_validation)
   {
-    setTxtProgressBar(pb,j)
     ### OPEN "j" ----
     
     ###.............. Creating trainning-testing subsets
@@ -175,30 +174,29 @@ multiple_ENMs <- function(occurrence,
     ###.............. Making predictions for the RCPs
     
    
-    # AOGCMs <- c("CCSM4", "IPSL-CM5A-LR", "MIROC-ESM")
     AOGCMs <- c(1, 2, 3)
     for (i in AOGCMs)
     {
       # OPEN "i" ----
-      ### Reading the selected aogcm models
-      mdid <- paste0('.',1:3,'.grd$') # models identification. 
+      
+      ### Reading the selected AOGCMs models
+      mdid <- paste0('.',1:3,'.grd$') # models identification.bio02.1 - ".1" stands for model 1.
       
       mdls <- lapply(mdid, function(x){stack(list.files(biovar_rcp26, pattern = x, full.names = TRUE))})
-      # names(mdls) <- AOGCMs
       rcp26  <- mdls[[i]] # now only the jth model will be extracted from the mdls.
+      names(rcp26) <- names(current)
       
       mdls <- lapply(mdid, function(x){stack(list.files(biovar_rcp45, pattern = x, full.names = TRUE))})
-      # names(mdls) <- AOGCMs
       rcp45  <- mdls[[i]]
+      names(rcp45) <- names(current)
       
       mdls  <- lapply(mdid, function(x){stack(list.files(biovar_rcp60, pattern = x, full.names = TRUE))})
-      # names(mdls) <- AOGCMs
       rcp60  <- mdls[[i]]
+      names(rcp60) <- names(current)
       
       mdls  <- lapply(mdid, function(x){stack(list.files(biovar_rcp85, pattern = x, full.names = TRUE))})
-      # names(mdls) <- AOGCMs
       rcp85  <- mdls[[i]]
-      
+      names(rcp85) <- names(current)
       
       ### Predicting
       bioclim_rcp26 <- stack(bioclim_rcp26, predict(object = bioclim_model, x = rcp26))
@@ -465,7 +463,6 @@ multiple_ENMs <- function(occurrence,
   
   #\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/   YOU SHALL... PASS!  \o/\o/\o/\o/\o/\o/\o/\o/\o/\o/
   
-  alarm()
   return(list(c("output_current"  = output_current, 
                 "output_rcp26"    = output_rcp26, 
                 "output_rcp45"    = output_rcp45, 
