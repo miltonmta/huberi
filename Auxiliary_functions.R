@@ -16,8 +16,9 @@ read_current <- function (dir)
   val <- getValues(model_e)                                  
   coord <- xyFromCell(model_e, 1:ncell(model_e))             
   model <- cbind(coord, val)                                 
-  model <- na.omit(model)                                    
-  return(model)
+  model <- na.omit(model)
+  model_raster <- model_e
+  return(list("matrix" = model, "raster" = model_raster))
 }
 
 ###.............. Processing the AOGCMs climatic models at all RCPs
@@ -41,7 +42,7 @@ read_rcp <- function (x)
   return(list("array" = rcp, "rasters" = models_list))
 }
 
-###.............. Extracting variables                         ----
+###.............. Extracting variables          
 
 create_var <- function(sp,name)
 {
@@ -55,7 +56,7 @@ create_var <- function(sp,name)
   return(sp_var)
 }
 
-###.............. Creating background                         ----
+###.............. Creating background          
 create_back <- function(sp, name)
 {
   coord <- rasterToPoints(current_select)[, 1:2]
