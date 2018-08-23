@@ -53,7 +53,6 @@ create_var <- function(sp,name)
   sp_var <- raster::extract(current_select, sp_cell)
   sp_var <- na.omit(cbind(sp_coord, sp_var))
   write.table(sp_var, file = paste0("./data/occurrences/var_", as.factor(name), ".txt"), row.names = F, sep = ";")
-  return(sp_var)
 }
 
 ###.............. Creating background          
@@ -64,5 +63,4 @@ create_back <- function(sp, name)
   back <- extract(current_select, coord[back_id, ])
   back <- cbind(coord [back_id, ], back)
   write.table(back, paste0("./data/occurrences/back_", as.factor(name), ".txt"), row.names = F, sep = ";") 
-  return(back)
 }
