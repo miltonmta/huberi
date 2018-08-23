@@ -8,7 +8,7 @@ multiple_ENMs <- function(occurrence,
                           cross_validation)
 {
   
-  ###.............. Reading the selected bioclimatic variables
+  ###.............. Reading the selected climatic variables
   
   ## Reading the selected current model
   current <- stack(list.files(biovar_current,  pattern = ".grd$", full.names = TRUE))
@@ -24,6 +24,7 @@ multiple_ENMs <- function(occurrence,
   bioclim_rcp45 <- gower_rcp45 <- maxent_rcp45 <- SVM_rcp45 <- stack()
   bioclim_rcp60 <- gower_rcp60 <- maxent_rcp60 <- SVM_rcp60 <- stack()
   bioclim_rcp85 <- gower_rcp85 <- maxent_rcp85 <- SVM_rcp85 <- stack()
+  
   
   ## Evaluation
   # present
@@ -51,6 +52,7 @@ multiple_ENMs <- function(occurrence,
   bioclim_t_rcp85 <- gower_t_rcp85 <- maxent_t_rcp85 <- SVM_t_rcp85 <- NULL 
   bioclim_d_rcp85 <- gower_d_rcp85 <- maxent_d_rcp85 <- SVM_d_rcp85 <- NULL 
   
+  
   ## Partial results
   bioclim_Pout_c <- gower_Pout_c <- maxent_Pout_c <- SVM_Pout_c <- NULL
   bioclim_Pout_rcp26 <- gower_Pout_rcp26 <- maxent_Pout_rcp26 <- SVM_Pout_rcp26 <- NULL
@@ -58,9 +60,9 @@ multiple_ENMs <- function(occurrence,
   bioclim_Pout_rcp60 <- gower_Pout_rcp60 <- maxent_Pout_rcp60 <- SVM_Pout_rcp60 <- NULL
   bioclim_Pout_rcp85 <- gower_Pout_rcp85 <- maxent_Pout_rcp85 <- SVM_Pout_rcp85 <- NULL
   
+  
   ## Predictions results
   output_current <- output_rcp26 <- output_rcp45 <- output_rcp60 <- output_rcp85 <- NULL
-  
   
   for (j in 1:cross_validation)
   {
@@ -179,7 +181,7 @@ multiple_ENMs <- function(occurrence,
     {
       # OPEN "i" ----
       
-      ### Reading the selected AOGCMs models
+      ### Reading the selected AOGCMs climatic models
       mdid <- paste0('.',1:3,'.grd$') # models identification.bio02.1 - ".1" stands for model 1.
       
       mdls <- lapply(mdid, function(x){stack(list.files(biovar_rcp26, pattern = x, full.names = TRUE))})
@@ -482,7 +484,6 @@ multiple_ENMs <- function(occurrence,
                 "Pred_area_rcp60" = models_d_rcp60,
                 "TPR_rcp85"       = models_e_rcp85, 
                 "Threshold_rcp85" = models_t_rcp85, 
-                "Pred_area_rcp85" = models_d_rcp85
-  )))
+                "Pred_area_rcp85" = models_d_rcp85)))
   
 } # CLOSE "Multiple_ENMs"
