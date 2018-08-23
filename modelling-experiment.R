@@ -127,20 +127,37 @@ for(i in 1:length(sp_names))
 beep(2)
 write.table(occur_thinned, "./data/occurrences/occur_thinned.txt", sep = ";", row.names = FALSE)
 
-occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",", h = T)
+# occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",", h = T)
 
 ###.............. Extrancting bio variables based on the ocurrence cells
-# Creating and saving the object "var" for each studied species
+## Creating and saving the object "var" for the stacked occurrences but the response one.
+resource <- occur_thinned[!grepl("Lithurgus_huberi", occur_thinned$SPEC), ]
+write.table(resource, "./data/occurrences/resource.txt", sep = ";", row.names = FALSE)
+write.table(resource, "./data/outputs/predictors/resource.txt", sep = ";", row.names = FALSE)
+
+# resource <- read.table("./data/occurrences/resource.txt", sep = ";", h = T)
+
+var <- create_var(resource, "resource")
+
+## Creating and saving the object "var" for each studied species
 for(i in 1:length(sp_names))
 {
   var <- create_var(occur_thinned[occur_thinned[, 1] == sp_names[i], ], sp_names[i])
 }
 beep(2)
 
+
 # ***************************************************************************************
 ## 05. Background Sampling                          ----
 
-###.............. Creating and saving the object "back" for each studied species
+###.............. Background files 
+# Creating and saving the object "back" for the stacked species but the response one
+
+var_file <- read.table("./data/occurrences/var_resource.txt", h = T, sep = ";")
+create_back(var_file, "resource")
+beep(2)
+
+# Creating and saving the object "back" for each studied species
 
 var_files <- list.files("./data/occurrences/", pattern = "var", full.names = TRUE)
 for(i in 1:length(var_files))
@@ -148,6 +165,7 @@ for(i in 1:length(var_files))
   var_file <- read.table(var_files[i], h = T, sep = ";")
   create_back(var_file, sp_names[i])
 }
+beep(2)
 
 ###.............. Plotting occurrences and background
 back <- list.files("./data/occurrences/", pattern = "back", full.names = TRUE)
@@ -157,23 +175,99 @@ beep(2)
 
 sp_names
 plot(current_select$bio02)
-points(occur_thinned[-(occur_thinned[, 1] == "Lithurgus_huberi"), ][, -1], pch = "*", col = "red")
+points(occur_thinned[!grepl("Lithurgus_huberi", occur_thinned$SPEC), ][, -1], pch = "*", col = "red")
 points(occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ][,-1], pch = "*", col = "blue")
 points(back[, "x"], back[, "y"], pch = "*", col = 'magenta')
 
 # rm(list = ls())
 # ***************************************************************************************
-## 06. Running our model                            ----
+## 06. XP1                                          ----
+# Cenário	   Presente + Futuro - 4 RCPs
+# Variáveis	 Climáticas ( 5 vars ) # incluir SOLO somente p PLANTAS
+# Input	     9 sps - abelha + 7 plantas + "recurso" * (somar ocorrências todas as plantas)
+# Output     9 prediçoes  x 4 modelos preditivos.
+# Resultado	 9 Ensembles + Predictor Variables PA_SEP, PA_STK, SUIT_SEP, SUIT_SKT.
 
 occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
 sp <- gsub("C[1-9]","", occur_thinned$SPEC)
 sp_names <- unique(sp)
-sp_names
+sp_namesXP1 <- c(sp_names, "resource")
+sp_namesXP1
 for (i in 1:length(sp_names))
 {
   ###.............. Running the modedelling experiment
-  result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_", sp_names[i], ".txt"),
-                          background       = paste0("./data/occurrences/back_", sp_names[i],".txt"),
+  result <- multiple_ENMs_XP1(occurrence       = paste0("./data/occurrences/var_", sp_namesXP1[i], ".txt"),
+                              background       = paste0("./data/occurrences/back_", sp_namesXP1[i],".txt"),
+                              biovar_current   = "./data/climatic_vars/selected/current/",
+                              biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
+                              biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
+                              biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
+                              biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
+                              # var_soil         = , # only for plants
+                              cross_validation = 20)
+  
+  ###.............. Saving predictions
+  writeRaster(result[["output_current"]], paste0("./data/outputs/XP1", sp_namesXP1[i],"_current.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP1", sp_namesXP1[i],"_rcp26.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP1", sp_namesXP1[i],"_rcp45.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP1", sp_namesXP1[i],"_rcp60.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP1", sp_namesXP1[i],"_rcp85.bil"), format = "EHdr")
+  
+  ###.............. Sanving predictor variabels for XP2:XP7
+  # PA_SEP, PA_STK, SUIT_SEP, SUIT_SKT.
+  writeRaster(result[["pa_sep"]],   "./data/outputs/predictors/pa_sep.bil",   format = "EHdr")
+  writeRaster(result[["pa_stk"]],   "./data/outputs/predictors/pa_stk.bil",   format = "EHdr")
+  writeRaster(result[["suit_sep"]], "./data/outputs/predictors/suit_sep.bil", format = "EHdr")
+  writeRaster(result[["suit_stk"]], "./data/outputs/predictors/suit_stk.bil", format = "EHdr")
+
+  
+  ###.............. Saving evaluation data
+  #..... current
+  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP1", sp_namesXP1[i], "_TPR_current.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP1", sp_namesXP1[i], "_t_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP1", sp_namesXP1[i], "_d_current.txt"),   sep = "\t", row.names = F)
+  
+  #..... rcp26
+  write.table(result[["TPR_rcp26"]],       paste0("./data/outputs/XP1", sp_namesXP1[i], "_TPR_rcp26.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp26"]], paste0("./data/outputs/XP1", sp_namesXP1[i], "_t_rcp26.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp26"]], paste0("./data/outputs/XP1", sp_namesXP1[i], "_d_rcp26.txt"),   sep = "\t", row.names = F)
+  
+  #..... rcp45
+  write.table(result[["TPR_rcp45"]],       paste0("./data/outputs/XP1", sp_namesXP1[i], "_TPR_rcp45.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp45"]], paste0("./data/outputs/XP1", sp_namesXP1[i], "_t_rcp45.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp45"]], paste0("./data/outputs/XP1", sp_namesXP1[i], "_d_rcp45.txt"),   sep = "\t", row.names = F)
+  
+  #..... rcp60
+  write.table(result[["TPR_rcp60"]],       paste0("./data/outputs/XP1", sp_namesXP1[i], "_TPR_rcp60.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp60"]], paste0("./data/outputs/XP1", sp_namesXP1[i], "_t_rcp60.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp60"]], paste0("./data/outputs/XP1", sp_namesXP1[i], "_d_rcp60.txt"),   sep = "\t", row.names = F)
+  
+  #..... rcp85
+  write.table(result[["TPR_rcp85"]],       paste0("./data/outputs/XP1", sp_namesXP1[i], "_TPR_rcp85.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp85"]], paste0("./data/outputs/XP1", sp_namesXP1[i], "_t_rcp85.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp85"]], paste0("./data/outputs/XP1", sp_namesXP1[i], "_d_rcp85.txt"),   sep = "\t", row.names = F)
+}
+beep(8)
+# *************************************************************************************** 
+## 07. XP2                                          ----
+# Cenário	   Presente + Futuro - 4 RCPs
+# Preditora	 SEP/PA - Plantas XP1
+# Variáveis	 CLIMÁTICAS + SEP/PA -  (12 vars = 5  + 7 )
+# Resposta	 abelha
+# Output	   1 predição x 4 modelos preditivos
+# Resultado	 1 Ensemble
+
+occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
+sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
+sp <- gsub("C[1-9]","", sp$SPEC)
+sp_name <- unique(sp)
+sp_name
+for (i in 1:length(sp_name))
+{
+  ###.............. Running the modedelling experiment
+  result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_", sp_name[i], ".txt"),
+                          background       = paste0("./data/occurrences/back_", sp_name[i],".txt"),
+                          predictor        = "./data/outputs/predictors/",
                           biovar_current   = "./data/climatic_vars/selected/current/",
                           biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
                           biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
@@ -182,42 +276,351 @@ for (i in 1:length(sp_names))
                           cross_validation = 20)
   
   ###.............. Saving predictions
-  writeRaster(result[["output_current"]], paste0("./data/outputs/", sp_names[i],"_current.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/", sp_names[i],"_rcp26.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/", sp_names[i],"_rcp45.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/", sp_names[i],"_rcp60.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/", sp_names[i],"_rcp85.bil"), format = "EHdr")
+  writeRaster(result[["output_current"]], paste0("./data/outputs/XP2", sp_name[i],"_current.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP2", sp_name[i],"_rcp26.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP2", sp_name[i],"_rcp45.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP2", sp_name[i],"_rcp60.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP2", sp_name[i],"_rcp85.bil"), format = "EHdr")
   
   ###.............. Saving evaluation data
   #..... current
-  write.table(result[["TPR_c"]],       paste0("./data/outputs/", sp_names[i], "_TPR_current.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_c"]], paste0("./data/outputs/", sp_names[i], "_t_current.txt"),   sep = "\t", row.names = F)
-  write.table(result[["Pred_area_c"]], paste0("./data/outputs/", sp_names[i], "_d_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP2", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP2", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP2", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
   #..... rcp26
-  write.table(result[["TPR_rcp26"]],       paste0("./data/outputs/", sp_names[i], "_TPR_rcp26.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_rcp26"]], paste0("./data/outputs/", sp_names[i], "_t_rcp26.txt"),   sep = "\t", row.names = F)
-  write.table(result[["Pred_area_rcp26"]], paste0("./data/outputs/", sp_names[i], "_d_rcp26.txt"),   sep = "\t", row.names = F)
+  write.table(result[["TPR_rcp26"]],       paste0("./data/outputs/XP2", sp_name[i], "_TPR_rcp26.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp26"]], paste0("./data/outputs/XP2", sp_name[i], "_t_rcp26.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp26"]], paste0("./data/outputs/XP2", sp_name[i], "_d_rcp26.txt"),   sep = "\t", row.names = F)
   
   #..... rcp45
-  write.table(result[["TPR_rcp45"]],       paste0("./data/outputs/", sp_names[i], "_TPR_rcp45.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_rcp45"]], paste0("./data/outputs/", sp_names[i], "_t_rcp45.txt"),   sep = "\t", row.names = F)
-  write.table(result[["Pred_area_rcp45"]], paste0("./data/outputs/", sp_names[i], "_d_rcp45.txt"),   sep = "\t", row.names = F)
+  write.table(result[["TPR_rcp45"]],       paste0("./data/outputs/XP2", sp_name[i], "_TPR_rcp45.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp45"]], paste0("./data/outputs/XP2", sp_name[i], "_t_rcp45.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp45"]], paste0("./data/outputs/XP2", sp_name[i], "_d_rcp45.txt"),   sep = "\t", row.names = F)
   
   #..... rcp60
-  write.table(result[["TPR_rcp60"]],       paste0("./data/outputs/", sp_names[i], "_TPR_rcp60.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_rcp60"]], paste0("./data/outputs/", sp_names[i], "_t_rcp60.txt"),   sep = "\t", row.names = F)
-  write.table(result[["Pred_area_rcp60"]], paste0("./data/outputs/", sp_names[i], "_d_rcp60.txt"),   sep = "\t", row.names = F)
+  write.table(result[["TPR_rcp60"]],       paste0("./data/outputs/XP2", sp_name[i], "_TPR_rcp60.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp60"]], paste0("./data/outputs/XP2", sp_name[i], "_t_rcp60.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp60"]], paste0("./data/outputs/XP2", sp_name[i], "_d_rcp60.txt"),   sep = "\t", row.names = F)
   
   #..... rcp85
-  write.table(result[["TPR_rcp85"]],       paste0("./data/outputs/", sp_names[i], "_TPR_rcp85.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_rcp85"]], paste0("./data/outputs/", sp_names[i], "_t_rcp85.txt"),   sep = "\t", row.names = F)
-  write.table(result[["Pred_area_rcp85"]], paste0("./data/outputs/", sp_names[i], "_d_rcp85.txt"),   sep = "\t", row.names = F)
+  write.table(result[["TPR_rcp85"]],       paste0("./data/outputs/XP2", sp_name[i], "_TPR_rcp85.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp85"]], paste0("./data/outputs/XP2", sp_name[i], "_t_rcp85.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp85"]], paste0("./data/outputs/XP2", sp_name[i], "_d_rcp85.txt"),   sep = "\t", row.names = F)
 }
 beep(8)
-  
+
 # ***************************************************************************************
-## 07. Preparing analysis factors                   ----
+## 08. XP3                                          ----
+# Cenário	   Presente + Futuro - 4 RCPs
+# Preditora	 SEP/SUIT - Plantas XP1
+# Variáveis	 CLIMÁTICAS + SEP/SUIT -   (12 vars =  5  + 7 )
+# Occur	     abelha
+# Output	   1 predição x 4 modelos preditivos
+# Resultado	 1 Ensemble
+ 
+occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
+sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
+sp <- gsub("C[1-9]","", sp$SPEC)
+sp_name <- unique(sp)
+sp_name
+for (i in 1:length(sp_name))
+{
+  ###.............. Running the modedelling experiment
+  result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_", sp_name[i], ".txt"),
+                          background       = paste0("./data/occurrences/back_", sp_name[i],".txt"),
+                          predictor        = "./data/outputs/predictors/",
+                          biovar_current   = "./data/climatic_vars/selected/current/",
+                          biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
+                          biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
+                          biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
+                          biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
+                          cross_validation = 20)
+  
+  ###.............. Saving predictions
+  writeRaster(result[["output_current"]], paste0("./data/outputs/XP3", sp_name[i],"_current.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP3", sp_name[i],"_rcp26.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP3", sp_name[i],"_rcp45.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP3", sp_name[i],"_rcp60.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP3", sp_name[i],"_rcp85.bil"), format = "EHdr")
+  
+  ###.............. Saving evaluation data
+  #..... current
+  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP3", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP3", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP3", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
+  
+  #..... rcp26
+  write.table(result[["TPR_rcp26"]],       paste0("./data/outputs/XP3", sp_name[i], "_TPR_rcp26.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp26"]], paste0("./data/outputs/XP3", sp_name[i], "_t_rcp26.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp26"]], paste0("./data/outputs/XP3", sp_name[i], "_d_rcp26.txt"),   sep = "\t", row.names = F)
+  
+  #..... rcp45
+  write.table(result[["TPR_rcp45"]],       paste0("./data/outputs/XP3", sp_name[i], "_TPR_rcp45.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp45"]], paste0("./data/outputs/XP3", sp_name[i], "_t_rcp45.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp45"]], paste0("./data/outputs/XP3", sp_name[i], "_d_rcp45.txt"),   sep = "\t", row.names = F)
+  
+  #..... rcp60
+  write.table(result[["TPR_rcp60"]],       paste0("./data/outputs/XP3", sp_name[i], "_TPR_rcp60.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp60"]], paste0("./data/outputs/XP3", sp_name[i], "_t_rcp60.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp60"]], paste0("./data/outputs/XP3", sp_name[i], "_d_rcp60.txt"),   sep = "\t", row.names = F)
+  
+  #..... rcp85
+  write.table(result[["TPR_rcp85"]],       paste0("./data/outputs/XP3", sp_name[i], "_TPR_rcp85.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp85"]], paste0("./data/outputs/XP3", sp_name[i], "_t_rcp85.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp85"]], paste0("./data/outputs/XP3", sp_name[i], "_d_rcp85.txt"),   sep = "\t", row.names = F)
+}
+beep(8)
+
+# ***************************************************************************************
+## 09. XP4                                          ----
+# Cenário	   Presente + Futuro - 4 RCPs
+# Preditora	 STK/PA - Plantas XP1
+# Variáveis	 CLIMÁTICAS + STK****/PA -  (6 vars = 5  + 1 ) somatório dos mapas PA das plantas
+# Resposta   abelha
+# Output	   1 predição x 4 modelos preditivos
+# Resultado	 1 Ensemble
+
+occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
+sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
+sp <- gsub("C[1-9]","", sp$SPEC)
+sp_name <- unique(sp)
+sp_name
+for (i in 1:length(sp_name))
+{
+  ###.............. Running the modedelling experiment
+  result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_", sp_name[i], ".txt"),
+                          background       = paste0("./data/occurrences/back_", sp_name[i],".txt"),
+                          predictor        = "./data/outputs/predictors/",
+                          biovar_current   = "./data/climatic_vars/selected/current/",
+                          biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
+                          biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
+                          biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
+                          biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
+                          cross_validation = 20)
+  
+  ###.............. Saving predictions
+  writeRaster(result[["output_current"]], paste0("./data/outputs/XP4", sp_name[i],"_current.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP4", sp_name[i],"_rcp26.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP4", sp_name[i],"_rcp45.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP4", sp_name[i],"_rcp60.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP4", sp_name[i],"_rcp85.bil"), format = "EHdr")
+  
+  ###.............. Saving evaluation data
+  #..... current
+  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP4", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP4", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP4", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
+  
+  #..... rcp26
+  write.table(result[["TPR_rcp26"]],       paste0("./data/outputs/XP4", sp_name[i], "_TPR_rcp26.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp26"]], paste0("./data/outputs/XP4", sp_name[i], "_t_rcp26.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp26"]], paste0("./data/outputs/XP4", sp_name[i], "_d_rcp26.txt"),   sep = "\t", row.names = F)
+  
+  #..... rcp45
+  write.table(result[["TPR_rcp45"]],       paste0("./data/outputs/XP4", sp_name[i], "_TPR_rcp45.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp45"]], paste0("./data/outputs/XP4", sp_name[i], "_t_rcp45.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp45"]], paste0("./data/outputs/XP4", sp_name[i], "_d_rcp45.txt"),   sep = "\t", row.names = F)
+  
+  #..... rcp60
+  write.table(result[["TPR_rcp60"]],       paste0("./data/outputs/XP4", sp_name[i], "_TPR_rcp60.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp60"]], paste0("./data/outputs/XP4", sp_name[i], "_t_rcp60.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp60"]], paste0("./data/outputs/XP4", sp_name[i], "_d_rcp60.txt"),   sep = "\t", row.names = F)
+  
+  #..... rcp85
+  write.table(result[["TPR_rcp85"]],       paste0("./data/outputs/XP4", sp_name[i], "_TPR_rcp85.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp85"]], paste0("./data/outputs/XP4", sp_name[i], "_t_rcp85.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp85"]], paste0("./data/outputs/XP4", sp_name[i], "_d_rcp85.txt"),   sep = "\t", row.names = F)
+}
+beep(8)
+# ***************************************************************************************
+## 10. XP5                                          ----
+# Cenário	   Presente + Futuro - 4 RCPs
+# Preditora	 STK/SUIT - Plantas XP1
+# Variáveis	 CLIMÁTICAS + STK/SUIT - (6 vars = 5  +  1 ) *média  ou soma das suitabilities dos Ensenbles? Talvez fazer outro XP  para considerar ambos?
+# Resposta	 abelha
+# Output	   1 predição x 4 modelos preditivos
+# Resultado	 1 Ensemble
+
+occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
+sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
+sp <- gsub("C[1-9]","", sp$SPEC)
+sp_name <- unique(sp)
+sp_name
+for (i in 1:length(sp_name))
+{
+  ###.............. Running the modedelling experiment
+  result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_", sp_name[i], ".txt"),
+                          background       = paste0("./data/occurrences/back_", sp_name[i],".txt"),
+                          predictor        = "./data/outputs/predictors/",
+                          biovar_current   = "./data/climatic_vars/selected/current/",
+                          biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
+                          biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
+                          biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
+                          biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
+                          cross_validation = 20)
+  
+  ###.............. Saving predictions
+  writeRaster(result[["output_current"]], paste0("./data/outputs/XP5", sp_name[i],"_current.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP5", sp_name[i],"_rcp26.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP5", sp_name[i],"_rcp45.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP5", sp_name[i],"_rcp60.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP5", sp_name[i],"_rcp85.bil"), format = "EHdr")
+  
+  ###.............. Saving evaluation data
+  #..... current
+  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP5", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP5", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP5", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
+  
+  #..... rcp26
+  write.table(result[["TPR_rcp26"]],       paste0("./data/outputs/XP5", sp_name[i], "_TPR_rcp26.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp26"]], paste0("./data/outputs/XP5", sp_name[i], "_t_rcp26.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp26"]], paste0("./data/outputs/XP5", sp_name[i], "_d_rcp26.txt"),   sep = "\t", row.names = F)
+  
+  #..... rcp45
+  write.table(result[["TPR_rcp45"]],       paste0("./data/outputs/XP5", sp_name[i], "_TPR_rcp45.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp45"]], paste0("./data/outputs/XP5", sp_name[i], "_t_rcp45.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp45"]], paste0("./data/outputs/XP5", sp_name[i], "_d_rcp45.txt"),   sep = "\t", row.names = F)
+  
+  #..... rcp60
+  write.table(result[["TPR_rcp60"]],       paste0("./data/outputs/XP5", sp_name[i], "_TPR_rcp60.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp60"]], paste0("./data/outputs/XP5", sp_name[i], "_t_rcp60.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp60"]], paste0("./data/outputs/XP5", sp_name[i], "_d_rcp60.txt"),   sep = "\t", row.names = F)
+  
+  #..... rcp85
+  write.table(result[["TPR_rcp85"]],       paste0("./data/outputs/XP5", sp_name[i], "_TPR_rcp85.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp85"]], paste0("./data/outputs/XP5", sp_name[i], "_t_rcp85.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp85"]], paste0("./data/outputs/XP5", sp_name[i], "_d_rcp85.txt"),   sep = "\t", row.names = F)
+}
+beep(8)
+# ***************************************************************************************
+## 11. XP6                                          ----
+# Cenário	   Presente + Futuro - 4 RCPs
+# Preditora	 Recurso PA
+# Variáveis	 CLIMÁTICAS + Recurso PA ( 6 vars = 5 + 1 )
+# Resposta	 abelha
+# Output	   1 predição x 4 modelos preditivos
+# Resultado	 1 Ensemble
+
+occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
+sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
+sp <- gsub("C[1-9]","", sp$SPEC)
+sp_name <- unique(sp)
+sp_name
+for (i in 1:length(sp_name))
+{
+  ###.............. Running the modedelling experiment
+  result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_", sp_name[i], ".txt"),
+                          background       = paste0("./data/occurrences/back_", sp_name[i],".txt"),
+                          predictor        = "./data/outputs/predictors/",
+                          biovar_current   = "./data/climatic_vars/selected/current/",
+                          biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
+                          biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
+                          biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
+                          biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
+                          cross_validation = 20)
+  
+  ###.............. Saving predictions
+  writeRaster(result[["output_current"]], paste0("./data/outputs/XP6", sp_name[i],"_current.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP6", sp_name[i],"_rcp26.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP6", sp_name[i],"_rcp45.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP6", sp_name[i],"_rcp60.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP6", sp_name[i],"_rcp85.bil"), format = "EHdr")
+  
+  ###.............. Saving evaluation data
+  #..... current
+  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP6", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP6", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP6", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
+  
+  #..... rcp26
+  write.table(result[["TPR_rcp26"]],       paste0("./data/outputs/XP6", sp_name[i], "_TPR_rcp26.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp26"]], paste0("./data/outputs/XP6", sp_name[i], "_t_rcp26.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp26"]], paste0("./data/outputs/XP6", sp_name[i], "_d_rcp26.txt"),   sep = "\t", row.names = F)
+  
+  #..... rcp45
+  write.table(result[["TPR_rcp45"]],       paste0("./data/outputs/XP6", sp_name[i], "_TPR_rcp45.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp45"]], paste0("./data/outputs/XP6", sp_name[i], "_t_rcp45.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp45"]], paste0("./data/outputs/XP6", sp_name[i], "_d_rcp45.txt"),   sep = "\t", row.names = F)
+  
+  #..... rcp60
+  write.table(result[["TPR_rcp60"]],       paste0("./data/outputs/XP6", sp_name[i], "_TPR_rcp60.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp60"]], paste0("./data/outputs/XP6", sp_name[i], "_t_rcp60.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp60"]], paste0("./data/outputs/XP6", sp_name[i], "_d_rcp60.txt"),   sep = "\t", row.names = F)
+  
+  #..... rcp85
+  write.table(result[["TPR_rcp85"]],       paste0("./data/outputs/XP6", sp_name[i], "_TPR_rcp85.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp85"]], paste0("./data/outputs/XP6", sp_name[i], "_t_rcp85.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp85"]], paste0("./data/outputs/XP6", sp_name[i], "_d_rcp85.txt"),   sep = "\t", row.names = F)
+}
+beep(8)
+
+# ***************************************************************************************
+## 12. XP7                                          ----
+# Cenário	   Presente + Futuro - 4 RCPs
+# Preditora	 Recurso SUIT
+# Variáveis	 CLIMÁTICAS + Recurso SUIT ( 6 vars = 5 + 1 )
+# Resposta	 abelha
+# Output	   1 predição x 4 modelos preditivos
+# Resultado	 1 Ensemble
+
+occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
+sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
+sp <- gsub("C[1-9]","", sp$SPEC)
+sp_name <- unique(sp)
+sp_name
+for (i in 1:length(sp_name))
+{
+  ###.............. Running the modedelling experiment
+  result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_", sp_name[i], ".txt"),
+                          background       = paste0("./data/occurrences/back_", sp_name[i],".txt"),
+                          predictor        = "./data/outputs/predictors/",
+                          biovar_current   = "./data/climatic_vars/selected/current/",
+                          biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
+                          biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
+                          biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
+                          biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
+                          cross_validation = 20)
+  
+  ###.............. Saving predictions
+  writeRaster(result[["output_current"]], paste0("./data/outputs/XP7", sp_name[i],"_current.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP7", sp_name[i],"_rcp26.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP7", sp_name[i],"_rcp45.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP7", sp_name[i],"_rcp60.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP7", sp_name[i],"_rcp85.bil"), format = "EHdr")
+  
+  ###.............. Saving evaluation data
+  #..... current
+  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP7", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP7", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP7", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
+  
+  #..... rcp26
+  write.table(result[["TPR_rcp26"]],       paste0("./data/outputs/XP7", sp_name[i], "_TPR_rcp26.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp26"]], paste0("./data/outputs/XP7", sp_name[i], "_t_rcp26.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp26"]], paste0("./data/outputs/XP7", sp_name[i], "_d_rcp26.txt"),   sep = "\t", row.names = F)
+  
+  #..... rcp45
+  write.table(result[["TPR_rcp45"]],       paste0("./data/outputs/XP7", sp_name[i], "_TPR_rcp45.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp45"]], paste0("./data/outputs/XP7", sp_name[i], "_t_rcp45.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp45"]], paste0("./data/outputs/XP7", sp_name[i], "_d_rcp45.txt"),   sep = "\t", row.names = F)
+  
+  #..... rcp60
+  write.table(result[["TPR_rcp60"]],       paste0("./data/outputs/XP7", sp_name[i], "_TPR_rcp60.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp60"]], paste0("./data/outputs/XP7", sp_name[i], "_t_rcp60.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp60"]], paste0("./data/outputs/XP7", sp_name[i], "_d_rcp60.txt"),   sep = "\t", row.names = F)
+  
+  #..... rcp85
+  write.table(result[["TPR_rcp85"]],       paste0("./data/outputs/XP7", sp_name[i], "_TPR_rcp85.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_rcp85"]], paste0("./data/outputs/XP7", sp_name[i], "_t_rcp85.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_rcp85"]], paste0("./data/outputs/XP7", sp_name[i], "_d_rcp85.txt"),   sep = "\t", row.names = F)
+}
+beep(8)
+
+
+# ***************************************************************************************
+## 14. Preparing analysis factors                   ----
 
 back <- list.files("./data/occurrences/", pattern = "back", full.names = TRUE)
 back <- bind_rows(lapply(back, fread))
@@ -272,7 +675,7 @@ sp_names[8]
 d_sp8  <- all_d[[8]]
 
 # ***************************************************************************************
-## 08. Ensemble                                     ----
+## 15. Ensemble                                     ----
 
 
 
@@ -280,7 +683,7 @@ d_sp8  <- all_d[[8]]
 
 
 # ***************************************************************************************
-## 09. Uncertainty Evaluation                       ----
+## 16. Uncertainty Evaluation                       ----
 
 all_huberi <- stack(huberi_c, huberi_rcp26, huberi_rcp45, huberi_rcp60, huberi_rcp85)
 TPR_huberi <- TPR_h[which(TPR_h)]
