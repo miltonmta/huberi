@@ -5,6 +5,7 @@ multiple_ENMs <- function(occurrence,
                           biovar_rcp45,
                           biovar_rcp60,
                           biovar_rcp85 ,
+                          # var_soil, # only for plants
                           cross_validation)
 {
   
