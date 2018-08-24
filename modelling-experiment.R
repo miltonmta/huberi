@@ -306,7 +306,7 @@ writeRaster(result[["suit_stk"]], "./data/outputs/predictors/suit_stk.bil", form
 # *************************************************************************************** 
 ## 07. XP2                                          ----
 # Scenario	         Present + Future - 4 RCPs
-# Biotic Predictor	 SEP/PA - Plants XP1
+# Biotic Predictor	 SEP/PA - Plants XP1.2
 # Variables       	 abiotic + SEP/PA -  (12 vars = 5  + 7 )
 # Input           	 bee
 # Output	           input x 4 predictive models
@@ -348,7 +348,7 @@ beep(8)
 # ***************************************************************************************
 ## 08. XP3                                          ----
 # Scenario	         Present + Future - 4 RCPs
-# Biotic Predictor	 SEP/SUIT - Plants XP1
+# Biotic Predictor	 SEP/SUIT - Plants XP1.2
 # Variables       	 abiotic + SEP/SUIT -  (12 vars = 5  + 7 )
 # Input           	 bee
 # Output	           input x 4 predictive models
@@ -390,7 +390,7 @@ beep(8)
 # ***************************************************************************************
 ## 09. XP4                                          ----
 # Scenario	         Present + Future - 4 RCPs
-# Biotic Predictor	 STK/PA - Plants XP1
+# Biotic Predictor	 STK/PA - Plants XP1.2
 # Variables       	 abiotic + STK/PA -  (6 vars = 5  + 1 )
 # Input           	 bee
 # Output	           input x 4 predictive models
@@ -431,7 +431,7 @@ beep(8)
 # ***************************************************************************************
 ## 10. XP5                                          ----
 # Scenario	         Present + Future - 4 RCPs
-# Biotic Predictor	 STK/SUIT - Plants XP1
+# Biotic Predictor	 STK/SUIT - Plants XP1.2
 # Variables       	 abiotic + STK/SUIT -  (6 vars = 5  + 1 )
 # Input           	 bee
 # Output	           input x 4 predictive models
@@ -472,7 +472,7 @@ beep(8)
 # ***************************************************************************************
 ## 11. XP6                                          ----
 # Scenario	         Present + Future - 4 RCPs
-# Biotic Predictor	 Resource PA - Plants XP1
+# Biotic Predictor	 Resource PA - Plants XP1.2
 # Variables       	 abiotic + Resource PA -  (6 vars = 5  + 1 )
 # Input           	 bee
 # Output	           input x 4 predictive models
@@ -514,7 +514,7 @@ beep(8)
 # ***************************************************************************************
 ## 12. XP7                                          ----
 # Scenario	         Present + Future - 4 RCPs
-# Biotic Predictor	 Resource SUIT - Plants XP1
+# Biotic Predictor	 Resource SUIT - Plants XP1.2
 # Variables       	 abiotic + resource SUIT -  (6 vars = 5  + 1 )
 # Input           	 bee
 # Output	           input x 4 predictive models
@@ -555,6 +555,17 @@ beep(8)
 
 
 # ***************************************************************************************
+## 13. Selecting XP from XP2:XP7                    ----
+
+# AVALIAÇAO DA REPRESENTATIVIDADE	
+# Anova de Medidas Repetidas (mesmos subconjuntos de XP2 a XP7)	
+# 1	
+# preditor: adequabilidade ponderada XP2:XP7	
+# resposta: huberi (mesma resposta dividida nos mesmos subgrupos %treino/%teste no 6 XPs)	
+# 2	
+# preditor: tamanho de range  XP2:XP7	
+# resposta: huberi	
+
 ## 14. Preparing analysis factors                   ----
 
 back <- list.files("./data/occurrences/", pattern = "back", full.names = TRUE)
