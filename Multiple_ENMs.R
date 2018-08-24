@@ -1,11 +1,11 @@
 multiple_ENMs <- function(occurrence, 
                           background, 
+                          predictor, # soil vars for XP1.2 and biotic variables from XP1.2
                           biovar_current,
                           biovar_rcp26,
                           biovar_rcp45,
                           biovar_rcp60,
-                          biovar_rcp85 ,
-                          # var_soil, # only for plants
+                          biovar_rcp85,
                           cross_validation)
 {
   
