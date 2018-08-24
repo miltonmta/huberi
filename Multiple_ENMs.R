@@ -26,33 +26,10 @@ multiple_ENMs <- function(occurrence,
   bioclim_rcp60 <- gower_rcp60 <- maxent_rcp60 <- SVM_rcp60 <- stack()
   bioclim_rcp85 <- gower_rcp85 <- maxent_rcp85 <- SVM_rcp85 <- stack()
   
-  
   ## Evaluation
-  # present
   bioclim_e <- gower_e <- maxent_e <- SVM_e <- NULL # True presence rate (TPR)
   bioclim_t <- gower_t <- maxent_t <- SVM_t <- NULL # The highest threshold at which there is no omission
   bioclim_d <- gower_d <- maxent_d <- SVM_d <- NULL # Area predicted as presence
-  
-  # rcp26
-  bioclim_e_rcp26 <- gower_e_rcp26 <- maxent_e_rcp26 <- SVM_e_rcp26 <- NULL 
-  bioclim_t_rcp26 <- gower_t_rcp26 <- maxent_t_rcp26 <- SVM_t_rcp26 <- NULL 
-  bioclim_d_rcp26 <- gower_d_rcp26 <- maxent_d_rcp26 <- SVM_d_rcp26 <- NULL 
-  
-  # rcp45
-  bioclim_e_rcp45 <- gower_e_rcp45 <- maxent_e_rcp45 <- SVM_e_rcp45 <- NULL 
-  bioclim_t_rcp45 <- gower_t_rcp45 <- maxent_t_rcp45 <- SVM_t_rcp45 <- NULL 
-  bioclim_d_rcp45 <- gower_d_rcp45 <- maxent_d_rcp45 <- SVM_d_rcp45 <- NULL 
-  
-  # rcp60
-  bioclim_e_rcp60 <- gower_e_rcp60 <- maxent_e_rcp60 <- SVM_e_rcp60 <- NULL 
-  bioclim_t_rcp60 <- gower_t_rcp60 <- maxent_t_rcp60 <- SVM_t_rcp60 <- NULL 
-  bioclim_d_rcp60 <- gower_d_rcp60 <- maxent_d_rcp60 <- SVM_d_rcp60 <- NULL 
-  
-  # rcp85
-  bioclim_e_rcp85 <- gower_e_rcp85 <- maxent_e_rcp85 <- SVM_e_rcp85 <- NULL 
-  bioclim_t_rcp85 <- gower_t_rcp85 <- maxent_t_rcp85 <- SVM_t_rcp85 <- NULL 
-  bioclim_d_rcp85 <- gower_d_rcp85 <- maxent_d_rcp85 <- SVM_d_rcp85 <- NULL 
-  
   
   ## Partial results
   bioclim_Pout_c <- gower_Pout_c <- maxent_Pout_c <- SVM_Pout_c <- NULL
@@ -88,14 +65,15 @@ multiple_ENMs <- function(occurrence,
     bioclim_eval <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = bioclim_model)
     
     ## Saving evaluation metrics
-    thr <- threshold(bioclim_eval, "no_omission") 
-    TPR <- bioclim_eval@TPR[which( bioclim_eval@t == thr)]
+    # thr <- threshold(bioclim_eval, "no_omission")
+    thr <- quantile(extract(bioclim_c[[j]], occur[,1:2]), 0.05) 
+    TPR <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = bioclim_model, tr = thr)@TPR
     n_cells <- nrow(na.omit(values(current))) 
     pi <- sum(values(bioclim_c >= thr), na.rm = T) / n_cells # predicted area proportion.
     
     bioclim_e <- c(bioclim_e, TPR)
     bioclim_t <- c(bioclim_t, thr) 
-    bioclim_d <- TPR * (1 - pi)
+    bioclim_d <- c(bioclim_d, TPR * (1 - pi))
     
     
     ### Gower -------------------------------------------------------------------------------
@@ -110,14 +88,14 @@ multiple_ENMs <- function(occurrence,
     gower_eval <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = gower_model)
     
     ## Saving evaluation metrics
-    thr <- threshold(gower_eval, "no_omission")
-    TPR <- gower_eval@TPR[which( gower_eval@t == thr)]
+    thr <- quantile(extract(gower_c[[j]], occur[,1:2]), 0.05) 
+    TPR <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = gower_model, tr = thr)@TPR
     n_cells <- nrow(na.omit(values(current))) 
     pi <- sum(values(gower_c >= thr), na.rm = T) / n_cells
     
     gower_e <- c(gower_e, TPR)
     gower_t <- c(gower_t, thr)
-    gower_d <- TPR * (1 - pi)
+    gower_d <- c(gower_d, TPR * (1 - pi))
     
     
     ### Maxent -------------------------------------------------------------------------------
@@ -133,14 +111,14 @@ multiple_ENMs <- function(occurrence,
     maxent_eval <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = maxent_model, tr = 0.5414856)
     
     ## Saving evaluation metrics
-    thr <- threshold(maxent_eval, "no_omission")
-    TPR <- maxent_eval@TPR[which( maxent_eval@t == thr)]
+    thr <- quantile(extract(maxent_c[[j]], occur[,1:2]), 0.05) 
+    TPR <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = maxent_model, tr = thr)@TPR
     n_cells <- nrow(na.omit(values(current))) 
     pi <- sum(values(maxent_c >= thr), na.rm = T) / n_cells
     
     maxent_e <- c(maxent_e, TPR) 
     maxent_t <- c(maxent_t, thr)
-    maxent_d <- TPR * (1 - pi)
+    maxent_d <- c(maxent_d, TPR * (1 - pi))
     
     
     ### SVM ----------------------------------------------------------------------------------
@@ -155,24 +133,17 @@ multiple_ENMs <- function(occurrence,
     SVM_eval <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = SVM_model, tr = 0.5566005)
     
     ## Saving evaluation metrics
-    thr <- threshold(SVM_eval, "no_omission")
-    TPR <- SVM_eval@TPR[which( SVM_eval@t == thr)]
+    thr <- quantile(extract(SVM_c[[j]], occur[,1:2]), 0.05) 
+    TPR <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = SVM_model, tr = thr)@TPR
     n_cells <- nrow(na.omit(values(current))) 
     pi <- sum(values(SVM_c >= thr), na.rm = T) / n_cells
     
     SVM_e <- c(SVM_e, TPR)
     SVM_t <- c(SVM_t, thr)
-    SVM_d <- TPR * (1 - pi)
+    SVM_d <- c(SVM_d, TPR * (1 - pi))
     
     
     # ***************************************************************************************
-    ###.............. Saving partial outputs for current model 
-    
-    bioclim_Pout_c <- cbind(bioclim_Pout_c, values(bioclim_c))
-    gower_Pout_c   <- cbind(gower_Pout_c,   values(gower_c))
-    maxent_Pout_c  <- cbind(maxent_Pout_c,  values(maxent_c))
-    SVM_Pout_c     <- cbind(SVM_Pout_c,     values(SVM_c))
-    
     
     ###.............. Making predictions for the RCPs
     
@@ -222,162 +193,6 @@ multiple_ENMs <- function(occurrence,
       SVM_rcp60     <- stack(SVM_rcp60,     predict(model = SVM_model, object = rcp60))
       SVM_rcp85     <- stack(SVM_rcp85,     predict(model = SVM_model, object = rcp85))
       
-      ### Salving evaluation metrics
-      ###.............. bioclim
-      
-      thr <- threshold(bioclim_eval, "no_omission")
-      TPR <- bioclim_eval@TPR[which( bioclim_eval@t == thr)]
-      
-      ### rcp26
-      n_cells <- nrow(na.omit(values(rcp26))) 
-      pi <- sum(values(bioclim_rcp26 >= thr), na.rm = T) / n_cells
-      bioclim_e_rcp26 <- c(bioclim_e, TPR)
-      bioclim_t_rcp26 <- c(bioclim_t, thr)
-      bioclim_d_rcp26 <- TPR * (1 - pi)
-      
-      ### rcp45
-      n_cells <- nrow(na.omit(values(rcp45))) 
-      pi <- sum(values(bioclim_rcp45 >= thr), na.rm = T) / n_cells
-      bioclim_e_rcp45 <- c(bioclim_e, TPR)
-      bioclim_t_rcp45 <- c(bioclim_t, thr)
-      bioclim_d_rcp45 <- TPR * (1 - pi)
-      
-      ### rcp60
-      n_cells <- nrow(na.omit(values(rcp60))) 
-      pi <- sum(values(bioclim_rcp60 >= thr), na.rm = T) / n_cells
-      bioclim_e_rcp60 <- c(bioclim_e, TPR)
-      bioclim_t_rcp60 <- c(bioclim_t, thr)
-      bioclim_d_rcp60 <- TPR * (1 - pi)
-      
-      ### rcp85
-      n_cells <- nrow(na.omit(values(rcp85))) 
-      pi <- sum(values(bioclim_rcp85 >= thr), na.rm = T) / n_cells
-      bioclim_e_rcp85 <- c(bioclim_e, TPR)
-      bioclim_t_rcp85 <- c(bioclim_t, thr)
-      bioclim_d_rcp85 <- TPR * (1 - pi)
-      
-      ###.............. gower
-      
-      thr <- threshold(gower_eval, "no_omission")
-      TPR <- gower_eval@TPR[which( gower_eval@t == thr)]
-      
-      ### rcp26
-      n_cells <- nrow(na.omit(values(rcp26))) 
-      pi <- sum(values(gower_rcp26 >= thr), na.rm = T) / n_cells
-      gower_e_rcp26 <- c(gower_e, TPR)
-      gower_t_rcp26 <- c(gower_t, thr)
-      gower_d_rcp26 <- TPR * (1 - pi)
-      
-      ### rcp45
-      n_cells <- nrow(na.omit(values(rcp45))) 
-      pi <- sum(values(gower_rcp45 >= thr), na.rm = T) / n_cells
-      gower_e_rcp45 <- c(gower_e, TPR)
-      gower_t_rcp45 <- c(gower_t, thr)
-      gower_d_rcp45 <- TPR * (1 - pi)
-      
-      ### rcp60
-      n_cells <- nrow(na.omit(values(rcp60))) 
-      pi <- sum(values(gower_rcp60 >= thr), na.rm = T) / n_cells
-      gower_e_rcp60 <- c(gower_e, TPR)
-      gower_t_rcp60 <- c(gower_t, thr)
-      gower_d_rcp60 <- TPR * (1 - pi)
-      
-      ### rcp85
-      n_cells <- nrow(na.omit(values(rcp85))) 
-      pi <- sum(values(gower_rcp85 >= thr), na.rm = T) / n_cells
-      gower_e_rcp85 <- c(gower_e, TPR)
-      gower_t_rcp85 <- c(gower_t, thr)
-      gower_d_rcp85 <- TPR * (1 - pi)
-      
-      ###.............. maxent
-      
-      thr <- threshold(maxent_eval, "no_omission")
-      TPR <- maxent_eval@TPR[which( maxent_eval@t == thr)]
-      
-      ### rcp26
-      n_cells <- nrow(na.omit(values(rcp26))) 
-      pi <- sum(values(maxent_rcp26 >= thr), na.rm = T) / n_cells
-      maxent_e_rcp26 <- c(maxent_e, TPR)
-      maxent_t_rcp26 <- c(maxent_t, thr)
-      maxent_d_rcp26 <- TPR * (1 - pi)
-      
-      ### rcp45
-      n_cells <- nrow(na.omit(values(rcp45))) 
-      pi <- sum(values(maxent_rcp45 >= thr), na.rm = T) / n_cells
-      maxent_e_rcp45 <- c(maxent_e, TPR)
-      maxent_t_rcp45 <- c(maxent_t, thr)
-      maxent_d_rcp45 <- TPR * (1 - pi)
-      
-      ### rcp60
-      n_cells <- nrow(na.omit(values(rcp60))) 
-      pi <- sum(values(maxent_rcp60 >= thr), na.rm = T) / n_cells
-      maxent_e_rcp60 <- c(maxent_e, TPR)
-      maxent_t_rcp60 <- c(maxent_t, thr)
-      maxent_d_rcp60 <- TPR * (1 - pi)
-      
-      ### rcp85
-      n_cells <- nrow(na.omit(values(rcp85))) 
-      pi <- sum(values(maxent_rcp85 >= thr), na.rm = T) / n_cells
-      maxent_e_rcp85 <- c(maxent_e, TPR)
-      maxent_t_rcp85 <- c(maxent_t, thr)
-      maxent_d_rcp85 <- TPR * (1 - pi)
-      
-      ###.............. SVM
-      
-      thr <- threshold(SVM_eval, "no_omission")
-      TPR <- SVM_eval@TPR[which( SVM_eval@t == thr)]
-      
-      ### rcp26
-      n_cells <- nrow(na.omit(values(rcp26))) 
-      pi <- sum(values(SVM_rcp26 >= thr), na.rm = T) / n_cells
-      SVM_e_rcp26 <- c(SVM_e, TPR)
-      SVM_t_rcp26 <- c(SVM_t, thr)
-      SVM_d_rcp26 <- TPR * (1 - pi)
-      
-      ### rcp45
-      n_cells <- nrow(na.omit(values(rcp45))) 
-      pi <- sum(values(SVM_rcp45 >= thr), na.rm = T) / n_cells
-      SVM_e_rcp45 <- c(SVM_e, TPR)
-      SVM_t_rcp45 <- c(SVM_t, thr)
-      SVM_d_rcp45 <- TPR * (1 - pi)
-      
-      ### rcp60
-      n_cells <- nrow(na.omit(values(rcp60))) 
-      pi <- sum(values(SVM_rcp60 >= thr), na.rm = T) / n_cells
-      SVM_e_rcp60 <- c(SVM_e, TPR)
-      SVM_t_rcp60 <- c(SVM_t, thr)
-      SVM_d_rcp60 <- TPR * (1 - pi)
-      
-      ### rcp85
-      n_cells <- nrow(na.omit(values(rcp85))) 
-      pi <- sum(values(SVM_rcp85 >= thr), na.rm = T) / n_cells
-      SVM_e_rcp85 <- c(SVM_e, TPR)
-      SVM_t_rcp85 <- c(SVM_t, thr)
-      SVM_d_rcp85 <- TPR * (1 - pi)
-      
-      
-      ### Saving partial outputs for the RCPs
-      
-      bioclim_Pout_rcp26 <- cbind(bioclim_Pout_rcp26, values(bioclim_rcp26))
-      bioclim_Pout_rcp45 <- cbind(bioclim_Pout_rcp45, values(bioclim_rcp45))
-      bioclim_Pout_rcp60 <- cbind(bioclim_Pout_rcp60, values(bioclim_rcp60))
-      bioclim_Pout_rcp85 <- cbind(bioclim_Pout_rcp85, values(bioclim_rcp85))
-      
-      gower_Pout_rcp26   <- cbind(gower_Pout_rcp26,   values(gower_rcp26))
-      gower_Pout_rcp45   <- cbind(gower_Pout_rcp45,   values(gower_rcp45))
-      gower_Pout_rcp60   <- cbind(gower_Pout_rcp60,   values(gower_rcp60))
-      gower_Pout_rcp85   <- cbind(gower_Pout_rcp85,   values(gower_rcp85))
-      
-      maxent_Pout_rcp26  <- cbind(maxent_Pout_rcp26,  values(maxent_rcp26))
-      maxent_Pout_rcp45  <- cbind(maxent_Pout_rcp45,  values(maxent_rcp45))
-      maxent_Pout_rcp60  <- cbind(maxent_Pout_rcp60,  values(maxent_rcp60))
-      maxent_Pout_rcp85  <- cbind(maxent_Pout_rcp85,  values(maxent_rcp85))
-      
-      SVM_Pout_rcp45     <- cbind(SVM_Pout_rcp45,     values(SVM_rcp45))
-      SVM_Pout_rcp26     <- cbind(SVM_Pout_rcp26,     values(SVM_rcp26))
-      SVM_Pout_rcp60     <- cbind(SVM_Pout_rcp60,     values(SVM_rcp60))
-      SVM_Pout_rcp85     <- cbind(SVM_Pout_rcp85,     values(SVM_rcp85))
-      
       # CLOSE "i" ----
       # AOGCMs
     }
@@ -386,30 +201,56 @@ multiple_ENMs <- function(occurrence,
     # cross-validation
   } 
   
+  ###..............  Saving partial outputs
+  bioclim_Pout_c <- na.omit(values(bioclim_c))
+  gower_Pout_c   <- na.omit(values(gower_c))
+  maxent_Pout_c  <- na.omit(values(maxent_c))
+  SVM_Pout_c     <- na.omit(values(SVM_c))
+  
+  bioclim_Pout_rcp26 <- na.omit(values(bioclim_rcp26))
+  bioclim_Pout_rcp45 <- na.omit(values(bioclim_rcp45))
+  bioclim_Pout_rcp60 <- na.omit(values(bioclim_rcp60))
+  bioclim_Pout_rcp85 <- na.omit(values(bioclim_rcp85))
+  
+  gower_Pout_rcp26   <- na.omit(values(gower_rcp26))
+  gower_Pout_rcp45   <- na.omit(values(gower_rcp45))
+  gower_Pout_rcp60   <- na.omit(values(gower_rcp60))
+  gower_Pout_rcp85   <- na.omit(values(gower_rcp85))
+  
+  maxent_Pout_rcp26  <- na.omit(values(maxent_rcp26))
+  maxent_Pout_rcp45  <- na.omit(values(maxent_rcp45))
+  maxent_Pout_rcp60  <- na.omit(values(maxent_rcp60))
+  maxent_Pout_rcp85  <- na.omit(values(maxent_rcp85))
+  
+  SVM_Pout_rcp45     <- na.omit(values(SVM_rcp45))
+  SVM_Pout_rcp26     <- na.omit(values(SVM_rcp26))
+  SVM_Pout_rcp60     <- na.omit(values(SVM_rcp60))
+  SVM_Pout_rcp85     <- na.omit(values(SVM_rcp85))
+  
   ###.............. Calculating mean of partial models outputs
-  bioclim_Pout_c_mean     <- apply(bioclim_Pout_c,     1, mean)
-  bioclim_Pout_rcp26_mean <- apply(bioclim_Pout_rcp26, 1, mean)
-  bioclim_Pout_rcp45_mean <- apply(bioclim_Pout_rcp45, 1, mean)
-  bioclim_Pout_rcp60_mean <- apply(bioclim_Pout_rcp60, 1, mean)
-  bioclim_Pout_rcp85_mean <- apply(bioclim_Pout_rcp85, 1, mean)
+  bioclim_Pout_c_mean     <- apply(bioclim_Pout_c,     1, function(x) sum(x*bioclim_d)/sum(bioclim_d))
+  bioclim_Pout_rcp26_mean <- apply(bioclim_Pout_rcp26, 1, function(x) sum(x*rep(bioclim_d, length(AOGCMs)))/sum(rep(bioclim_d, length(AOGCMs))))
+  bioclim_Pout_rcp45_mean <- apply(bioclim_Pout_rcp45, 1, function(x) sum(x*rep(bioclim_d, length(AOGCMs)))/sum(rep(bioclim_d, length(AOGCMs))))
+  bioclim_Pout_rcp60_mean <- apply(bioclim_Pout_rcp60, 1, function(x) sum(x*rep(bioclim_d, length(AOGCMs)))/sum(rep(bioclim_d, length(AOGCMs))))
+  bioclim_Pout_rcp85_mean <- apply(bioclim_Pout_rcp85, 1, function(x) sum(x*rep(bioclim_d, length(AOGCMs)))/sum(rep(bioclim_d, length(AOGCMs))))
   
-  gower_Pout_c_mean       <- apply(gower_Pout_c,     1, mean)
-  gower_Pout_rcp26_mean   <- apply(gower_Pout_rcp26, 1, mean)
-  gower_Pout_rcp45_mean   <- apply(gower_Pout_rcp45, 1, mean)
-  gower_Pout_rcp60_mean   <- apply(gower_Pout_rcp60, 1, mean)
-  gower_Pout_rcp85_mean   <- apply(gower_Pout_rcp85, 1, mean)
+  gower_Pout_c_mean       <- apply(gower_Pout_c,     1, function(x) sum(x*gower_d)/sum(gower_d))
+  gower_Pout_rcp26_mean   <- apply(gower_Pout_rcp26, 1, function(x) sum(x*rep(gower_d, length(AOGCMs)))/sum(rep(gower_d, length(AOGCMs))))
+  gower_Pout_rcp45_mean   <- apply(gower_Pout_rcp45, 1, function(x) sum(x*rep(gower_d, length(AOGCMs)))/sum(rep(gower_d, length(AOGCMs))))
+  gower_Pout_rcp60_mean   <- apply(gower_Pout_rcp60, 1, function(x) sum(x*rep(gower_d, length(AOGCMs)))/sum(rep(gower_d, length(AOGCMs))))
+  gower_Pout_rcp85_mean   <- apply(gower_Pout_rcp85, 1, function(x) sum(x*rep(gower_d, length(AOGCMs)))/sum(rep(gower_d, length(AOGCMs))))
   
-  maxent_Pout_c_mean      <- apply(maxent_Pout_c,     1, mean)
-  maxent_Pout_rcp26_mean  <- apply(maxent_Pout_rcp26, 1, mean)
-  maxent_Pout_rcp45_mean  <- apply(maxent_Pout_rcp45, 1, mean)
-  maxent_Pout_rcp60_mean  <- apply(maxent_Pout_rcp60, 1, mean)
-  maxent_Pout_rcp85_mean  <- apply(maxent_Pout_rcp85, 1, mean)
+  maxent_Pout_c_mean     <- apply(maxent_Pout_c,     1, function(x) sum(x*maxent_d)/sum(maxent_d))
+  maxent_Pout_rcp26_mean <- apply(maxent_Pout_rcp26, 1, function(x) sum(x*rep(maxent_d, length(AOGCMs)))/sum(rep(maxent_d, length(AOGCMs))))
+  maxent_Pout_rcp45_mean <- apply(maxent_Pout_rcp45, 1, function(x) sum(x*rep(maxent_d, length(AOGCMs)))/sum(rep(maxent_d, length(AOGCMs))))
+  maxent_Pout_rcp60_mean <- apply(maxent_Pout_rcp60, 1, function(x) sum(x*rep(maxent_d, length(AOGCMs)))/sum(rep(maxent_d, length(AOGCMs))))
+  maxent_Pout_rcp85_mean <- apply(maxent_Pout_rcp85, 1, function(x) sum(x*rep(maxent_d, length(AOGCMs)))/sum(rep(maxent_d, length(AOGCMs))))
   
-  SVM_Pout_c_mean         <- apply(SVM_Pout_c,     1, mean)
-  SVM_Pout_rcp26_mean     <- apply(SVM_Pout_rcp26, 1, mean)
-  SVM_Pout_rcp45_mean     <- apply(SVM_Pout_rcp45, 1, mean)
-  SVM_Pout_rcp60_mean     <- apply(SVM_Pout_rcp60, 1, mean)
-  SVM_Pout_rcp85_mean     <- apply(SVM_Pout_rcp85, 1, mean)
+  SVM_Pout_c_mean     <- apply(SVM_Pout_c,     1, function(x) sum(x*SVM_d)/sum(SVM_d))
+  SVM_Pout_rcp26_mean <- apply(SVM_Pout_rcp26, 1, function(x) sum(x*rep(SVM_d, length(AOGCMs)))/sum(rep(SVM_d, length(AOGCMs))))
+  SVM_Pout_rcp45_mean <- apply(SVM_Pout_rcp45, 1, function(x) sum(x*rep(SVM_d, length(AOGCMs)))/sum(rep(SVM_d, length(AOGCMs))))
+  SVM_Pout_rcp60_mean <- apply(SVM_Pout_rcp60, 1, function(x) sum(x*rep(SVM_d, length(AOGCMs)))/sum(rep(SVM_d, length(AOGCMs))))
+  SVM_Pout_rcp85_mean <- apply(SVM_Pout_rcp85, 1, function(x) sum(x*rep(SVM_d, length(AOGCMs)))/sum(rep(SVM_d, length(AOGCMs))))
   
   
   ###.............. Saving data into the output objects
@@ -434,34 +275,10 @@ multiple_ENMs <- function(occurrence,
   output_rcp85   <- cbind(coords,output_rcp85)
   
   
-  ###.............. Excluding NAs from outputs 
-  output_current <- na.omit(output_current)
-  output_rcp26   <- na.omit(output_rcp26)
-  output_rcp45   <- na.omit(output_rcp45)
-  output_rcp60   <- na.omit(output_rcp60)
-  output_rcp85   <- na.omit(output_rcp85)
-  
-  
   ###.............. Evaluation data
   models_e <- data.frame(bioclim = bioclim_e, gower = gower_e, maxent = maxent_e, SVM = SVM_e)
   models_t <- data.frame(bioclim = bioclim_t, gower = gower_t, maxent = maxent_t, SVM = SVM_t)
   models_d <- data.frame(bioclim = bioclim_d, gower = gower_d, maxent = maxent_d, SVM = SVM_d)
-  
-  models_e_rcp26 <- data.frame(bioclim = bioclim_e_rcp26, gower = gower_e_rcp26, maxent = maxent_e_rcp26, SVM = SVM_e_rcp26)
-  models_t_rcp26 <- data.frame(bioclim = bioclim_t_rcp26, gower = gower_t_rcp26, maxent = maxent_t_rcp26, SVM = SVM_t_rcp26)
-  models_d_rcp26 <- data.frame(bioclim = bioclim_d_rcp26, gower = gower_d_rcp26, maxent = maxent_d_rcp26, SVM = SVM_d_rcp26)
-  
-  models_e_rcp45 <- data.frame(bioclim = bioclim_e_rcp45, gower = gower_e_rcp45, maxent = maxent_e_rcp45, SVM = SVM_e_rcp45)
-  models_t_rcp45 <- data.frame(bioclim = bioclim_t_rcp45, gower = gower_t_rcp45, maxent = maxent_t_rcp45, SVM = SVM_t_rcp45)
-  models_d_rcp45 <- data.frame(bioclim = bioclim_d_rcp45, gower = gower_d_rcp45, maxent = maxent_d_rcp45, SVM = SVM_d_rcp45)
-  
-  models_e_rcp60 <- data.frame(bioclim = bioclim_e_rcp60, gower = gower_e_rcp60, maxent = maxent_e_rcp60, SVM = SVM_e_rcp60)
-  models_t_rcp60 <- data.frame(bioclim = bioclim_t_rcp60, gower = gower_t_rcp60, maxent = maxent_t_rcp60, SVM = SVM_t_rcp60)
-  models_d_rcp60 <- data.frame(bioclim = bioclim_d_rcp60, gower = gower_d_rcp60, maxent = maxent_d_rcp60, SVM = SVM_d_rcp60)
-  
-  models_e_rcp85 <- data.frame(bioclim = bioclim_e_rcp85, gower = gower_e_rcp85, maxent = maxent_e_rcp85, SVM = SVM_e_rcp85)
-  models_t_rcp85 <- data.frame(bioclim = bioclim_t_rcp85, gower = gower_t_rcp85, maxent = maxent_t_rcp85, SVM = SVM_t_rcp85)
-  models_d_rcp85 <- data.frame(bioclim = bioclim_d_rcp85, gower = gower_d_rcp85, maxent = maxent_d_rcp85, SVM = SVM_d_rcp85)
   
   
   #\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/   YOU SHALL... PASS!  \o/\o/\o/\o/\o/\o/\o/\o/\o/\o/
@@ -473,18 +290,6 @@ multiple_ENMs <- function(occurrence,
                 "output_rcp85"    = output_rcp85, 
                 "TPR_c"           = models_e, 
                 "Threshold_c"     = models_t, 
-                "Pred_area_c"     = models_d,
-                "TPR_rcp26"       = models_e_rcp26, 
-                "Threshold_rcp26" = models_t_rcp26, 
-                "Pred_area_rcp26" = models_d_rcp26,
-                "TPR_rcp45"       = models_e_rcp45, 
-                "Threshold_rcp45" = models_t_rcp45, 
-                "Pred_area_rcp45" = models_d_rcp45,
-                "TPR_rcp60"       = models_e_rcp60, 
-                "Threshold_rcp60" = models_t_rcp60, 
-                "Pred_area_rcp60" = models_d_rcp60,
-                "TPR_rcp85"       = models_e_rcp85, 
-                "Threshold_rcp85" = models_t_rcp85, 
-                "Pred_area_rcp85" = models_d_rcp85)))
+                "Pred_area_c"     = models_d)))
   
 } # CLOSE "Multiple_ENMs"
