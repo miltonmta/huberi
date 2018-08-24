@@ -469,33 +469,7 @@ multiple_ENMs <- function(occurrence,
   models_d_rcp85 <- data.frame(bioclim = bioclim_d_rcp85, gower = gower_d_rcp85, maxent = maxent_d_rcp85, SVM = SVM_d_rcp85)
   
   
-  ###.............. Creating predictors variables to be used througout XP2:XP7
-  ### Presence Absence (PA)
   
-  all_thr <- 
-  
-  bioclim <- stack(output_current[[1]])[[which(thr[,"bioclim"]>=0.7)]]
-  gower   <- stack(output_current[[2]])[[which(thr[,"gower"]>=0.7)]]
-  maxent  <- stack(output_current[[3]])[[which(thr[,"maxent"]>=0.7)]]
-  SVM     <- stack(output_current[[4]])[[which(thr[,"svm"]>=0.7)]]
-  
-  pa_sep  <- 
-  pa_stk  <- 
-  
-  
-  ### Suitabilities (SUIT)
-  bioclim_val <- values(output_current[[1]])
-  gower_val   <- values(output_current[[2]])
-  maxent_val  <- values(output_current[[3]])
-  SVM_val     <- values(output_current[[4]])
-  
-  bioclim_pad <- decostand(bioclim_val, "standardize", 2)
-  gower_pad   <- decostand(gower_val,   "standardize", 2)
-  maxent_pad  <- decostand(maxent_val,  "standardize", 2)
-  SVM_pad     <- decostand(SVM_val,     "standardize", 2)
-  
-  suit_sep    <- 
-  suit_stk    <- 
   
   
   #\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/   YOU SHALL... PASS!  \o/\o/\o/\o/\o/\o/\o/\o/\o/\o/
