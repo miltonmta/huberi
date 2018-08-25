@@ -1,6 +1,6 @@
 multiple_ENMs <- function(occurrence, 
                           background, 
-                          predictor, # soil vars for XP1.2 and biotic variables from XP1.2
+                          # predictor, # biotic variables from XP1.2
                           biovar_current,
                           biovar_rcp26,
                           biovar_rcp45,
@@ -19,7 +19,7 @@ multiple_ENMs <- function(occurrence,
   back  <- read.table(background, sep = ";", h = T)
   
   ###.............. Creating objects for saving the results
-  ## Predictive models
+  ## Predictive methods
   bioclim_c <- gower_c  <- maxent_c <- SVM_c <- stack()
   bioclim_rcp26 <- gower_rcp26 <- maxent_rcp26 <- SVM_rcp26 <- stack() 
   bioclim_rcp45 <- gower_rcp45 <- maxent_rcp45 <- SVM_rcp45 <- stack()
@@ -108,7 +108,7 @@ multiple_ENMs <- function(occurrence,
     maxent_c <- stack(maxent_c, predict(object = maxent_model, x = current))
     
     ## Evaluating models
-    maxent_eval <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = maxent_model, tr = 0.5414856)
+    maxent_eval <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = maxent_model)
     
     ## Saving evaluation metrics
     thr <- quantile(extract(maxent_c[[j]], occur[,1:2]), 0.05) 
@@ -130,7 +130,7 @@ multiple_ENMs <- function(occurrence,
     SVM_c <- stack(SVM_c, predict(model = SVM_model, object = current)) 
     
     ## Evaluating models
-    SVM_eval <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = SVM_model, tr = 0.5566005)
+    SVM_eval <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1], model = SVM_model)
     
     ## Saving evaluation metrics
     thr <- quantile(extract(SVM_c[[j]], occur[,1:2]), 0.05) 
@@ -227,46 +227,60 @@ multiple_ENMs <- function(occurrence,
   SVM_Pout_rcp60     <- na.omit(values(SVM_rcp60))
   SVM_Pout_rcp85     <- na.omit(values(SVM_rcp85))
   
-  ###.............. Calculating mean of partial models outputs
-  bioclim_Pout_c_mean     <- apply(bioclim_Pout_c,     1, function(x) sum(x*bioclim_d)/sum(bioclim_d))
-  bioclim_Pout_rcp26_mean <- apply(bioclim_Pout_rcp26, 1, function(x) sum(x*rep(bioclim_d, length(AOGCMs)))/sum(rep(bioclim_d, length(AOGCMs))))
-  bioclim_Pout_rcp45_mean <- apply(bioclim_Pout_rcp45, 1, function(x) sum(x*rep(bioclim_d, length(AOGCMs)))/sum(rep(bioclim_d, length(AOGCMs))))
-  bioclim_Pout_rcp60_mean <- apply(bioclim_Pout_rcp60, 1, function(x) sum(x*rep(bioclim_d, length(AOGCMs)))/sum(rep(bioclim_d, length(AOGCMs))))
-  bioclim_Pout_rcp85_mean <- apply(bioclim_Pout_rcp85, 1, function(x) sum(x*rep(bioclim_d, length(AOGCMs)))/sum(rep(bioclim_d, length(AOGCMs))))
+  # [MA] bioclim_Pout_c é um objeto que tem 20 prediçoes empilhadas em bioclim_c (cross-validation). Por isso eu tinha feito a média (bioclim_Pout_c_mean) e usado a média das 20 prediçoes para salvar em output_current.Não fez sentido para mim salvar bioclim_Pout_c no objeto que vou salvar no HD como meu resultado.
   
-  gower_Pout_c_mean       <- apply(gower_Pout_c,     1, function(x) sum(x*gower_d)/sum(gower_d))
-  gower_Pout_rcp26_mean   <- apply(gower_Pout_rcp26, 1, function(x) sum(x*rep(gower_d, length(AOGCMs)))/sum(rep(gower_d, length(AOGCMs))))
-  gower_Pout_rcp45_mean   <- apply(gower_Pout_rcp45, 1, function(x) sum(x*rep(gower_d, length(AOGCMs)))/sum(rep(gower_d, length(AOGCMs))))
-  gower_Pout_rcp60_mean   <- apply(gower_Pout_rcp60, 1, function(x) sum(x*rep(gower_d, length(AOGCMs)))/sum(rep(gower_d, length(AOGCMs))))
-  gower_Pout_rcp85_mean   <- apply(gower_Pout_rcp85, 1, function(x) sum(x*rep(gower_d, length(AOGCMs)))/sum(rep(gower_d, length(AOGCMs))))
+  ###.............. Saving the predictive methods into the output objects 
+  output_current <- cbind(Bioclim = bioclim_Pout_c,     Gower = gower_Pout_c,     Maxent = maxent_Pout_c,     SVM = SVM_Pout_c )
   
-  maxent_Pout_c_mean     <- apply(maxent_Pout_c,     1, function(x) sum(x*maxent_d)/sum(maxent_d))
-  maxent_Pout_rcp26_mean <- apply(maxent_Pout_rcp26, 1, function(x) sum(x*rep(maxent_d, length(AOGCMs)))/sum(rep(maxent_d, length(AOGCMs))))
-  maxent_Pout_rcp45_mean <- apply(maxent_Pout_rcp45, 1, function(x) sum(x*rep(maxent_d, length(AOGCMs)))/sum(rep(maxent_d, length(AOGCMs))))
-  maxent_Pout_rcp60_mean <- apply(maxent_Pout_rcp60, 1, function(x) sum(x*rep(maxent_d, length(AOGCMs)))/sum(rep(maxent_d, length(AOGCMs))))
-  maxent_Pout_rcp85_mean <- apply(maxent_Pout_rcp85, 1, function(x) sum(x*rep(maxent_d, length(AOGCMs)))/sum(rep(maxent_d, length(AOGCMs))))
+  output_rcp26   <- cbind(Bioclim = bioclim_Pout_rcp26, Gower = gower_Pout_rcp26, Maxent = maxent_Pout_rcp26, SVM = SVM_Pout_rcp26 )
   
-  SVM_Pout_c_mean     <- apply(SVM_Pout_c,     1, function(x) sum(x*SVM_d)/sum(SVM_d))
-  SVM_Pout_rcp26_mean <- apply(SVM_Pout_rcp26, 1, function(x) sum(x*rep(SVM_d, length(AOGCMs)))/sum(rep(SVM_d, length(AOGCMs))))
-  SVM_Pout_rcp45_mean <- apply(SVM_Pout_rcp45, 1, function(x) sum(x*rep(SVM_d, length(AOGCMs)))/sum(rep(SVM_d, length(AOGCMs))))
-  SVM_Pout_rcp60_mean <- apply(SVM_Pout_rcp60, 1, function(x) sum(x*rep(SVM_d, length(AOGCMs)))/sum(rep(SVM_d, length(AOGCMs))))
-  SVM_Pout_rcp85_mean <- apply(SVM_Pout_rcp85, 1, function(x) sum(x*rep(SVM_d, length(AOGCMs)))/sum(rep(SVM_d, length(AOGCMs))))
+  output_rcp45   <- cbind(Bioclim = bioclim_Pout_rcp45, Gower = gower_Pout_rcp45, Maxent = maxent_Pout_rcp45, SVM = SVM_Pout_rcp45 )
+  
+  output_rcp60   <- cbind(Bioclim = bioclim_Pout_rcp60, Gower = gower_Pout_rcp60, Maxent = maxent_Pout_rcp60, SVM = SVM_Pout_rcp60 )
+  
+  output_rcp85   <- cbind(Bioclim = bioclim_Pout_rcp85, Gower = gower_Pout_rcp85, Maxent = maxent_Pout_rcp85, SVM = SVM_Pout_rcp85 )
   
   
-  ###.............. Saving data into the output objects
-  output_current <- cbind(output_current, Bioclim = bioclim_Pout_c_mean, Gower = gower_Pout_c_mean, Maxent = maxent_Pout_c_mean, SVM = SVM_Pout_c_mean )
+  # [MA] do jeito que está.. nao estou utilizando essas médias em nenhum outro local. pq no Ensemble vc já fez a média ponderada mas já utilizando os dados do cbind acima. Por isso esse trecho só faz sentido para mim se for para salvar como output final.
   
-  output_rcp26   <- cbind(output_rcp26, Bioclim = bioclim_Pout_rcp26_mean, Gower = gower_Pout_rcp26_mean, Maxent = maxent_Pout_rcp26_mean, SVM = SVM_Pout_rcp26_mean )
+  ###.............. Calculating mean of partial models outputs 
+  # bioclim_Pout_c_mean     <- apply(bioclim_Pout_c,     1, function(x) sum(x*bioclim_d)/sum(bioclim_d))
+  # bioclim_Pout_rcp26_mean <- apply(bioclim_Pout_rcp26, 1, function(x) sum(x*rep(bioclim_d, length(AOGCMs)))/sum(rep(bioclim_d, length(AOGCMs))))
+  # bioclim_Pout_rcp45_mean <- apply(bioclim_Pout_rcp45, 1, function(x) sum(x*rep(bioclim_d, length(AOGCMs)))/sum(rep(bioclim_d, length(AOGCMs))))
+  # bioclim_Pout_rcp60_mean <- apply(bioclim_Pout_rcp60, 1, function(x) sum(x*rep(bioclim_d, length(AOGCMs)))/sum(rep(bioclim_d, length(AOGCMs))))
+  # bioclim_Pout_rcp85_mean <- apply(bioclim_Pout_rcp85, 1, function(x) sum(x*rep(bioclim_d, length(AOGCMs)))/sum(rep(bioclim_d, length(AOGCMs))))
+  # 
+  # gower_Pout_c_mean       <- apply(gower_Pout_c,     1, function(x) sum(x*gower_d)/sum(gower_d))
+  # gower_Pout_rcp26_mean   <- apply(gower_Pout_rcp26, 1, function(x) sum(x*rep(gower_d, length(AOGCMs)))/sum(rep(gower_d, length(AOGCMs))))
+  # gower_Pout_rcp45_mean   <- apply(gower_Pout_rcp45, 1, function(x) sum(x*rep(gower_d, length(AOGCMs)))/sum(rep(gower_d, length(AOGCMs))))
+  # gower_Pout_rcp60_mean   <- apply(gower_Pout_rcp60, 1, function(x) sum(x*rep(gower_d, length(AOGCMs)))/sum(rep(gower_d, length(AOGCMs))))
+  # gower_Pout_rcp85_mean   <- apply(gower_Pout_rcp85, 1, function(x) sum(x*rep(gower_d, length(AOGCMs)))/sum(rep(gower_d, length(AOGCMs))))
+  # 
+  # maxent_Pout_c_mean     <- apply(maxent_Pout_c,     1, function(x) sum(x*maxent_d)/sum(maxent_d))
+  # maxent_Pout_rcp26_mean <- apply(maxent_Pout_rcp26, 1, function(x) sum(x*rep(maxent_d, length(AOGCMs)))/sum(rep(maxent_d, length(AOGCMs))))
+  # maxent_Pout_rcp45_mean <- apply(maxent_Pout_rcp45, 1, function(x) sum(x*rep(maxent_d, length(AOGCMs)))/sum(rep(maxent_d, length(AOGCMs))))
+  # maxent_Pout_rcp60_mean <- apply(maxent_Pout_rcp60, 1, function(x) sum(x*rep(maxent_d, length(AOGCMs)))/sum(rep(maxent_d, length(AOGCMs))))
+  # maxent_Pout_rcp85_mean <- apply(maxent_Pout_rcp85, 1, function(x) sum(x*rep(maxent_d, length(AOGCMs)))/sum(rep(maxent_d, length(AOGCMs))))
+  # 
+  # SVM_Pout_c_mean     <- apply(SVM_Pout_c,     1, function(x) sum(x*SVM_d)/sum(SVM_d))
+  # SVM_Pout_rcp26_mean <- apply(SVM_Pout_rcp26, 1, function(x) sum(x*rep(SVM_d, length(AOGCMs)))/sum(rep(SVM_d, length(AOGCMs))))
+  # SVM_Pout_rcp45_mean <- apply(SVM_Pout_rcp45, 1, function(x) sum(x*rep(SVM_d, length(AOGCMs)))/sum(rep(SVM_d, length(AOGCMs))))
+  # SVM_Pout_rcp60_mean <- apply(SVM_Pout_rcp60, 1, function(x) sum(x*rep(SVM_d, length(AOGCMs)))/sum(rep(SVM_d, length(AOGCMs))))
+  # SVM_Pout_rcp85_mean <- apply(SVM_Pout_rcp85, 1, function(x) sum(x*rep(SVM_d, length(AOGCMs)))/sum(rep(SVM_d, length(AOGCMs))))
+  # 
   
-  output_rcp45   <- cbind(output_rcp45, Bioclim = bioclim_Pout_rcp45_mean, Gower = gower_Pout_rcp45_mean, Maxent = maxent_Pout_rcp45_mean, SVM = SVM_Pout_rcp45_mean )
+  ###.............. Generating Ensembles
+  dStat_c <- c(bioclim_d, gower_d, maxent_d, SVM_d)
+  dStat_fut <- rep(dStat_c, each= length(AOGCMs))
   
-  output_rcp60   <- cbind(output_rcp60, Bioclim = bioclim_Pout_rcp60_mean, Gower = gower_Pout_rcp60_mean, Maxent = maxent_Pout_rcp60_mean, SVM = SVM_Pout_rcp60_mean )
-  
-  output_rcp85   <- cbind(output_rcp85, Bioclim = bioclim_Pout_rcp85_mean, Gower = gower_Pout_rcp85_mean, Maxent = maxent_Pout_rcp85_mean, SVM = SVM_Pout_rcp85_mean )
-  
+  ensemble_c     <- apply(output_current, 1, function(x) sum(x * dStat_c)   / sum(dStat_c))
+  ensemble_rcp26 <- apply(output_rcp26,   1, function(x) sum(x * dStat_fut) / sum(dStat_fut))
+  ensemble_rcp45 <- apply(output_rcp45,   1, function(x) sum(x * dStat_fut) / sum(dStat_fut))
+  ensemble_rcp60 <- apply(output_rcp60,   1, function(x) sum(x * dStat_fut) / sum(dStat_fut))
+  ensemble_rcp85 <- apply(output_rcp85,   1, function(x) sum(x * dStat_fut) / sum(dStat_fut))
   
   ###.............. Inserting coords to outputs
-  coords <- xyFromCell(current, 1:ncell(current))
+  coords <- na.omit(cbind(xyFromCell(current, 1:ncell(current)), values(current)))[,1:2]
   
   output_current <- cbind(coords,output_current)
   output_rcp26   <- cbind(coords,output_rcp26)
@@ -274,6 +288,8 @@ multiple_ENMs <- function(occurrence,
   output_rcp60   <- cbind(coords,output_rcp60)
   output_rcp85   <- cbind(coords,output_rcp85)
   
+  ###.............. Saving Ensemble
+  FULLensemble       <- data.frame(coords, Ensemble_present= ensemble_c, Ensemble_rcp26= ensemble_rcp26, Ensemble_rcp45= ensemble_rcp45, Ensemble_rcp60= ensemble_rcp60, Ensemble_rcp85= ensemble_rcp85)
   
   ###.............. Evaluation data
   models_e <- data.frame(bioclim = bioclim_e, gower = gower_e, maxent = maxent_e, SVM = SVM_e)
@@ -290,6 +306,7 @@ multiple_ENMs <- function(occurrence,
                 "output_rcp85"    = output_rcp85, 
                 "TPR_c"           = models_e, 
                 "Threshold_c"     = models_t, 
-                "Pred_area_c"     = models_d)))
+                "Pred_area_c"     = models_d,
+                "Ensemble"        = FULLensemble)))
   
 } # CLOSE "Multiple_ENMs"
