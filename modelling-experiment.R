@@ -185,7 +185,7 @@ points(back[, "x"], back[, "y"], pch = "*", col = 'magenta')
 # Scenario   Current + Future - 4 RCPs
 # Variables	 Abiótic ( 5 vars ) # include SOIL only for host plants
 # Input	     9 sps :: bee + 7 plants + "resource" * (summed occurs of all plants)
-# Output     9 prediction  x 4 predictive models.
+# Output     9 prediction  x 4 predictive methods.
 # Result  	 9 Ensembles + Biotic Predictor Variables PA_SEP, PA_STK, SUIT_SEP, SUIT_SKT, resourceSEP, resourceSUIT.
 
 ### XP1.1 - bee
@@ -201,7 +201,6 @@ for (i in 1:length(sp_name))
   ###.............. Running the modedelling experiment
   result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_",  sp_name[i], ".txt"),
                           background       = paste0("./data/occurrences/back_", sp_name[i], ".txt"),
-                          predictor        = , # no aditional predictor for this occur.
                           biovar_current   = "./data/climatic_vars/selected/current/",
                           biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
                           biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
@@ -239,7 +238,6 @@ for (i in 1:length(sp_names))
   ###.............. Running the modedelling experiment
   result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_",  sp_names[i], ".txt"),
                           background       = paste0("./data/occurrences/back_", sp_names[i], ".txt"),
-                          predictor        = "./data/climatic_vars/selected/soil/", # abiotic vars for soil 
                           biovar_current   = "./data/climatic_vars/selected/current/",
                           biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
                           biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
@@ -265,6 +263,13 @@ beep(8)
 
 ### Creating predictors variables to be used througout XP2:XP7
 #   .....................................................................................
+
+# PA_SEP_c,     PA_STK_c,     SUIT_SEP_c,     SUIT_SKT_c,     resourcePA_c,     resouceSUIT_c,
+# PA_SEP_rcp26, PA_STK_rcp26, SUIT_SEP_rcp26, SUIT_SKT_rcp26, resourcePA_rcp26, resouceSUIT_rcp26,
+# PA_SEP_rcp45, PA_STK_rcp45, SUIT_SEP_rcp45, SUIT_SKT_rcp45, resourcePA_rcp45, resouceSUIT_rcp45,
+# PA_SEP_rcp60, PA_STK_rcp60, SUIT_SEP_rcp60, SUIT_SKT_rcp60, resourcePA_rcp60, resouceSUIT_rcp60,
+# PA_SEP_rcp85, PA_STK_rcp85, SUIT_SEP_rcp85, SUIT_SKT_rcp85, resourcePA_rcp85, resouceSUIT_rcp85,
+
 
 ###.............. Presence Absence (PA)
 all_thr <- 
@@ -297,7 +302,7 @@ suit_sep    <-
 ###.............. Sanving predictor variabels for XP2:XP7
 
 # PA_SEP, PA_STK, SUIT_SEP, SUIT_SKT.
-
+  
 writeRaster(result[["pa_sep"]],   "./data/outputs/predictors/pa_sep.bil",   format = "EHdr")
 writeRaster(result[["pa_stk"]],   "./data/outputs/predictors/pa_stk.bil",   format = "EHdr")
 writeRaster(result[["suit_sep"]], "./data/outputs/predictors/suit_sep.bil", format = "EHdr")
@@ -309,7 +314,7 @@ writeRaster(result[["suit_stk"]], "./data/outputs/predictors/suit_stk.bil", form
 # Biotic Predictor	 SEP/PA - Plants XP1.2
 # Variables       	 abiotic + SEP/PA -  (12 vars = 5  + 7 )
 # Input           	 bee
-# Output	           input x 4 predictive models
+# Output	           input x 4 predictive methods
 # Result  	         1 Ensemble
 
 occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
@@ -322,7 +327,6 @@ for (i in 1:length(sp_name))
   ###.............. Running the modedelling experiment
   result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_",  sp_name[i], ".txt"),
                           background       = paste0("./data/occurrences/back_", sp_name[i], ".txt"),
-                          predictor        = "./data/outputs/predictors/",
                           biovar_current   = "./data/climatic_vars/selected/current/",
                           biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
                           biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
@@ -351,7 +355,7 @@ beep(8)
 # Biotic Predictor	 SEP/SUIT - Plants XP1.2
 # Variables       	 abiotic + SEP/SUIT -  (12 vars = 5  + 7 )
 # Input           	 bee
-# Output	           input x 4 predictive models
+# Output	           input x 4 predictive methods
 # Result  	         1 Ensemble
 
 occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
@@ -364,7 +368,6 @@ for (i in 1:length(sp_name))
   ###.............. Running the modedelling experiment
   result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_",  sp_name[i], ".txt"),
                           background       = paste0("./data/occurrences/back_", sp_name[i], ".txt"),
-                          predictor        = "./data/outputs/predictors/",
                           biovar_current   = "./data/climatic_vars/selected/current/",
                           biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
                           biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
@@ -393,7 +396,7 @@ beep(8)
 # Biotic Predictor	 STK/PA - Plants XP1.2
 # Variables       	 abiotic + STK/PA -  (6 vars = 5  + 1 )
 # Input           	 bee
-# Output	           input x 4 predictive models
+# Output	           input x 4 predictive methods
 # Result  	         1 Ensemble
 
 occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
@@ -406,7 +409,6 @@ for (i in 1:length(sp_name))
   ###.............. Running the modedelling experiment
   result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_",  sp_name[i], ".txt"),
                           background       = paste0("./data/occurrences/back_", sp_name[i], ".txt"),
-                          predictor        = "./data/outputs/predictors/",
                           biovar_current   = "./data/climatic_vars/selected/current/",
                           biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
                           biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
@@ -434,7 +436,7 @@ beep(8)
 # Biotic Predictor	 STK/SUIT - Plants XP1.2
 # Variables       	 abiotic + STK/SUIT -  (6 vars = 5  + 1 )
 # Input           	 bee
-# Output	           input x 4 predictive models
+# Output	           input x 4 predictive methods
 # Result  	         1 Ensemble
 
 occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
@@ -447,7 +449,6 @@ for (i in 1:length(sp_name))
   ###.............. Running the modedelling experiment
   result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_",  sp_name[i], ".txt"),
                           background       = paste0("./data/occurrences/back_", sp_name[i], ".txt"),
-                          predictor        = "./data/outputs/predictors/",
                           biovar_current   = "./data/climatic_vars/selected/current/",
                           biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
                           biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
@@ -475,7 +476,7 @@ beep(8)
 # Biotic Predictor	 Resource PA - Plants XP1.2
 # Variables       	 abiotic + Resource PA -  (6 vars = 5  + 1 )
 # Input           	 bee
-# Output	           input x 4 predictive models
+# Output	           input x 4 predictive methods
 # Result  	         1 Ensemble
 
 occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
@@ -488,7 +489,6 @@ for (i in 1:length(sp_name))
   ###.............. Running the modedelling experiment
   result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_",  sp_name[i], ".txt"),
                           background       = paste0("./data/occurrences/back_", sp_name[i], ".txt"),
-                          predictor        = "./data/outputs/predictors/",
                           biovar_current   = "./data/climatic_vars/selected/current/",
                           biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
                           biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
@@ -517,7 +517,7 @@ beep(8)
 # Biotic Predictor	 Resource SUIT - Plants XP1.2
 # Variables       	 abiotic + resource SUIT -  (6 vars = 5  + 1 )
 # Input           	 bee
-# Output	           input x 4 predictive models
+# Output	           input x 4 predictive methods
 # Result  	         1 Ensemble
 
 occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
@@ -530,7 +530,6 @@ for (i in 1:length(sp_name))
   ###.............. Running the modedelling experiment
   result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_",  sp_name[i], ".txt"),
                           background       = paste0("./data/occurrences/back_", sp_name[i], ".txt"),
-                          predictor        = "./data/outputs/predictors/",
                           biovar_current   = "./data/climatic_vars/selected/current/",
                           biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
                           biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
@@ -585,50 +584,8 @@ all_t        <- laaply (list.files("./data/outputs/", patern = "_t_",   full.nam
 all_val <- values(all_output)
 all_pad <- deconstante(all_val, "standardize", 2)
 
-### Getting factors for each species
-# sp1
-sp_names[1]
-d_sp1    <- all_d[[1]]
-suit_sp1 <- all_pad[[1]]
-
-# sp2
-sp_names[2]
-d_sp2  <- all_d[[2]]
-
-# sp3
-sp_names[3]
-d_sp3  <- all_d[[3]]
-
-# sp4
-sp_names[4]
-d_sp4  <- all_d[[4]]
-
-# sp5
-sp_names[5]
-d_sp5  <- all_d[[5]]
-
-# sp6
-sp_names[6]
-d_sp6  <- all_d[[6]]
-
-# sp7
-sp_names[7]
-d_sp7  <- all_d[[7]]
-
-# sp8
-sp_names[8]
-d_sp8  <- all_d[[8]]
-
 # ***************************************************************************************
-## 15. Ensemble                                     ----
-
-
-
-
-
-
-# ***************************************************************************************
-## 16. Uncertainty Evaluation                       ----
+## 15. Uncertainty Evaluation                       ----
 
 all_huberi <- stack(huberi_c, huberi_rcp26, huberi_rcp45, huberi_rcp60, huberi_rcp85)
 TPR_huberi <- TPR_h[which(TPR_h)]
