@@ -181,14 +181,16 @@ points(back[, "x"], back[, "y"], pch = "*", col = 'magenta')
 
 # rm(list = ls())
 # ***************************************************************************************
-## 06. XP1                                          ----
-# Scenario   Current + Future - 4 RCPs
-# Variables	 Abiótic ( 5 vars ) # include SOIL only for host plants
-# Input	     9 sps :: bee + 7 plants + "resource" * (summed occurs of all plants)
-# Output     9 prediction  x 4 predictive methods.
-# Result  	 9 Ensembles + Biotic Predictor Variables PA_SEP, PA_STK, SUIT_SEP, SUIT_SKT, resourceSEP, resourceSUIT.
 
-### XP1.1 - bee
+## 06. XP1                                          ----
+
+# Variables	 Abiotic ( 5 vars )
+# Input	     9 sps :: bee + 7 plants + "resource" * (summed occurs of all plants)
+# Output     9 inputs predictions  + 4 predictive methods * 4 rcps * 3 aogcms
+# Ensembles  117 * (9 present + 12 future (4 rcps * 3 aogcms)) 
+# NEW VARS   Biotic Predictor Variables PA_SEP, PA_STK, SUIT_SEP, SUIT_SKT, resourceSEP, resourceSUIT.
+
+### ..... XP1.1 - bee -----
 #   .....................................................................................
 
 occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
@@ -209,29 +211,29 @@ for (i in 1:length(sp_name))
                           cross_validation = 20)
   
   ###.............. Saving predictions
-  writeRaster(result[["output_current"]], paste0("./data/outputs/XP1", sp_name[i],"_current.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP1", sp_name[i],"_rcp26.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP1", sp_name[i],"_rcp45.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP1", sp_name[i],"_rcp60.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP1", sp_name[i],"_rcp85.bil"), format = "EHdr")
+  writeRaster(result[["output_current"]], paste0("./data/outputs/XP1/XP1.1", sp_name[i],"_current.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP1/XP1.1", sp_name[i],"_rcp26.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP1/XP1.1", sp_name[i],"_rcp45.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP1/XP1.1", sp_name[i],"_rcp60.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP1/XP1.1", sp_name[i],"_rcp85.bil"), format = "EHdr")
 
   
   ###.............. Saving evaluation data
-  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP1", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP1", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
-  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP1", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = )
+  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP1/XP1.1", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP1/XP1.1", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP1/XP1.1", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = )
   
 }
 beep(8)
 
-### XP1.2 - 7 plants + resource
+### ..... XP1.2 - 7 plants + resource  ----
 #   .....................................................................................
 
 occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",") # all species but "resource"
-sp <- occur_thinned[!grepl("Lithurgus_huberi", occur_thinned$SPEC), ]
+sp <- occur_thinned[!grepl("Lithurgus_huberi", occur_thinned$SPEC), ] # removing the bee species
 sp <- gsub("C[1-9]","", sp$SPEC)
 sp_names <- unique(sp)
-sp_names <- c(sp_names, "resource")
+sp_names <- c(sp_names, "resource") # contains only de 8 sps names - 7 plants + "resource"
 sp_names
 for (i in 1:length(sp_names))
 {
@@ -246,23 +248,26 @@ for (i in 1:length(sp_names))
                           cross_validation = 20)
   
   ###.............. Saving predictions
-  writeRaster(result[["output_current"]], paste0("./data/outputs/XP1", sp_names[i],"_current.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP1", sp_names[i],"_rcp26.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP1", sp_names[i],"_rcp45.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP1", sp_names[i],"_rcp60.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP1", sp_names[i],"_rcp85.bil"), format = "EHdr")
+  writeRaster(result[["output_current"]], paste0("./data/outputs/XP1/XP1.2", sp_names[i],"_current.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP1/XP1.2", sp_names[i],"_rcp26.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP1/XP1.2", sp_names[i],"_rcp45.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP1/XP1.2", sp_names[i],"_rcp60.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP1/XP1.2", sp_names[i],"_rcp85.bil"), format = "EHdr")
   
   
   ###.............. Saving evaluation data
-  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP1", sp_names[i], "_TPR_current.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP1", sp_names[i], "_t_current.txt"),   sep = "\t", row.names = F)
-  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP1", sp_names[i], "_d_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP1/XP1.2", sp_names[i], "_TPR_current.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP1/XP1.2", sp_names[i], "_t_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP1/XP1.2", sp_names[i], "_d_current.txt"),   sep = "\t", row.names = F)
 }
 beep(8)
 
 
-### Creating predictors variables to be used througout XP2:XP7
+### ..... New Variables ----
 #   .....................................................................................
+# Creating predictors variables to be used througout XP2:XP7
+
+# future must have new variables for the 3 aogcms. PA_SEP_rcp26 = gcm1, gcm2, gcm3
 
 # PA_SEP_c,     PA_STK_c,     SUIT_SEP_c,     SUIT_SKT_c,     resourcePA_c,     resouceSUIT_c,
 # PA_SEP_rcp26, PA_STK_rcp26, SUIT_SEP_rcp26, SUIT_SKT_rcp26, resourcePA_rcp26, resouceSUIT_rcp26,
@@ -302,20 +307,58 @@ suit_sep    <-
 ###.............. Sanving predictor variabels for XP2:XP7
 
 # PA_SEP, PA_STK, SUIT_SEP, SUIT_SKT.
-  
-writeRaster(result[["pa_sep"]],   "./data/outputs/predictors/pa_sep.bil",   format = "EHdr")
-writeRaster(result[["pa_stk"]],   "./data/outputs/predictors/pa_stk.bil",   format = "EHdr")
-writeRaster(result[["suit_sep"]], "./data/outputs/predictors/suit_sep.bil", format = "EHdr")
-writeRaster(result[["suit_stk"]], "./data/outputs/predictors/suit_stk.bil", format = "EHdr")
+## XP2 - sep_pa
+writeRaster(sep_pa_c,     "./data/outputs/predictors/XP2/current/sep_pa_c.bil",     format = "EHdr")
+writeRaster(sep_pa_rcp26, "./data/outputs/predictors/XP2/current/sep_pa_rcp26.bil", format = "EHdr")
+writeRaster(sep_pa_rcp45, "./data/outputs/predictors/XP2/current/sep_pa_rcp45.bil", format = "EHdr")
+writeRaster(sep_pa_rcp60, "./data/outputs/predictors/XP2/current/sep_pa_rcp60.bil", format = "EHdr")
+writeRaster(sep_pa_rcp85, "./data/outputs/predictors/XP2/current/sep_pa_rcp85.bil", format = "EHdr")
+
+## XP3 - sep_suit
+writeRaster(sep_suit_c,     "./data/outputs/predictors/XP3/current/sep_suit_c.bil",     format = "EHdr")
+writeRaster(sep_suit_rcp26, "./data/outputs/predictors/XP3/current/sep_suit_rcp26.bil", format = "EHdr")
+writeRaster(sep_suit_rcp45, "./data/outputs/predictors/XP3/current/sep_suit_rcp45.bil", format = "EHdr")
+writeRaster(sep_suit_rcp60, "./data/outputs/predictors/XP3/current/sep_suit_rcp60.bil", format = "EHdr")
+writeRaster(sep_suit_rcp85, "./data/outputs/predictors/XP3/current/sep_suit_rcp85.bil", format = "EHdr")
+
+## XP4 - stk_pa
+writeRaster(stk_pa_c,     "./data/outputs/predictors/XP4/current/stk_pa_c.bil",     format = "EHdr")
+writeRaster(stk_pa_rcp26, "./data/outputs/predictors/XP4/current/stk_pa_rcp26.bil", format = "EHdr")
+writeRaster(stk_pa_rcp45, "./data/outputs/predictors/XP4/current/stk_pa_rcp45.bil", format = "EHdr")
+writeRaster(stk_pa_rcp60, "./data/outputs/predictors/XP4/current/stk_pa_rcp60.bil", format = "EHdr")
+writeRaster(stk_pa_rcp85, "./data/outputs/predictors/XP4/current/stk_pa_rcp85.bil", format = "EHdr")
+
+## XP5 - stk_suit
+writeRaster(stk_suit_c,     "./data/outputs/predictors/XP5/current/stk_suit_c.bil",     format = "EHdr")
+writeRaster(stk_suit_rcp26, "./data/outputs/predictors/XP5/current/stk_suit_rcp26.bil", format = "EHdr")
+writeRaster(stk_suit_rcp45, "./data/outputs/predictors/XP5/current/stk_suit_rcp45.bil", format = "EHdr")
+writeRaster(stk_suit_rcp60, "./data/outputs/predictors/XP5/current/stk_suit_rcp60.bil", format = "EHdr")
+writeRaster(stk_suit_rcp85, "./data/outputs/predictors/XP5/current/stk_suit_rcp85.bil", format = "EHdr")
+
+## XP6 - resource_pa
+writeRaster(resource_pa_c,     "./data/outputs/predictors/XP6/current/resource_pa_c.bil",     format = "EHdr")
+writeRaster(resource_pa_rcp26, "./data/outputs/predictors/XP6/current/resource_pa_rcp26.bil", format = "EHdr")
+writeRaster(resource_pa_rcp45, "./data/outputs/predictors/XP6/current/resource_pa_rcp45.bil", format = "EHdr")
+writeRaster(resource_pa_rcp60, "./data/outputs/predictors/XP6/current/resource_pa_rcp60.bil", format = "EHdr")
+writeRaster(resource_pa_rcp85, "./data/outputs/predictors/XP6/current/resource_pa_rcp85.bil", format = "EHdr")
+
+## XP7 - resource_suit
+writeRaster(resource_suit_c,     "./data/outputs/predictors/XP7/current/resource_suit_c.bil",     format = "EHdr")
+writeRaster(resource_suit_rcp26, "./data/outputs/predictors/XP7/current/resource_suit_rcp26.bil", format = "EHdr")
+writeRaster(resource_suit_rcp45, "./data/outputs/predictors/XP7/current/resource_suit_rcp45.bil", format = "EHdr")
+writeRaster(resource_suit_rcp60, "./data/outputs/predictors/XP7/current/resource_suit_rcp60.bil", format = "EHdr")
+writeRaster(resource_suit_rcp85, "./data/outputs/predictors/XP7/current/resource_suit_rcp85.bil", format = "EHdr")
+
 
 # *************************************************************************************** 
+
 ## 07. XP2                                          ----
-# Scenario	         Present + Future - 4 RCPs
+
 # Biotic Predictor	 SEP/PA - Plants XP1.2
 # Variables       	 abiotic + SEP/PA -  (12 vars = 5  + 7 )
 # Input           	 bee
-# Output	           input x 4 predictive methods
-# Result  	         1 Ensemble
+# Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
+# Ensembles          1 * (9 present + 12 future (4 rcps * 3 aogcms)) 
 
 occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
 sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
@@ -327,11 +370,11 @@ for (i in 1:length(sp_name))
   ###.............. Running the modedelling experiment
   result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_",  sp_name[i], ".txt"),
                           background       = paste0("./data/occurrences/back_", sp_name[i], ".txt"),
-                          biovar_current   = "./data/climatic_vars/selected/current/",
-                          biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
-                          biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
-                          biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
-                          biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
+                          biovar_current   = "./data/ouputs/predictors/XP2/current/",
+                          biovar_rcp26     = "./data/ouputs/predictors/XP2/rcp26/",
+                          biovar_rcp45     = "./data/ouputs/predictors/XP2/rcp45/",
+                          biovar_rcp60     = "./data/ouputs/predictors/XP2/rcp60/",
+                          biovar_rcp85     = "./data/ouputs/predictors/XP2/rcp85/",
                           cross_validation = 20)
   
   ###.............. Saving predictions
@@ -350,13 +393,14 @@ for (i in 1:length(sp_name))
 beep(8)
 
 # ***************************************************************************************
+
 ## 08. XP3                                          ----
-# Scenario	         Present + Future - 4 RCPs
+
 # Biotic Predictor	 SEP/SUIT - Plants XP1.2
 # Variables       	 abiotic + SEP/SUIT -  (12 vars = 5  + 7 )
 # Input           	 bee
-# Output	           input x 4 predictive methods
-# Result  	         1 Ensemble
+# Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
+# Ensemble  	       1 * (9 present + 12 future (4 rcps * 3 aogcms)) 
 
 occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
 sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
@@ -368,11 +412,11 @@ for (i in 1:length(sp_name))
   ###.............. Running the modedelling experiment
   result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_",  sp_name[i], ".txt"),
                           background       = paste0("./data/occurrences/back_", sp_name[i], ".txt"),
-                          biovar_current   = "./data/climatic_vars/selected/current/",
-                          biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
-                          biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
-                          biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
-                          biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
+                          biovar_current   = "./data/ouputs/predictors/XP3/current/",
+                          biovar_rcp26     = "./data/ouputs/predictors/XP3/rcp26/",
+                          biovar_rcp45     = "./data/ouputs/predictors/XP3/rcp45/",
+                          biovar_rcp60     = "./data/ouputs/predictors/XP3/rcp60/",
+                          biovar_rcp85     = "./data/ouputs/predictors/XP3/rcp85/",
                           cross_validation = 20)
   
   ###.............. Saving predictions
@@ -391,13 +435,14 @@ for (i in 1:length(sp_name))
 beep(8)
 
 # ***************************************************************************************
+
 ## 09. XP4                                          ----
-# Scenario	         Present + Future - 4 RCPs
+
 # Biotic Predictor	 STK/PA - Plants XP1.2
 # Variables       	 abiotic + STK/PA -  (6 vars = 5  + 1 )
 # Input           	 bee
-# Output	           input x 4 predictive methods
-# Result  	         1 Ensemble
+# Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
+# Ensemble           1 * (9 present + 12 future (4 rcps * 3 aogcms))
 
 occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
 sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
@@ -409,11 +454,11 @@ for (i in 1:length(sp_name))
   ###.............. Running the modedelling experiment
   result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_",  sp_name[i], ".txt"),
                           background       = paste0("./data/occurrences/back_", sp_name[i], ".txt"),
-                          biovar_current   = "./data/climatic_vars/selected/current/",
-                          biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
-                          biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
-                          biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
-                          biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
+                          biovar_current   = "./data/ouputs/predictors/XP4/current/",
+                          biovar_rcp26     = "./data/ouputs/predictors/XP4/rcp26/",
+                          biovar_rcp45     = "./data/ouputs/predictors/XP4/rcp45/",
+                          biovar_rcp60     = "./data/ouputs/predictors/XP4/rcp60/",
+                          biovar_rcp85     = "./data/ouputs/predictors/XP4/rcp85/",
                           cross_validation = 20)
   
   ###.............. Saving predictions
@@ -431,13 +476,14 @@ for (i in 1:length(sp_name))
 }
 beep(8)
 # ***************************************************************************************
+
 ## 10. XP5                                          ----
-# Scenario	         Present + Future - 4 RCPs
+
 # Biotic Predictor	 STK/SUIT - Plants XP1.2
 # Variables       	 abiotic + STK/SUIT -  (6 vars = 5  + 1 )
 # Input           	 bee
-# Output	           input x 4 predictive methods
-# Result  	         1 Ensemble
+# Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
+# Ensemble           1 * (9 present + 12 future (4 rcps * 3 aogcms))
 
 occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
 sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
@@ -449,11 +495,11 @@ for (i in 1:length(sp_name))
   ###.............. Running the modedelling experiment
   result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_",  sp_name[i], ".txt"),
                           background       = paste0("./data/occurrences/back_", sp_name[i], ".txt"),
-                          biovar_current   = "./data/climatic_vars/selected/current/",
-                          biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
-                          biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
-                          biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
-                          biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
+                          biovar_current   = "./data/ouputs/predictors/XP5/current/",
+                          biovar_rcp26     = "./data/ouputs/predictors/XP5/rcp26/",
+                          biovar_rcp45     = "./data/ouputs/predictors/XP5/rcp45/",
+                          biovar_rcp60     = "./data/ouputs/predictors/XP5/rcp60/",
+                          biovar_rcp85     = "./data/ouputs/predictors/XP5/rcp85/",
                           cross_validation = 20)
   
   ###.............. Saving predictions
@@ -471,13 +517,14 @@ for (i in 1:length(sp_name))
 }
 beep(8)
 # ***************************************************************************************
+
 ## 11. XP6                                          ----
-# Scenario	         Present + Future - 4 RCPs
+
 # Biotic Predictor	 Resource PA - Plants XP1.2
 # Variables       	 abiotic + Resource PA -  (6 vars = 5  + 1 )
 # Input           	 bee
-# Output	           input x 4 predictive methods
-# Result  	         1 Ensemble
+# Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
+# Ensemble           1 * (9 present + 12 future (4 rcps * 3 aogcms))
 
 occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
 sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
@@ -489,11 +536,11 @@ for (i in 1:length(sp_name))
   ###.............. Running the modedelling experiment
   result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_",  sp_name[i], ".txt"),
                           background       = paste0("./data/occurrences/back_", sp_name[i], ".txt"),
-                          biovar_current   = "./data/climatic_vars/selected/current/",
-                          biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
-                          biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
-                          biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
-                          biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
+                          biovar_current   = "./data/ouputs/predictors/XP6/current/",
+                          biovar_rcp26     = "./data/ouputs/predictors/XP6/rcp26/",
+                          biovar_rcp45     = "./data/ouputs/predictors/XP6/rcp45/",
+                          biovar_rcp60     = "./data/ouputs/predictors/XP6/rcp60/",
+                          biovar_rcp85     = "./data/ouputs/predictors/XP6/rcp85/",
                           cross_validation = 20)
   
   ###.............. Saving predictions
@@ -512,13 +559,14 @@ for (i in 1:length(sp_name))
 beep(8)
 
 # ***************************************************************************************
+
 ## 12. XP7                                          ----
-# Scenario	         Present + Future - 4 RCPs
+
 # Biotic Predictor	 Resource SUIT - Plants XP1.2
 # Variables       	 abiotic + resource SUIT -  (6 vars = 5  + 1 )
 # Input           	 bee
-# Output	           input x 4 predictive methods
-# Result  	         1 Ensemble
+# Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
+# Ensemble           1 * (9 present + 12 future (4 rcps * 3 aogcms))
 
 occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
 sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
@@ -530,11 +578,11 @@ for (i in 1:length(sp_name))
   ###.............. Running the modedelling experiment
   result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_",  sp_name[i], ".txt"),
                           background       = paste0("./data/occurrences/back_", sp_name[i], ".txt"),
-                          biovar_current   = "./data/climatic_vars/selected/current/",
-                          biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
-                          biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
-                          biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
-                          biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
+                          biovar_current   = "./data/ouputs/predictors/XP7/current/",
+                          biovar_rcp26     = "./data/ouputs/predictors/XP7/rcp26/",
+                          biovar_rcp45     = "./data/ouputs/predictors/XP7/rcp45/",
+                          biovar_rcp60     = "./data/ouputs/predictors/XP7/rcp60/",
+                          biovar_rcp85     = "./data/ouputs/predictors/XP7/rcp85/",
                           cross_validation = 20)
   
   ###.............. Saving predictions
