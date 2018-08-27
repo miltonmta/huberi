@@ -190,7 +190,7 @@ points(back[, "x"], back[, "y"], pch = "*", col = 'magenta')
 # Ensembles  117 * (9 present + 12 future (4 rcps * 3 aogcms)) 
 # NEW VARS   Biotic Predictor Variables PA_SEP, PA_STK, SUIT_SEP, SUIT_SKT, resourceSEP, resourceSUIT.
 
-### ..... XP1.1 - bee -----
+## ..... XP1.1 - bee                   -----
 #   .....................................................................................
 
 occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
@@ -223,10 +223,12 @@ for (i in 1:length(sp_name))
   write.table(result[["Threshold_c"]], paste0("./data/outputs/XP1/XP1.1", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
   write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP1/XP1.1", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = )
   
+  ###.............. Saving Ensembles
+  write.table(result[["FULLensemble"]], "./data/outputs/XP1/XP1.1//ENSEMBLES.txt", sep = "\t", row.names = F)
 }
 beep(8)
 
-### ..... XP1.2 - 7 plants + resource  ----
+## ..... XP1.2 - 7 plants + resource   ----
 #   .....................................................................................
 
 occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",") # all species but "resource"
@@ -259,11 +261,14 @@ for (i in 1:length(sp_names))
   write.table(result[["TPR_c"]],       paste0("./data/outputs/XP1/XP1.2", sp_names[i], "_TPR_current.txt"), sep = "\t", row.names = F)
   write.table(result[["Threshold_c"]], paste0("./data/outputs/XP1/XP1.2", sp_names[i], "_t_current.txt"),   sep = "\t", row.names = F)
   write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP1/XP1.2", sp_names[i], "_d_current.txt"),   sep = "\t", row.names = F)
+  
+  ###.............. Saving Ensembles
+  write.table(result[["FULLensemble"]], "./data/outputs/XP1/XP1.2/ENSEMBLES.txt", sep = "\t", row.names = F)
 }
 beep(8)
 
 
-### ..... New Variables ----
+## ..... New Variables                 ----
 #   .....................................................................................
 # Creating predictors variables to be used througout XP2:XP7
 
@@ -307,6 +312,10 @@ suit_sep    <-
 ###.............. Sanving predictor variabels for XP2:XP7
 
 # PA_SEP, PA_STK, SUIT_SEP, SUIT_SKT.
+# SEP are lists objects with 7 layers.
+# Sep for the future are lists objectcs with 7 layers each one of then containing 3 aogcm layers
+# For this reason maybe would be better to have a Multiple_ENMs function specifc for running XP2:XP7
+  
 ## XP2 - sep_pa
 writeRaster(sep_pa_c,     "./data/outputs/predictors/XP2/current/sep_pa_c.bil",     format = "EHdr")
 writeRaster(sep_pa_rcp26, "./data/outputs/predictors/XP2/current/sep_pa_rcp26.bil", format = "EHdr")
@@ -389,6 +398,8 @@ for (i in 1:length(sp_name))
   write.table(result[["Threshold_c"]], paste0("./data/outputs/XP2", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
   write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP2", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
+  ###.............. Saving Ensembles
+  write.table(result[["FULLensemble"]], "./data/outputs/XP2/ENSEMBLES.txt", sep = "\t", row.names = F)
 }
 beep(8)
 
@@ -431,6 +442,8 @@ for (i in 1:length(sp_name))
   write.table(result[["Threshold_c"]], paste0("./data/outputs/XP3", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
   write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP3", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
+  ###.............. Saving Ensembles
+  write.table(result[["FULLensemble"]], "./data/outputs/XP3/ENSEMBLES.txt", sep = "\t", row.names = F)
 }
 beep(8)
 
@@ -473,6 +486,8 @@ for (i in 1:length(sp_name))
   write.table(result[["Threshold_c"]], paste0("./data/outputs/XP4", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
   write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP4", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
+  ###.............. Saving Ensembles
+  write.table(result[["FULLensemble"]], "./data/outputs/XP4/ENSEMBLES.txt", sep = "\t", row.names = F)
 }
 beep(8)
 # ***************************************************************************************
@@ -514,6 +529,8 @@ for (i in 1:length(sp_name))
   write.table(result[["Threshold_c"]], paste0("./data/outputs/XP5", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
   write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP5", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
+  ###.............. Saving Ensembles
+  write.table(result[["FULLensemble"]], "./data/outputs/XP5/ENSEMBLES.txt", sep = "\t", row.names = F)
 }
 beep(8)
 # ***************************************************************************************
@@ -555,6 +572,8 @@ for (i in 1:length(sp_name))
   write.table(result[["Threshold_c"]], paste0("./data/outputs/XP6", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
   write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP6", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
+  ###.............. Saving Ensembles
+  write.table(result[["FULLensemble"]], "./data/outputs/XP6/ENSEMBLES.txt", sep = "\t", row.names = F)
 }
 beep(8)
 
@@ -597,6 +616,8 @@ for (i in 1:length(sp_name))
   write.table(result[["Threshold_c"]], paste0("./data/outputs/XP7", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
   write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP7", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
+  ###.............. Saving Ensembles
+  write.table(result[["FULLensemble"]], "./data/outputs/XP7/ENSEMBLES.txt", sep = "\t", row.names = F)
 }
 beep(8)
 
