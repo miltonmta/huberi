@@ -41,16 +41,15 @@ multiple_ENMs <- function(occurrence,
   ## Predictions results
   output_current <- output_rcp26 <- output_rcp45 <- output_rcp60 <- output_rcp85 <- NULL
   
+  
   n_cells <- nrow(na.omit(values(current)))
   for (j in 1:cross_validation)
   {
     ### OPEN "j" ----
     
-    ###.............. Creating trainning-testing subsets
-    sample_occur <- sample(1:nrow(occur), round(0.75 * nrow(occur), 0))
-    trainning <- prepareData(x = current, p = occur[sample_occur,  1:2], b = back[sample_occur,  1:2]) 
-    testing   <- prepareData(x = current, p = occur[-sample_occur, 1:2], b = back[-sample_occur, 1:2])
-    
+    ###.............. Loading trainning-testing subsets
+    trainning <- read.table(paste0("./data/occurrences/subsets/trainning", j, ".txt"), sep = ",")
+    testing   <- read.table(paste0("./data/occurrences/subsets/trainning", j, ".txt"), sep = ",")
     
     # ***************************************************************************************
     ### Bioclim -----------------------------------------------------------------------------

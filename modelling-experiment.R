@@ -179,16 +179,38 @@ points(occur_thinned[!grepl("Lithurgus_huberi", occur_thinned$SPEC), ][, -1], pc
 points(occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ][,-1], pch = "*", col = "blue")
 points(back[, "x"], back[, "y"], pch = "*", col = 'magenta')
 
-# rm(list = ls())
+rm(list = ls())
+# ***************************************************************************************
+## 06. Creating trainning-testing subsets           ----
+
+#  For variation control, all experiments (from XP1 to XP2), will be modeled with the same random subsets. (see cross_validation loop in Multiple_ENMs)
+
+cross_validation <- 20
+for (i in 1:cross_validation)
+{
+  sample_occur <- sample(1:nrow(occur), round(0.75 * nrow(occur), 0))
+  trainning <- prepareData(x = current, 
+                           p = occur[sample_occur,  1:2], 
+                           b = back[sample_occur,  1:2]) 
+  testing   <- prepareData(x = current, 
+                           p = occur[-sample_occur, 1:2], 
+                           b = back[-sample_occur, 1:2])
+  
+  write.table(trainning, paste0("./data/occurrences/subsets/trainning", i, ".txt"), sep = ",")
+  write.table(testing,   paste0("./data/occurrences/subsets/testing",   i, ".txt"), sep = ",")
+}
+
+
 # ***************************************************************************************
 
-## 06. XP1                                          ----
+## 07. XP1                                          ----
 
 # Variables	 Abiotic ( 5 vars )
 # Input	     9 sps :: bee + 7 plants + "resource" * (summed occurs of all plants)
 # Output     9 inputs predictions  + 4 predictive methods * 4 rcps * 3 aogcms
 # Ensembles  117 * (9 present + 12 future (4 rcps * 3 aogcms)) 
 # NEW VARS   Biotic Predictor Variables PA_SEP, PA_STK, SUIT_SEP, SUIT_SKT, resourceSEP, resourceSUIT.
+
 
 ## ..... XP1.1 - bee                   -----
 #   .....................................................................................
@@ -226,6 +248,7 @@ for (i in 1:length(sp_name))
   ###.............. Saving Ensembles
   write.table(result[["FULLensemble"]], "./data/outputs/XP1/XP1.1//ENSEMBLES.txt", sep = "\t", row.names = F)
 }
+rm(sp, sp_name)
 beep(8)
 
 ## ..... XP1.2 - 7 plants + resource   ----
@@ -265,6 +288,7 @@ for (i in 1:length(sp_names))
   ###.............. Saving Ensembles
   write.table(result[["FULLensemble"]], "./data/outputs/XP1/XP1.2/ENSEMBLES.txt", sep = "\t", row.names = F)
 }
+rm(sp, sp_names)
 beep(8)
 
 
@@ -281,40 +305,12 @@ beep(8)
 # PA_SEP_rcp85, PA_STK_rcp85, SUIT_SEP_rcp85, SUIT_SKT_rcp85, resourcePA_rcp85, resouceSUIT_rcp85,
 
 
-###.............. Presence Absence (PA)
-all_thr <- 
+#
 
-
-bioclim <- stack(output_current[[1]])[[which(thr[,"bioclim"]>=0.7)]]
-gower   <- stack(output_current[[2]])[[which(thr[,"gower"]>=0.7)]]
-maxent  <- stack(output_current[[3]])[[which(thr[,"maxent"]>=0.7)]]
-SVM     <- stack(output_current[[4]])[[which(thr[,"svm"]>=0.7)]]
-
-pa_sep  <- 
-pa_stk  <- 
-  
-  
-###.............. Suitabilities (SUIT)
-bioclim_val <- values(output_current[[1]])
-gower_val   <- values(output_current[[2]])
-maxent_val  <- values(output_current[[3]])
-SVM_val     <- values(output_current[[4]])
-
-bioclim_pad <- decostand(bioclim_val, "standardize", 2)
-gower_pad   <- decostand(gower_val,   "standardize", 2)
-maxent_pad  <- decostand(maxent_val,  "standardize", 2)
-SVM_pad     <- decostand(SVM_val,     "standardize", 2)
-
-suit_sep    <- 
-  suit_stk    <- 
-
-  
 ###.............. Sanving predictor variabels for XP2:XP7
 
 # PA_SEP, PA_STK, SUIT_SEP, SUIT_SKT.
-# SEP are lists objects with 7 layers.
-# Sep for the future are lists objectcs with 7 layers each one of then containing 3 aogcm layers
-# For this reason maybe would be better to have a Multiple_ENMs function specifc for running XP2:XP7
+  
   
 ## XP2 - sep_pa
 writeRaster(sep_pa_c,     "./data/outputs/predictors/XP2/current/sep_pa_c.bil",     format = "EHdr")
@@ -361,7 +357,7 @@ writeRaster(resource_suit_rcp85, "./data/outputs/predictors/XP7/current/resource
 
 # *************************************************************************************** 
 
-## 07. XP2                                          ----
+## 08. XP2                                          ----
 
 # Biotic Predictor	 SEP/PA - Plants XP1.2
 # Variables       	 abiotic + SEP/PA -  (12 vars = 5  + 7 )
@@ -405,7 +401,7 @@ beep(8)
 
 # ***************************************************************************************
 
-## 08. XP3                                          ----
+## 09. XP3                                          ----
 
 # Biotic Predictor	 SEP/SUIT - Plants XP1.2
 # Variables       	 abiotic + SEP/SUIT -  (12 vars = 5  + 7 )
@@ -449,7 +445,7 @@ beep(8)
 
 # ***************************************************************************************
 
-## 09. XP4                                          ----
+## 10. XP4                                          ----
 
 # Biotic Predictor	 STK/PA - Plants XP1.2
 # Variables       	 abiotic + STK/PA -  (6 vars = 5  + 1 )
@@ -492,7 +488,7 @@ for (i in 1:length(sp_name))
 beep(8)
 # ***************************************************************************************
 
-## 10. XP5                                          ----
+## 11. XP5                                          ----
 
 # Biotic Predictor	 STK/SUIT - Plants XP1.2
 # Variables       	 abiotic + STK/SUIT -  (6 vars = 5  + 1 )
@@ -535,7 +531,7 @@ for (i in 1:length(sp_name))
 beep(8)
 # ***************************************************************************************
 
-## 11. XP6                                          ----
+## 12. XP6                                          ----
 
 # Biotic Predictor	 Resource PA - Plants XP1.2
 # Variables       	 abiotic + Resource PA -  (6 vars = 5  + 1 )
@@ -579,7 +575,7 @@ beep(8)
 
 # ***************************************************************************************
 
-## 12. XP7                                          ----
+## 13. XP7                                          ----
 
 # Biotic Predictor	 Resource SUIT - Plants XP1.2
 # Variables       	 abiotic + resource SUIT -  (6 vars = 5  + 1 )
@@ -623,7 +619,7 @@ beep(8)
 
 
 # ***************************************************************************************
-## 13. Selecting XP from XP2:XP7                    ----
+## 14. Selecting XP from XP2:XP7                    ----
 
 # AVALIAÇAO DA REPRESENTATIVIDADE	
 # Anova de Medidas Repetidas (mesmos subconjuntos de XP2 a XP7)	
@@ -634,7 +630,7 @@ beep(8)
 # preditor: tamanho de range  XP2:XP7	
 # resposta: huberi	
 
-## 14. Preparing analysis factors                   ----
+## 15. Preparing analysis factors                   ----
 
 back <- list.files("./data/occurrences/", pattern = "back", full.names = TRUE)
 back <- bind_rows(lapply(back, fread))
@@ -654,7 +650,7 @@ all_val <- values(all_output)
 all_pad <- deconstante(all_val, "standardize", 2)
 
 # ***************************************************************************************
-## 15. Uncertainty Evaluation                       ----
+## 16. Uncertainty Evaluation                       ----
 
 all_huberi <- stack(huberi_c, huberi_rcp26, huberi_rcp45, huberi_rcp60, huberi_rcp85)
 TPR_huberi <- TPR_h[which(TPR_h)]
