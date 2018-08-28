@@ -245,20 +245,20 @@ for (i in 1:length(sp_name))
                           cross_validation = 20)
   
   ###.............. Saving predictions
-  writeRaster(result[["output_current"]], paste0("./data/outputs/XP1/XP1.1", sp_name[i],"_current.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP1/XP1.1", sp_name[i],"_rcp26.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP1/XP1.1", sp_name[i],"_rcp45.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP1/XP1.1", sp_name[i],"_rcp60.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP1/XP1.1", sp_name[i],"_rcp85.bil"), format = "EHdr")
+  writeRaster(result[["output_current"]], paste0("./data/outputs/XP1/", sp_name[i],"_current.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP1/", sp_name[i],"_rcp26.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP1/", sp_name[i],"_rcp45.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP1/", sp_name[i],"_rcp60.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP1/", sp_name[i],"_rcp85.bil"), format = "EHdr")
 
   
   ###.............. Saving evaluation data
-  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP1/XP1.1", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP1/XP1.1", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
-  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP1/XP1.1", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = )
+  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP1/", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP1/", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP1/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = )
   
   ###.............. Saving Ensembles
-  write.table(result[["FULLensemble"]], "./data/outputs/XP1/XP1.1//ENSEMBLES.txt", sep = "\t", row.names = F)
+  write.table(result[["FULLensemble"]], "./data/outputs/XP1/ENSEMBLES_XP1.1.txt", sep = "\t", row.names = F)
 }
 rm(sp, sp_name)
 beep(8)
@@ -289,20 +289,20 @@ for (i in 1:length(sp_names))
                           cross_validation = 20)
   
   ###.............. Saving predictions
-  writeRaster(result[["output_current"]], paste0("./data/outputs/XP1/XP1.2", sp_names[i],"_current.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP1/XP1.2", sp_names[i],"_rcp26.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP1/XP1.2", sp_names[i],"_rcp45.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP1/XP1.2", sp_names[i],"_rcp60.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP1/XP1.2", sp_names[i],"_rcp85.bil"), format = "EHdr")
+  writeRaster(result[["output_current"]], paste0("./data/outputs/XP1/", sp_names[i],"_current.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP1/", sp_names[i],"_rcp26.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP1/", sp_names[i],"_rcp45.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP1/", sp_names[i],"_rcp60.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP1/", sp_names[i],"_rcp85.bil"), format = "EHdr")
   
   
   ###.............. Saving evaluation data
-  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP1/XP1.2", sp_names[i], "_TPR_current.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP1/XP1.2", sp_names[i], "_t_current.txt"),   sep = "\t", row.names = F)
-  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP1/XP1.2", sp_names[i], "_d_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP1/", sp_names[i], "_TPR_current.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP1/", sp_names[i], "_t_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP1/", sp_names[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
   ###.............. Saving Ensembles
-  write.table(result[["FULLensemble"]], "./data/outputs/XP1/XP1.2/ENSEMBLES.txt", sep = "\t", row.names = F)
+  write.table(result[["FULLensemble"]], "./data/outputs/XP1/ENSEMBLES_XP1.2.txt", sep = "\t", row.names = F)
 }
 rm(sp, sp_names)
 beep(8)
@@ -357,19 +357,19 @@ for (i in 1:length(sp_name))
                           cross_validation = 20)
   
   ###.............. Saving predictions
-  writeRaster(result[["output_current"]], paste0("./data/outputs/XP2", sp_name[i],"_current.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP2", sp_name[i],"_rcp26.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP2", sp_name[i],"_rcp45.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP2", sp_name[i],"_rcp60.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP2", sp_name[i],"_rcp85.bil"), format = "EHdr")
+  writeRaster(result[["output_current"]], paste0("./data/outputs/XP2/", sp_name[i],"_current.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP2/", sp_name[i],"_rcp26.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP2/", sp_name[i],"_rcp45.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP2/", sp_name[i],"_rcp60.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP2/", sp_name[i],"_rcp85.bil"), format = "EHdr")
   
   ###.............. Saving evaluation data
-  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP2", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP2", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
-  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP2", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP2/", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP2/", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP2/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
   ###.............. Saving Ensembles
-  write.table(result[["FULLensemble"]], "./data/outputs/XP2/ENSEMBLES.txt", sep = "\t", row.names = F)
+  write.table(result[["FULLensemble"]], "./data/outputs/XP2/ENSEMBLES_XP2.txt", sep = "\t", row.names = F)
 }
 beep(8)
 
@@ -403,19 +403,19 @@ for (i in 1:length(sp_name))
                           cross_validation = 20)
   
   ###.............. Saving predictions
-  writeRaster(result[["output_current"]], paste0("./data/outputs/XP3", sp_name[i],"_current.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP3", sp_name[i],"_rcp26.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP3", sp_name[i],"_rcp45.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP3", sp_name[i],"_rcp60.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP3", sp_name[i],"_rcp85.bil"), format = "EHdr")
+  writeRaster(result[["output_current"]], paste0("./data/outputs/XP3/", sp_name[i],"_current.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP3/", sp_name[i],"_rcp26.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP3/", sp_name[i],"_rcp45.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP3/", sp_name[i],"_rcp60.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP3/", sp_name[i],"_rcp85.bil"), format = "EHdr")
   
   ###.............. Saving evaluation data
-  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP3", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP3", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
-  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP3", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP3/", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP3/", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP3/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
   ###.............. Saving Ensembles
-  write.table(result[["FULLensemble"]], "./data/outputs/XP3/ENSEMBLES.txt", sep = "\t", row.names = F)
+  write.table(result[["FULLensemble"]], "./data/outputs/XP3/ENSEMBLES_XP3.txt", sep = "\t", row.names = F)
 }
 beep(8)
 
@@ -449,19 +449,19 @@ for (i in 1:length(sp_name))
                           cross_validation = 20)
   
   ###.............. Saving predictions
-  writeRaster(result[["output_current"]], paste0("./data/outputs/XP4", sp_name[i],"_current.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP4", sp_name[i],"_rcp26.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP4", sp_name[i],"_rcp45.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP4", sp_name[i],"_rcp60.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP4", sp_name[i],"_rcp85.bil"), format = "EHdr")
+  writeRaster(result[["output_current"]], paste0("./data/outputs/XP4/", sp_name[i],"_current.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP4/", sp_name[i],"_rcp26.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP4/", sp_name[i],"_rcp45.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP4/", sp_name[i],"_rcp60.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP4/", sp_name[i],"_rcp85.bil"), format = "EHdr")
   
   ###.............. Saving evaluation data
-  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP4", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP4", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
-  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP4", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP4/", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP4/", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP4/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
   ###.............. Saving Ensembles
-  write.table(result[["FULLensemble"]], "./data/outputs/XP4/ENSEMBLES.txt", sep = "\t", row.names = F)
+  write.table(result[["FULLensemble"]], "./data/outputs/XP4/ENSEMBLES_XP4.txt", sep = "\t", row.names = F)
 }
 beep(8)
 # ***************************************************************************************
@@ -494,19 +494,19 @@ for (i in 1:length(sp_name))
                           cross_validation = 20)
   
   ###.............. Saving predictions
-  writeRaster(result[["output_current"]], paste0("./data/outputs/XP5", sp_name[i],"_current.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP5", sp_name[i],"_rcp26.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP5", sp_name[i],"_rcp45.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP5", sp_name[i],"_rcp60.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP5", sp_name[i],"_rcp85.bil"), format = "EHdr")
+  writeRaster(result[["output_current"]], paste0("./data/outputs/XP5/", sp_name[i],"_current.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp26.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp45.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp60.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp85.bil"), format = "EHdr")
   
   ###.............. Saving evaluation data
-  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP5", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP5", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
-  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP5", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP5/", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP5/", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP5/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
   ###.............. Saving Ensembles
-  write.table(result[["FULLensemble"]], "./data/outputs/XP5/ENSEMBLES.txt", sep = "\t", row.names = F)
+  write.table(result[["FULLensemble"]], "./data/outputs/XP5/ENSEMBLES_XP5.txt", sep = "\t", row.names = F)
 }
 beep(8)
 # ***************************************************************************************
@@ -539,19 +539,19 @@ for (i in 1:length(sp_name))
                           cross_validation = 20)
   
   ###.............. Saving predictions
-  writeRaster(result[["output_current"]], paste0("./data/outputs/XP6", sp_name[i],"_current.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP6", sp_name[i],"_rcp26.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP6", sp_name[i],"_rcp45.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP6", sp_name[i],"_rcp60.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP6", sp_name[i],"_rcp85.bil"), format = "EHdr")
+  writeRaster(result[["output_current"]], paste0("./data/outputs/XP6/", sp_name[i],"_current.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP6/", sp_name[i],"_rcp26.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP6/", sp_name[i],"_rcp45.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP6/", sp_name[i],"_rcp60.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP6/", sp_name[i],"_rcp85.bil"), format = "EHdr")
   
   ###.............. Saving evaluation data
-  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP6", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP6", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
-  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP6", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP6/", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP6/", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP6/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
   ###.............. Saving Ensembles
-  write.table(result[["FULLensemble"]], "./data/outputs/XP6/ENSEMBLES.txt", sep = "\t", row.names = F)
+  write.table(result[["FULLensemble"]], "./data/outputs/XP6/ENSEMBLES_XP6.txt", sep = "\t", row.names = F)
 }
 beep(8)
 
@@ -585,22 +585,21 @@ for (i in 1:length(sp_name))
                           cross_validation = 20)
   
   ###.............. Saving predictions
-  writeRaster(result[["output_current"]], paste0("./data/outputs/XP7", sp_name[i],"_current.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP7", sp_name[i],"_rcp26.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP7", sp_name[i],"_rcp45.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP7", sp_name[i],"_rcp60.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP7", sp_name[i],"_rcp85.bil"), format = "EHdr")
+  writeRaster(result[["output_current"]], paste0("./data/outputs/XP7/", sp_name[i],"_current.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP7/", sp_name[i],"_rcp26.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP7/", sp_name[i],"_rcp45.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP7/", sp_name[i],"_rcp60.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP7/", sp_name[i],"_rcp85.bil"), format = "EHdr")
   
   ###.............. Saving evaluation data
-  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP7", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP7", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
-  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP7", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP7/", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP7/", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP7/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
   ###.............. Saving Ensembles
-  write.table(result[["FULLensemble"]], "./data/outputs/XP7/ENSEMBLES.txt", sep = "\t", row.names = F)
+  write.table(result[["FULLensemble"]], "./data/outputs/XP7/ENSEMBLES_XP7.txt", sep = "\t", row.names = F)
 }
 beep(8)
-
 
 # ***************************************************************************************
 ## 14. Selecting XP from XP2:XP7                    ----
