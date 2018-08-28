@@ -125,25 +125,30 @@ for(i in 1:length(sp_names))
   occur_thinned <- rbind(occur_thinned, occur)
 }
 beep(2)
+
 write.table(occur_thinned, "./data/occurrences/occur_thinned.txt", sep = ";", row.names = FALSE)
 
-# occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",", h = T)
+huberi_thinned <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
+write.table(huberi_thinned, "./data/occurrences/huberi_thinned.txt", sep = ";", row.names = FALSE)
+
+resource <- occur_thinned[!grepl("Lithurgus_huberi", occur_thinned$SPEC), ]
+write.table(resource, "./data/occurrences/resource_thinned.txt", sep = ";", row.names = FALSE)
+
+rm(huberi_thinned, resource)
 
 ###.............. Extrancting bio variables based on the ocurrence cells
-
-## Creating and saving the object "var" for the stacked occurrences but the response one.
-resource <- occur_thinned[!grepl("Lithurgus_huberi", occur_thinned$SPEC), ]
-write.table(resource, "./data/occurrences/resource.txt", sep = ";", row.names = FALSE)
-
-# resource <- read.table("./data/occurrences/resource.txt", sep = ";", h = T)
-
-var <- create_var(resource, "resource")
 
 ## Creating and saving the object "var" for each studied species
 for(i in 1:length(sp_names))
 {
   var <- create_var(occur_thinned[occur_thinned[, 1] == sp_names[i], ], sp_names[i])
 }
+
+## Creating and saving the object "var" for the stacked occurrences except the bee
+
+resource <- read.table("./data/occurrences/resource_thinned.txt", sep = ";", h = T)
+var <- create_var(resource, "resource")
+
 beep(2)
 
 
@@ -179,12 +184,14 @@ points(occur_thinned[!grepl("Lithurgus_huberi", occur_thinned$SPEC), ][, -1], pc
 points(occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ][,-1], pch = "*", col = "blue")
 points(back[, "x"], back[, "y"], pch = "*", col = 'magenta')
 
-rm(list = ls())
+
 # ***************************************************************************************
 ## 06. Creating trainning-testing subsets           ----
 
-#  For variation control, all experiments (from XP1 to XP2), will be modeled with the same random subsets. (see cross_validation loop in Multiple_ENMs)
+#  For variation control, the occurrence that runs in all experiments (from XP1 to XP2),  will be modeled with the same random subsets. (see cross_validation loop in Multiple_ENMs)
 
+occur <- read.table("./data/occurrences/var_Lithurgus_huberi.txt",  sep = ";", h = T)
+back  <- read.table("./data/occurrences/back_Lithurgus_huberi.txt", sep = ";", h = T)
 cross_validation <- 20
 for (i in 1:cross_validation)
 {
@@ -196,11 +203,12 @@ for (i in 1:cross_validation)
                            p = occur[-sample_occur, 1:2], 
                            b = back[-sample_occur, 1:2])
   
-  write.table(trainning, paste0("./data/occurrences/subsets/trainning", i, ".txt"), sep = ",")
-  write.table(testing,   paste0("./data/occurrences/subsets/testing",   i, ".txt"), sep = ",")
+  write.table(trainning, paste0("./data/occurrences/subsets/trainning", i, ".txt"), sep = ";")
+  write.table(testing,   paste0("./data/occurrences/subsets/testing",   i, ".txt"), sep = ";")
 }
+rm(occur)
 
-
+rm(list = ls())
 # ***************************************************************************************
 
 ## 07. XP1                                          ----
@@ -211,11 +219,13 @@ for (i in 1:cross_validation)
 # Ensembles  117 * (9 present + 12 future (4 rcps * 3 aogcms)) 
 # NEW VARS   Biotic Predictor Variables PA_SEP, PA_STK, SUIT_SEP, SUIT_SKT, resourceSEP, resourceSUIT.
 
+# We splitted XP1 in two for running a specifif set of variables (SOIL) for just one of the input occurrences.
 
 ## ..... XP1.1 - bee                   -----
 #   .....................................................................................
 
-occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
+
+occur_thinned <- read.table("./data/occurrences/occur_thinned.txt", sep = ";", h = T)
 sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
 sp <- gsub("C[1-9]","", sp$SPEC)
 sp_name <- unique(sp)
@@ -230,6 +240,8 @@ for (i in 1:length(sp_name))
                           biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
                           biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
                           biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
+                          trainning        = "./data/occurrences/subsets/trainning",
+                          testing          = "./data/occurrences/subsets/testing",
                           cross_validation = 20)
   
   ###.............. Saving predictions
@@ -251,10 +263,12 @@ for (i in 1:length(sp_name))
 rm(sp, sp_name)
 beep(8)
 
-## ..... XP1.2 - 7 plants + resource   ----
-#   .....................................................................................
 
-occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",") # all species but "resource"
+## ..... XP1.2 - 7 plants resource     ----
+#   .....................................................................................
+# here we could include the soil vars.
+
+occur_thinned <- read.table("./data/occurrences/occur_thinned.txt", sep = ";", h = T) # all species but "resource"
 sp <- occur_thinned[!grepl("Lithurgus_huberi", occur_thinned$SPEC), ] # removing the bee species
 sp <- gsub("C[1-9]","", sp$SPEC)
 sp_names <- unique(sp)
@@ -270,6 +284,8 @@ for (i in 1:length(sp_names))
                           biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
                           biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
                           biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
+                          trainning        = 0,
+                          testing          = 0,
                           cross_validation = 20)
   
   ###.............. Saving predictions
@@ -291,7 +307,6 @@ for (i in 1:length(sp_names))
 rm(sp, sp_names)
 beep(8)
 
-
 ## ..... New Variables                 ----
 #   .....................................................................................
 # Creating predictors variables to be used througout XP2:XP7
@@ -310,49 +325,6 @@ beep(8)
 ###.............. Sanving predictor variabels for XP2:XP7
 
 # PA_SEP, PA_STK, SUIT_SEP, SUIT_SKT.
-  
-  
-## XP2 - sep_pa
-writeRaster(sep_pa_c,     "./data/outputs/predictors/XP2/current/sep_pa_c.bil",     format = "EHdr")
-writeRaster(sep_pa_rcp26, "./data/outputs/predictors/XP2/current/sep_pa_rcp26.bil", format = "EHdr")
-writeRaster(sep_pa_rcp45, "./data/outputs/predictors/XP2/current/sep_pa_rcp45.bil", format = "EHdr")
-writeRaster(sep_pa_rcp60, "./data/outputs/predictors/XP2/current/sep_pa_rcp60.bil", format = "EHdr")
-writeRaster(sep_pa_rcp85, "./data/outputs/predictors/XP2/current/sep_pa_rcp85.bil", format = "EHdr")
-
-## XP3 - sep_suit
-writeRaster(sep_suit_c,     "./data/outputs/predictors/XP3/current/sep_suit_c.bil",     format = "EHdr")
-writeRaster(sep_suit_rcp26, "./data/outputs/predictors/XP3/current/sep_suit_rcp26.bil", format = "EHdr")
-writeRaster(sep_suit_rcp45, "./data/outputs/predictors/XP3/current/sep_suit_rcp45.bil", format = "EHdr")
-writeRaster(sep_suit_rcp60, "./data/outputs/predictors/XP3/current/sep_suit_rcp60.bil", format = "EHdr")
-writeRaster(sep_suit_rcp85, "./data/outputs/predictors/XP3/current/sep_suit_rcp85.bil", format = "EHdr")
-
-## XP4 - stk_pa
-writeRaster(stk_pa_c,     "./data/outputs/predictors/XP4/current/stk_pa_c.bil",     format = "EHdr")
-writeRaster(stk_pa_rcp26, "./data/outputs/predictors/XP4/current/stk_pa_rcp26.bil", format = "EHdr")
-writeRaster(stk_pa_rcp45, "./data/outputs/predictors/XP4/current/stk_pa_rcp45.bil", format = "EHdr")
-writeRaster(stk_pa_rcp60, "./data/outputs/predictors/XP4/current/stk_pa_rcp60.bil", format = "EHdr")
-writeRaster(stk_pa_rcp85, "./data/outputs/predictors/XP4/current/stk_pa_rcp85.bil", format = "EHdr")
-
-## XP5 - stk_suit
-writeRaster(stk_suit_c,     "./data/outputs/predictors/XP5/current/stk_suit_c.bil",     format = "EHdr")
-writeRaster(stk_suit_rcp26, "./data/outputs/predictors/XP5/current/stk_suit_rcp26.bil", format = "EHdr")
-writeRaster(stk_suit_rcp45, "./data/outputs/predictors/XP5/current/stk_suit_rcp45.bil", format = "EHdr")
-writeRaster(stk_suit_rcp60, "./data/outputs/predictors/XP5/current/stk_suit_rcp60.bil", format = "EHdr")
-writeRaster(stk_suit_rcp85, "./data/outputs/predictors/XP5/current/stk_suit_rcp85.bil", format = "EHdr")
-
-## XP6 - resource_pa
-writeRaster(resource_pa_c,     "./data/outputs/predictors/XP6/current/resource_pa_c.bil",     format = "EHdr")
-writeRaster(resource_pa_rcp26, "./data/outputs/predictors/XP6/current/resource_pa_rcp26.bil", format = "EHdr")
-writeRaster(resource_pa_rcp45, "./data/outputs/predictors/XP6/current/resource_pa_rcp45.bil", format = "EHdr")
-writeRaster(resource_pa_rcp60, "./data/outputs/predictors/XP6/current/resource_pa_rcp60.bil", format = "EHdr")
-writeRaster(resource_pa_rcp85, "./data/outputs/predictors/XP6/current/resource_pa_rcp85.bil", format = "EHdr")
-
-## XP7 - resource_suit
-writeRaster(resource_suit_c,     "./data/outputs/predictors/XP7/current/resource_suit_c.bil",     format = "EHdr")
-writeRaster(resource_suit_rcp26, "./data/outputs/predictors/XP7/current/resource_suit_rcp26.bil", format = "EHdr")
-writeRaster(resource_suit_rcp45, "./data/outputs/predictors/XP7/current/resource_suit_rcp45.bil", format = "EHdr")
-writeRaster(resource_suit_rcp60, "./data/outputs/predictors/XP7/current/resource_suit_rcp60.bil", format = "EHdr")
-writeRaster(resource_suit_rcp85, "./data/outputs/predictors/XP7/current/resource_suit_rcp85.bil", format = "EHdr")
 
 
 # *************************************************************************************** 
@@ -365,7 +337,7 @@ writeRaster(resource_suit_rcp85, "./data/outputs/predictors/XP7/current/resource
 # Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
 # Ensembles          1 * (9 present + 12 future (4 rcps * 3 aogcms)) 
 
-occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
+occur_thinned <- read.table("./data/occurrences/occur_thinned.txt", sep = ";", h = T)
 sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
 sp <- gsub("C[1-9]","", sp$SPEC)
 sp_name <- unique(sp)
@@ -380,6 +352,8 @@ for (i in 1:length(sp_name))
                           biovar_rcp45     = "./data/ouputs/predictors/XP2/rcp45/",
                           biovar_rcp60     = "./data/ouputs/predictors/XP2/rcp60/",
                           biovar_rcp85     = "./data/ouputs/predictors/XP2/rcp85/",
+                          trainning        = "./data/occurrences/subsets/trainning",
+                          testing          = "./data/occurrences/subsets/testing",
                           cross_validation = 20)
   
   ###.............. Saving predictions
@@ -409,7 +383,7 @@ beep(8)
 # Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
 # Ensemble  	       1 * (9 present + 12 future (4 rcps * 3 aogcms)) 
 
-occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
+occur_thinned <- read.table("./data/occurrences/occur_thinned.txt", sep = ";", h = T)
 sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
 sp <- gsub("C[1-9]","", sp$SPEC)
 sp_name <- unique(sp)
@@ -424,6 +398,8 @@ for (i in 1:length(sp_name))
                           biovar_rcp45     = "./data/ouputs/predictors/XP3/rcp45/",
                           biovar_rcp60     = "./data/ouputs/predictors/XP3/rcp60/",
                           biovar_rcp85     = "./data/ouputs/predictors/XP3/rcp85/",
+                          trainning        = "./data/occurrences/subsets/trainning",
+                          testing          = "./data/occurrences/subsets/testing",
                           cross_validation = 20)
   
   ###.............. Saving predictions
@@ -453,7 +429,7 @@ beep(8)
 # Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
 # Ensemble           1 * (9 present + 12 future (4 rcps * 3 aogcms))
 
-occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
+occur_thinned <- read.table("./data/occurrences/occur_thinned.txt", sep = ";", h = T)
 sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
 sp <- gsub("C[1-9]","", sp$SPEC)
 sp_name <- unique(sp)
@@ -468,6 +444,8 @@ for (i in 1:length(sp_name))
                           biovar_rcp45     = "./data/ouputs/predictors/XP4/rcp45/",
                           biovar_rcp60     = "./data/ouputs/predictors/XP4/rcp60/",
                           biovar_rcp85     = "./data/ouputs/predictors/XP4/rcp85/",
+                          trainning        = "./data/occurrences/subsets/trainning",
+                          testing          = "./data/occurrences/subsets/testing",
                           cross_validation = 20)
   
   ###.............. Saving predictions
@@ -496,7 +474,7 @@ beep(8)
 # Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
 # Ensemble           1 * (9 present + 12 future (4 rcps * 3 aogcms))
 
-occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
+occur_thinned <- read.table("./data/occurrences/occur_thinned.txt", sep = ";", h = T)
 sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
 sp <- gsub("C[1-9]","", sp$SPEC)
 sp_name <- unique(sp)
@@ -511,6 +489,8 @@ for (i in 1:length(sp_name))
                           biovar_rcp45     = "./data/ouputs/predictors/XP5/rcp45/",
                           biovar_rcp60     = "./data/ouputs/predictors/XP5/rcp60/",
                           biovar_rcp85     = "./data/ouputs/predictors/XP5/rcp85/",
+                          trainning        = "./data/occurrences/subsets/trainning",
+                          testing          = "./data/occurrences/subsets/testing",
                           cross_validation = 20)
   
   ###.............. Saving predictions
@@ -539,7 +519,7 @@ beep(8)
 # Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
 # Ensemble           1 * (9 present + 12 future (4 rcps * 3 aogcms))
 
-occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
+occur_thinned <- read.table("./data/occurrences/occur_thinned.txt", sep = ";", h = T)
 sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
 sp <- gsub("C[1-9]","", sp$SPEC)
 sp_name <- unique(sp)
@@ -554,6 +534,8 @@ for (i in 1:length(sp_name))
                           biovar_rcp45     = "./data/ouputs/predictors/XP6/rcp45/",
                           biovar_rcp60     = "./data/ouputs/predictors/XP6/rcp60/",
                           biovar_rcp85     = "./data/ouputs/predictors/XP6/rcp85/",
+                          trainning        = "./data/occurrences/subsets/trainning",
+                          testing          = "./data/occurrences/subsets/testing",
                           cross_validation = 20)
   
   ###.............. Saving predictions
@@ -583,7 +565,7 @@ beep(8)
 # Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
 # Ensemble           1 * (9 present + 12 future (4 rcps * 3 aogcms))
 
-occur_thinned <- read.csv("./data/occurrences/occur_thinned.csv", sep = ",")
+occur_thinned <- read.table("./data/occurrences/occur_thinned.txt", sep = ";", h = T)
 sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
 sp <- gsub("C[1-9]","", sp$SPEC)
 sp_name <- unique(sp)
@@ -598,6 +580,8 @@ for (i in 1:length(sp_name))
                           biovar_rcp45     = "./data/ouputs/predictors/XP7/rcp45/",
                           biovar_rcp60     = "./data/ouputs/predictors/XP7/rcp60/",
                           biovar_rcp85     = "./data/ouputs/predictors/XP7/rcp85/",
+                          trainning        = "./data/occurrences/subsets/trainning",
+                          testing          = "./data/occurrences/subsets/testing",
                           cross_validation = 20)
   
   ###.............. Saving predictions

@@ -5,6 +5,8 @@ multiple_ENMs <- function(occurrence,
                           biovar_rcp45,
                           biovar_rcp60,
                           biovar_rcp85,
+                          trainning,
+                          testing,
                           cross_validation)
 {
   
@@ -48,8 +50,20 @@ multiple_ENMs <- function(occurrence,
     ### OPEN "j" ----
     
     ###.............. Loading trainning-testing subsets
-    trainning <- read.table(paste0("./data/occurrences/subsets/trainning", j, ".txt"), sep = ",")
-    testing   <- read.table(paste0("./data/occurrences/subsets/trainning", j, ".txt"), sep = ",")
+    
+    if (is.character(trainning)){
+     trainning <- read.table(paste0(trainning, j, ".txt"), sep = ";")
+     testing   <- read.table(paste0(testing,   j, ".txt"), sep = ";")
+    }else{
+      sample_occur <- sample(1:nrow(occur), round(0.75 * nrow(occur), 0))
+      trainning <- prepareData(x = current, 
+                               p = occur[sample_occur,  1:2], 
+                               b = back [sample_occur,  1:2]) 
+      testing   <- prepareData(x = current, 
+                               p = occur[-sample_occur, 1:2], 
+                               b = back [-sample_occur, 1:2])
+    }
+    
     
     # ***************************************************************************************
     ### Bioclim -----------------------------------------------------------------------------
