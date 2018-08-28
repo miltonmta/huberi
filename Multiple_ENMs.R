@@ -5,15 +5,27 @@ multiple_ENMs <- function(occurrence,
                           biovar_rcp45,
                           biovar_rcp60,
                           biovar_rcp85,
+                          newvar_current,
+                          newvar_rcp26,
+                          newvar_rcp45,
+                          newvar_rcp60,
+                          newvar_rcp85,
                           trainning,
                           testing,
+                          AOGCMs,
                           cross_validation)
 {
   
   ###.............. Reading the selected climatic variables
   
-  ## Reading the selected current model
-  current <- stack(list.files(biovar_current,  pattern = ".grd$", full.names = TRUE))
+  if (is.numeric(newvar_current)){
+    current <- stack(list.files(biovar_current,  pattern = ".grd$", full.names = TRUE))
+  }else{
+    current <- addLayer(stack(list.files(biovar_current,  pattern = ".grd$", full.names = TRUE)), 
+                        stack(list.files(newvar_current,  pattern = ".grd$", full.names = TRUE)))
+  }
+  
+  
   
   ###.............. Reading ocurrence and background
   occur <- read.table(occurrence, sep = ";", h = T)
@@ -147,34 +159,83 @@ multiple_ENMs <- function(occurrence,
     
     ###.............. Making predictions for the RCPs
     
-   
-    AOGCMs <- c(1, 2, 3)
+    mdid <- paste0('.',1:3,'.grd$')
     for (i in AOGCMs)
     {
       # OPEN "i" ----
       
       ### Reading the selected AOGCMs climatic models
-      mdid <- paste0('.',1:3,'.grd$') # models identification.bio02.1 - ".1" stands for model 1.
       
-      mdls <- lapply(mdid, function(x){stack(list.files(biovar_rcp26, 
-                                                        pattern = x, full.names = TRUE))})
-      rcp26  <- mdls[[i]] # now only the ith model will be extracted from the mdls.
-      names(rcp26) <- names(current)
-      
-      mdls <- lapply(mdid, function(x){stack(list.files(biovar_rcp45, 
-                                                        pattern = x, full.names = TRUE))})
-      rcp45  <- mdls[[i]]
-      names(rcp45) <- names(current)
-      
-      mdls  <- lapply(mdid, function(x){stack(list.files(biovar_rcp60, 
-                                                         pattern = x, full.names = TRUE))})
-      rcp60  <- mdls[[i]]
-      names(rcp60) <- names(current)
-      
-      mdls  <- lapply(mdid, function(x){stack(list.files(biovar_rcp85, 
-                                                         pattern = x, full.names = TRUE))})
-      rcp85  <- mdls[[i]]
-      names(rcp85) <- names(current)
+      if(is.numeric(newvar_rcp26)){
+        # ..............
+        mdls <- lapply(mdid, function(x){stack(list.files(biovar_rcp26, 
+                                                          pattern = x, full.names = TRUE))})
+        rcp26  <- mdls[[i]] 
+        names(rcp26) <- names(current)
+        rm(mdls)
+        
+        # ..............
+        mdls <- lapply(mdid, function(x){stack(list.files(biovar_rcp45, 
+                                                          pattern = x, full.names = TRUE))})
+        rcp45  <- mdls[[i]]
+        names(rcp45) <- names(current)
+        rm(mdls)
+        
+        # ..............
+        mdls  <- lapply(mdid, function(x){stack(list.files(biovar_rcp60, 
+                                                           pattern = x, full.names = TRUE))})
+        rcp60  <- mdls[[i]]
+        names(rcp60) <- names(current)
+        rm(mdls)
+        
+        # ..............
+        mdls    <- lapply(mdid, function(x){stack(list.files(biovar_rcp85, 
+                                                           pattern = x, full.names = TRUE))})
+        rcp85  <- mdls[[i]]
+        names(rcp85) <- names(current)
+        rm(mdls)
+        
+      }else{
+        # ..............
+        mdls_bio <- lapply(mdid, function(x){stack(list.files(biovar_rcp26, 
+                                                              pattern = x, full.names = TRUE))})
+        mdls_new <- lapply(mdid, function(x){stack(list.files(newvar_rcp26, 
+                                                              pattern = x, full.names = TRUE))})
+        mdls     <- c(mdls_bio, mdls_new)
+        rcp26  <- addLayer(mdls[[i]], mdls[[i+3]])
+        names(rcp26) <- names(current)
+        rm(mdls_bio, mdls_new, mdls)
+        
+        # ..............
+        mdls_bio <- lapply(mdid, function(x){stack(list.files(biovar_rcp45, 
+                                                              pattern = x, full.names = TRUE))})
+        mdls_new <- lapply(mdid, function(x){stack(list.files(newvar_rcp45, 
+                                                              pattern = x, full.names = TRUE))})
+        mdls     <- c(mdls_bio, mdls_new)
+        rcp45  <- addLayer(mdls[[i]], mdls[[i+3]])
+        names(rcp45) <- names(current)
+        rm(mdls_bio, mdls_new, mdls)
+        
+        # ..............
+        mdls_bio <- lapply(mdid, function(x){stack(list.files(biovar_rcp60, 
+                                                              pattern = x, full.names = TRUE))})
+        mdls_new <- lapply(mdid, function(x){stack(list.files(newvar_rcp60, 
+                                                              pattern = x, full.names = TRUE))})
+        mdls     <- c(mdls_bio, mdls_new)
+        rcp60  <- addLayer(mdls[[i]], mdls[[i+3]])
+        names(rcp60) <- names(current)
+        rm(mdls_bio, mdls_new, mdls)
+        
+        # ..............
+        mdls_bio <- lapply(mdid, function(x){stack(list.files(biovar_rcp85, 
+                                                              pattern = x, full.names = TRUE))})
+        mdls_new <- lapply(mdid, function(x){stack(list.files(newvar_rcp85, 
+                                                              pattern = x, full.names = TRUE))})
+        mdls     <- c(mdls_bio, mdls_new)
+        rcp85  <- addLayer(mdls[[i]], mdls[[i+3]])
+        names(rcp85) <- names(current)
+        rm(mdls_bio, mdls_new, mdls)
+      }
       
       ### Predicting
       bioclim_rcp26 <- stack(bioclim_rcp26, predict(object = bioclim_model, x = rcp26))

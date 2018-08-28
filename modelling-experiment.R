@@ -221,7 +221,7 @@ rm(list = ls())
 
 # We splitted XP1 in two for running a specifif set of variables (SOIL) for just one of the input occurrences.
 
-## ..... XP1.1 - bee                   -----
+## ..... 07.1 XP1.1 - bee                   -----
 #   .....................................................................................
 
 
@@ -240,8 +240,14 @@ for (i in 1:length(sp_name))
                           biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
                           biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
                           biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
+                          newvar_current   = 0,
+                          newvar_rcp26     = 0,
+                          newvar_rcp45     = 0,
+                          newvar_rcp60     = 0,
+                          newvar_rcp85     = 0,
                           trainning        = "./data/occurrences/subsets/trainning",
                           testing          = "./data/occurrences/subsets/testing",
+                          AOGCMs           = c(1, 2, 3),
                           cross_validation = 20)
   
   ###.............. Saving predictions
@@ -253,18 +259,18 @@ for (i in 1:length(sp_name))
 
   
   ###.............. Saving evaluation data
-  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP1/", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP1/", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
-  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP1/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = )
+  write.table(result[["TPR_c"]],        paste0("./data/outputs/XP1/", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_c"]],  paste0("./data/outputs/XP1/", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_c"]],  paste0("./data/outputs/XP1/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
   ###.............. Saving Ensembles
-  write.table(result[["FULLensemble"]], "./data/outputs/XP1/ENSEMBLES_XP1.1.txt", sep = "\t", row.names = F)
+  write.table(result[["FULLensemble"]], paste0("./data/outputs/XP1/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
 }
 rm(sp, sp_name)
 beep(8)
 
 
-## ..... XP1.2 - 7 plants resource     ----
+## ..... 07.2 XP1.2 - 7 plants + resource   ----
 #   .....................................................................................
 # here we could include the soil vars.
 
@@ -284,8 +290,14 @@ for (i in 1:length(sp_names))
                           biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
                           biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
                           biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
+                          newvar_current   = 0,
+                          newvar_rcp26     = 0,
+                          newvar_rcp45     = 0,
+                          newvar_rcp60     = 0,
+                          newvar_rcp85     = 0,
                           trainning        = 0,
                           testing          = 0,
+                          AOGCMs           = c(1, 2, 3),
                           cross_validation = 20)
   
   ###.............. Saving predictions
@@ -297,17 +309,17 @@ for (i in 1:length(sp_names))
   
   
   ###.............. Saving evaluation data
-  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP1/", sp_names[i], "_TPR_current.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP1/", sp_names[i], "_t_current.txt"),   sep = "\t", row.names = F)
-  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP1/", sp_names[i], "_d_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["TPR_c"]],        paste0("./data/outputs/XP1/", sp_names[i], "_TPR_current.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_c"]],  paste0("./data/outputs/XP1/", sp_names[i], "_t_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_c"]],  paste0("./data/outputs/XP1/", sp_names[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
   ###.............. Saving Ensembles
-  write.table(result[["FULLensemble"]], "./data/outputs/XP1/ENSEMBLES_XP1.2.txt", sep = "\t", row.names = F)
+  write.table(result[["FULLensemble"]], paste0("./data/outputs/XP1/", sp_names[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
 }
 rm(sp, sp_names)
 beep(8)
 
-## ..... New Variables                 ----
+## ..... 07.3 New Variables                 ----
 #   .....................................................................................
 # Creating predictors variables to be used througout XP2:XP7
 
@@ -325,6 +337,48 @@ beep(8)
 ###.............. Sanving predictor variabels for XP2:XP7
 
 # PA_SEP, PA_STK, SUIT_SEP, SUIT_SKT.
+
+## XP2 - sep_pa # criar loop salvar de SP1 a SP7.
+writeRaster(sep_pa_c,       "./data/outputs/predictors/XP2/current/sep_pa.grd",   format = "raster")
+writeRaster(sep_pa_rcp26,   "./data/outputs/predictors/XP2/rcp26/sep_pa.grd",     format = "raster")
+writeRaster(sep_pa_rcp45,   "./data/outputs/predictors/XP2/rcp45/sep_pa.grd",     format = "raster")
+writeRaster(sep_pa_rcp60,   "./data/outputs/predictors/XP2/rcp60/sep_pa.grd",     format = "raster")
+writeRaster(sep_pa_rcp85,   "./data/outputs/predictors/XP2/rcp85/sep_pa.grd",     format = "raster")
+
+## XP3 - sep_suit
+writeRaster(sep_suit_c,     "./data/outputs/predictors/XP3/current/sep_suit.grd", format = "raster")
+writeRaster(sep_suit_rcp26, "./data/outputs/predictors/XP3/rcp26/sep_suit.grd",   format = "raster")
+writeRaster(sep_suit_rcp45, "./data/outputs/predictors/XP3/rcp45/sep_suit.grd",   format = "raster")
+writeRaster(sep_suit_rcp60, "./data/outputs/predictors/XP3/rcp60/sep_suit.grd",   format = "raster")
+writeRaster(sep_suit_rcp85, "./data/outputs/predictors/XP3/rcp85/sep_suit.grd",   format = "raster")
+
+## XP4 - stk_pa
+writeRaster(stk_pa_c,       "./data/outputs/predictors/XP4/current/stk_pa.grd",   format = "raster")
+writeRaster(stk_pa_rcp26,   "./data/outputs/predictors/XP4/rcp26/stk_pa.grd",     format = "raster")
+writeRaster(stk_pa_rcp45,   "./data/outputs/predictors/XP4/rcp45/stk_pa.grd",     format = "raster")
+writeRaster(stk_pa_rcp60,   "./data/outputs/predictors/XP4/rcp60/stk_pa.grd",     format = "raster")
+writeRaster(stk_pa_rcp85,   "./data/outputs/predictors/XP4/rcp85/stk_pa.grd",     format = "raster")
+
+## XP5 - stk_suit
+writeRaster(stk_suit_c,     "./data/outputs/predictors/XP5/current/stk_suit.grd", format = "raster")
+writeRaster(stk_suit_rcp26, "./data/outputs/predictors/XP5/rcp26/stk_suit.grd",   format = "raster")
+writeRaster(stk_suit_rcp45, "./data/outputs/predictors/XP5/rcp45/stk_suit.grd",   format = "raster")
+writeRaster(stk_suit_rcp60, "./data/outputs/predictors/XP5/rcp60/stk_suit.grd",   format = "raster")
+writeRaster(stk_suit_rcp85, "./data/outputs/predictors/XP5/rcp85/stk_suit.grd",   format = "raster")
+
+## XP6 - resource_pa
+writeRaster(res_pa_c,       "./data/outputs/predictors/XP6/current/res_pa.grd",   format = "raster")
+writeRaster(res_pa_rcp26,   "./data/outputs/predictors/XP6/rcp26/res_pa.grd",     format = "raster")
+writeRaster(res_pa_rcp45,   "./data/outputs/predictors/XP6/rcp45/res_pa.grd",     format = "raster")
+writeRaster(res_pa_rcp60,   "./data/outputs/predictors/XP6/rcp60/res_pa.grd",     format = "raster")
+writeRaster(res_pa_rcp85,   "./data/outputs/predictors/XP6/rcp85/res_pa.grd",     format = "raster")
+
+## XP7 - resource_suit
+writeRaster(res_suit_c,     "./data/outputs/predictors/XP7/current/res_suit.grd", format = "raster")
+writeRaster(res_suit_rcp26, "./data/outputs/predictors/XP7/rcp26/res_suit.grd",   format = "raster")
+writeRaster(res_suit_rcp45, "./data/outputs/predictors/XP7/rcp45/res_suit.grd",   format = "raster")
+writeRaster(res_suit_rcp60, "./data/outputs/predictors/XP7/rcp60/res_suit.grd",   format = "raster")
+writeRaster(res_suit_rcp85, "./data/outputs/predictors/XP7/rcp85/res_suit.grd",   format = "raster")
 
 
 # *************************************************************************************** 
@@ -347,13 +401,19 @@ for (i in 1:length(sp_name))
   ###.............. Running the modedelling experiment
   result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_",  sp_name[i], ".txt"),
                           background       = paste0("./data/occurrences/back_", sp_name[i], ".txt"),
-                          biovar_current   = "./data/ouputs/predictors/XP2/current/",
-                          biovar_rcp26     = "./data/ouputs/predictors/XP2/rcp26/",
-                          biovar_rcp45     = "./data/ouputs/predictors/XP2/rcp45/",
-                          biovar_rcp60     = "./data/ouputs/predictors/XP2/rcp60/",
-                          biovar_rcp85     = "./data/ouputs/predictors/XP2/rcp85/",
+                          biovar_current   = "./data/climatic_vars/selected/current/",
+                          biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
+                          biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
+                          biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
+                          biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
+                          newvar_current   = "./data/outputs/predictors/XP2/current/",
+                          newvar_rcp26     = "./data/outputs/predictors/XP2/rcp26/",
+                          newvar_rcp45     = "./data/outputs/predictors/XP2/rcp45/",
+                          newvar_rcp60     = "./data/outputs/predictors/XP2/rcp60/",
+                          newvar_rcp85     = "./data/outputs/predictors/XP2/rcp85/",
                           trainning        = "./data/occurrences/subsets/trainning",
                           testing          = "./data/occurrences/subsets/testing",
+                          AOGCMs           = c(1, 2, 3),
                           cross_validation = 20)
   
   ###.............. Saving predictions
@@ -369,7 +429,7 @@ for (i in 1:length(sp_name))
   write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP2/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
   ###.............. Saving Ensembles
-  write.table(result[["FULLensemble"]], "./data/outputs/XP2/ENSEMBLES_XP2.txt", sep = "\t", row.names = F)
+  write.table(result[["FULLensemble"]], paste0("./data/outputs/XP2/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
 }
 beep(8)
 
@@ -393,13 +453,19 @@ for (i in 1:length(sp_name))
   ###.............. Running the modedelling experiment
   result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_",  sp_name[i], ".txt"),
                           background       = paste0("./data/occurrences/back_", sp_name[i], ".txt"),
-                          biovar_current   = "./data/ouputs/predictors/XP3/current/",
-                          biovar_rcp26     = "./data/ouputs/predictors/XP3/rcp26/",
-                          biovar_rcp45     = "./data/ouputs/predictors/XP3/rcp45/",
-                          biovar_rcp60     = "./data/ouputs/predictors/XP3/rcp60/",
-                          biovar_rcp85     = "./data/ouputs/predictors/XP3/rcp85/",
+                          biovar_current   = "./data/climatic_vars/selected/current/",
+                          biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
+                          biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
+                          biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
+                          biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
+                          newvar_current   = "./data/outputs/predictors/XP2/current/",
+                          newvar_rcp26     = "./data/outputs/predictors/XP2/rcp26/",
+                          newvar_rcp45     = "./data/outputs/predictors/XP2/rcp45/",
+                          newvar_rcp60     = "./data/outputs/predictors/XP2/rcp60/",
+                          newvar_rcp85     = "./data/outputs/predictors/XP2/rcp85/",
                           trainning        = "./data/occurrences/subsets/trainning",
                           testing          = "./data/occurrences/subsets/testing",
+                          AOGCMs           = c(1, 2, 3),
                           cross_validation = 20)
   
   ###.............. Saving predictions
@@ -415,7 +481,7 @@ for (i in 1:length(sp_name))
   write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP3/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
   ###.............. Saving Ensembles
-  write.table(result[["FULLensemble"]], "./data/outputs/XP3/ENSEMBLES_XP3.txt", sep = "\t", row.names = F)
+  write.table(result[["FULLensemble"]], paste0("./data/outputs/XP3/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
 }
 beep(8)
 
@@ -439,13 +505,19 @@ for (i in 1:length(sp_name))
   ###.............. Running the modedelling experiment
   result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_",  sp_name[i], ".txt"),
                           background       = paste0("./data/occurrences/back_", sp_name[i], ".txt"),
-                          biovar_current   = "./data/ouputs/predictors/XP4/current/",
-                          biovar_rcp26     = "./data/ouputs/predictors/XP4/rcp26/",
-                          biovar_rcp45     = "./data/ouputs/predictors/XP4/rcp45/",
-                          biovar_rcp60     = "./data/ouputs/predictors/XP4/rcp60/",
-                          biovar_rcp85     = "./data/ouputs/predictors/XP4/rcp85/",
+                          biovar_current   = "./data/climatic_vars/selected/current/",
+                          biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
+                          biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
+                          biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
+                          biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
+                          newvar_current   = "./data/outputs/predictors/XP2/current/",
+                          newvar_rcp26     = "./data/outputs/predictors/XP2/rcp26/",
+                          newvar_rcp45     = "./data/outputs/predictors/XP2/rcp45/",
+                          newvar_rcp60     = "./data/outputs/predictors/XP2/rcp60/",
+                          newvar_rcp85     = "./data/outputs/predictors/XP2/rcp85/",
                           trainning        = "./data/occurrences/subsets/trainning",
                           testing          = "./data/occurrences/subsets/testing",
+                          AOGCMs           = c(1, 2, 3),
                           cross_validation = 20)
   
   ###.............. Saving predictions
@@ -461,7 +533,7 @@ for (i in 1:length(sp_name))
   write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP4/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
   ###.............. Saving Ensembles
-  write.table(result[["FULLensemble"]], "./data/outputs/XP4/ENSEMBLES_XP4.txt", sep = "\t", row.names = F)
+  write.table(result[["FULLensemble"]], paste0("./data/outputs/XP4/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
 }
 beep(8)
 # ***************************************************************************************
@@ -484,13 +556,19 @@ for (i in 1:length(sp_name))
   ###.............. Running the modedelling experiment
   result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_",  sp_name[i], ".txt"),
                           background       = paste0("./data/occurrences/back_", sp_name[i], ".txt"),
-                          biovar_current   = "./data/ouputs/predictors/XP5/current/",
-                          biovar_rcp26     = "./data/ouputs/predictors/XP5/rcp26/",
-                          biovar_rcp45     = "./data/ouputs/predictors/XP5/rcp45/",
-                          biovar_rcp60     = "./data/ouputs/predictors/XP5/rcp60/",
-                          biovar_rcp85     = "./data/ouputs/predictors/XP5/rcp85/",
+                          biovar_current   = "./data/climatic_vars/selected/current/",
+                          biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
+                          biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
+                          biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
+                          biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
+                          newvar_current   = "./data/outputs/predictors/XP2/current/",
+                          newvar_rcp26     = "./data/outputs/predictors/XP2/rcp26/",
+                          newvar_rcp45     = "./data/outputs/predictors/XP2/rcp45/",
+                          newvar_rcp60     = "./data/outputs/predictors/XP2/rcp60/",
+                          newvar_rcp85     = "./data/outputs/predictors/XP2/rcp85/",
                           trainning        = "./data/occurrences/subsets/trainning",
                           testing          = "./data/occurrences/subsets/testing",
+                          AOGCMs           = c(1, 2, 3),
                           cross_validation = 20)
   
   ###.............. Saving predictions
@@ -506,7 +584,7 @@ for (i in 1:length(sp_name))
   write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP5/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
   ###.............. Saving Ensembles
-  write.table(result[["FULLensemble"]], "./data/outputs/XP5/ENSEMBLES_XP5.txt", sep = "\t", row.names = F)
+  write.table(result[["FULLensemble"]], paste0("./data/outputs/XP5/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
 }
 beep(8)
 # ***************************************************************************************
@@ -529,13 +607,19 @@ for (i in 1:length(sp_name))
   ###.............. Running the modedelling experiment
   result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_",  sp_name[i], ".txt"),
                           background       = paste0("./data/occurrences/back_", sp_name[i], ".txt"),
-                          biovar_current   = "./data/ouputs/predictors/XP6/current/",
-                          biovar_rcp26     = "./data/ouputs/predictors/XP6/rcp26/",
-                          biovar_rcp45     = "./data/ouputs/predictors/XP6/rcp45/",
-                          biovar_rcp60     = "./data/ouputs/predictors/XP6/rcp60/",
-                          biovar_rcp85     = "./data/ouputs/predictors/XP6/rcp85/",
+                          biovar_current   = "./data/climatic_vars/selected/current/",
+                          biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
+                          biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
+                          biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
+                          biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
+                          newvar_current   = "./data/outputs/predictors/XP2/current/",
+                          newvar_rcp26     = "./data/outputs/predictors/XP2/rcp26/",
+                          newvar_rcp45     = "./data/outputs/predictors/XP2/rcp45/",
+                          newvar_rcp60     = "./data/outputs/predictors/XP2/rcp60/",
+                          newvar_rcp85     = "./data/outputs/predictors/XP2/rcp85/",
                           trainning        = "./data/occurrences/subsets/trainning",
                           testing          = "./data/occurrences/subsets/testing",
+                          AOGCMs           = c(1, 2, 3),
                           cross_validation = 20)
   
   ###.............. Saving predictions
@@ -551,7 +635,7 @@ for (i in 1:length(sp_name))
   write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP6/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
   ###.............. Saving Ensembles
-  write.table(result[["FULLensemble"]], "./data/outputs/XP6/ENSEMBLES_XP6.txt", sep = "\t", row.names = F)
+  write.table(result[["FULLensemble"]], paste0("./data/outputs/XP6/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
 }
 beep(8)
 
@@ -575,13 +659,19 @@ for (i in 1:length(sp_name))
   ###.............. Running the modedelling experiment
   result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_",  sp_name[i], ".txt"),
                           background       = paste0("./data/occurrences/back_", sp_name[i], ".txt"),
-                          biovar_current   = "./data/ouputs/predictors/XP7/current/",
-                          biovar_rcp26     = "./data/ouputs/predictors/XP7/rcp26/",
-                          biovar_rcp45     = "./data/ouputs/predictors/XP7/rcp45/",
-                          biovar_rcp60     = "./data/ouputs/predictors/XP7/rcp60/",
-                          biovar_rcp85     = "./data/ouputs/predictors/XP7/rcp85/",
+                          biovar_current   = "./data/climatic_vars/selected/current/",
+                          biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
+                          biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
+                          biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
+                          biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
+                          newvar_current   = "./data/outputs/predictors/XP2/current/",
+                          newvar_rcp26     = "./data/outputs/predictors/XP2/rcp26/",
+                          newvar_rcp45     = "./data/outputs/predictors/XP2/rcp45/",
+                          newvar_rcp60     = "./data/outputs/predictors/XP2/rcp60/",
+                          newvar_rcp85     = "./data/outputs/predictors/XP2/rcp85/",
                           trainning        = "./data/occurrences/subsets/trainning",
                           testing          = "./data/occurrences/subsets/testing",
+                          AOGCMs           = c(1, 2, 3),
                           cross_validation = 20)
   
   ###.............. Saving predictions
@@ -597,7 +687,7 @@ for (i in 1:length(sp_name))
   write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP7/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
   ###.............. Saving Ensembles
-  write.table(result[["FULLensemble"]], "./data/outputs/XP7/ENSEMBLES_XP7.txt", sep = "\t", row.names = F)
+  write.table(result[["FULLensemble"]], paste0("./data/outputs/XP7/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
 }
 beep(8)
 
