@@ -130,27 +130,12 @@ beep(2)
 
 write.table(occur_thinned, "./data/occurrences/occur_thinned.txt", sep = ";", row.names = FALSE)
 
-huberi_thinned <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
-write.table(huberi_thinned, "./data/occurrences/huberi_thinned.txt", sep = ";", row.names = FALSE)
-
-resource <- occur_thinned[!grepl("Lithurgus_huberi", occur_thinned$SPEC), ]
-write.table(resource, "./data/occurrences/resource_thinned.txt", sep = ";", row.names = FALSE)
-
-rm(huberi_thinned, resource)
 
 ###.............. Extrancting bio variables based on the ocurrence cells
-
-## Creating and saving the object "var" for each studied species
 for(i in 1:length(sp_names))
 {
   var <- create_var(occur_thinned[occur_thinned[, 1] == sp_names[i], ], sp_names[i])
 }
-
-## Creating and saving the object "var" for the stacked occurrences except the bee
-
-resource <- read.table("./data/occurrences/resource_thinned.txt", sep = ";", h = T)
-var <- create_var(resource, "resource")
-
 beep(2)
 
 
@@ -158,12 +143,6 @@ beep(2)
 ## 05. Background Sampling                          ----
 
 ###.............. Background files 
-# Creating and saving the object "back" for the stacked species but the response one
-
-var_file <- read.table("./data/occurrences/var_resource.txt", h = T, sep = ";")
-create_back(var_file, "resource")
-beep(2)
-
 # Creating and saving the object "back" for each studied species
 
 var_files <- list.files("./data/occurrences/", pattern = "var", full.names = TRUE)
@@ -234,21 +213,12 @@ sp <- gsub("C[1-9]","", sp$SPEC)
 sp_name <- unique(sp)
 sp_name
 
-## ... 7 plantas + "resource"
-occur_thinned <- read.table("./data/occurrences/occur_thinned.txt", sep = ";", h = T) # all species but "resource"
+## ... 7 plants species
+occur_thinned <- read.table("./data/occurrences/occur_thinned.txt", sep = ";", h = T) 
 sp <- occur_thinned[!grepl("Lithurgus_huberi", occur_thinned$SPEC), ] # removing the bee species
 sp <- gsub("C[1-9]","", sp$SPEC)
 sp_names <- unique(sp)
-sp_names <- c(sp_names, "resource")
 sp_names
-
-## ... 7 plantas + "resource"
-occur_thinned <- read.table("./data/occurrences/occur_thinned.txt", sep = ";", h = T) # all species but "resource"
-sp <- occur_thinned[!grepl("Lithurgus_huberi", occur_thinned$SPEC), ] # removing the bee species
-sp <- gsub("C[1-9]","", sp$SPEC)
-sp_plants <- unique(sp)
-sp_plants 
-
 
 ## ..... 07.b XP1.1 - bee                   -----
 #   .....................................................................................
@@ -292,7 +262,7 @@ for (i in 1:length(sp_name))
 beep(8)
 
 
-## ..... 07.c XP1.2 - 7 plants + resource   ----
+## ..... 07.c XP1.2 - 7 plants              ----
 #   .....................................................................................
 # here we could include the soil vars.
 sp_names
@@ -336,7 +306,6 @@ beep(8)
 
 ## ..... 07.d New Predictor variables       ----
 #   .....................................................................................
-
 # Resulting variables are combination of two base maps: suitability and presence/absence.
 # 
 # A. suitability 
@@ -344,9 +313,7 @@ beep(8)
 # 
 # B. presence/absence.
 # The PA maps are constructed with the threhold cutting analysis. The  cells in which suitability values >= to the threshold are presences represented by 1s. Values below this threshold are absences represended by 0s/
-# 
-# 
-# The new variabables are: sep_pa, sep_suit, PA, SUITstk, PAres, SUITres.
+# The new variabables are: sep_pa, sep_suit, stk_pa, stk_suit.
 
 ## XP2 - sep_pa
 ##...................................... 
@@ -407,33 +374,7 @@ writeRaster("./data/outputs/XP5/current/SUITstk.grd", format = "raster")
 # writeRaster(stk_suit_rcp60, "./data/outputs/predictors/XP5/rcp60/stk_suit.grd",   format = "raster")
 # writeRaster(stk_suit_rcp85, "./data/outputs/predictors/XP5/rcp85/stk_suit.grd",   format = "raster")
 
-
-## XP6 - resource_pa
-##......................................
-
-## bio02, bio03, bio05, bio14, bio16, PAres
-
-# writeRaster(res_pa_c,       "./data/outputs/predictors/XP6/current/res_pa.grd",   format = "raster")
-# writeRaster(res_pa_rcp26,   "./data/outputs/predictors/XP6/rcp26/res_pa.grd",     format = "raster")
-# writeRaster(res_pa_rcp45,   "./data/outputs/predictors/XP6/rcp45/res_pa.grd",     format = "raster")
-# writeRaster(res_pa_rcp60,   "./data/outputs/predictors/XP6/rcp60/res_pa.grd",     format = "raster")
-# writeRaster(res_pa_rcp85,   "./data/outputs/predictors/XP6/rcp85/res_pa.grd",     format = "raster")
-
-
-## XP7 - resource_suit
-##......................................
-
-## bio02, bio03, bio05, bio14, bio16, SUITres
-
-# writeRaster(res_suit_c,     "./data/outputs/predictors/XP7/current/res_suit.grd", format = "raster")
-# writeRaster(res_suit_rcp26, "./data/outputs/predictors/XP7/rcp26/res_suit.grd",   format = "raster")
-# writeRaster(res_suit_rcp45, "./data/outputs/predictors/XP7/rcp45/res_suit.grd",   format = "raster")
-# writeRaster(res_suit_rcp60, "./data/outputs/predictors/XP7/rcp60/res_suit.grd",   format = "raster")
-# writeRaster(res_suit_rcp85, "./data/outputs/predictors/XP7/rcp85/res_suit.grd",   format = "raster")
-
-
-# *************************************************************************************** 
-
+# ***************************************************************************************
 ## 08. XP2                                          ----
 ###.....................................
 
@@ -625,106 +566,9 @@ for (i in 1:length(sp_name))
   write.table(result[["FULLensemble"]], paste0("./data/outputs/XP5/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
 }
 beep(8)
-# ***************************************************************************************
-
-## 12. XP6                                          ----
-###.....................................
-
-# Biotic Predictor	 Resource PA - Plants XP1.2
-# Variables       	 abiotic + Resource PA -  (6 vars = 5  + 1 )
-# Input           	 bee
-# Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
-# Ensemble           1 * (9 present + 12 future (4 rcps * 3 aogcms))
-
-sp_name
-for (i in 1:length(sp_name))
-{
-  ###.............. Running the modedelling experiment
-  result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_",  sp_name[i], ".txt"),
-                          background       = paste0("./data/occurrences/back_", sp_name[i], ".txt"),
-                          biovar_current   = "./data/climatic_vars/selected/current/",
-                          biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
-                          biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
-                          biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
-                          biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
-                          newvar_current   = "./data/outputs/predictors/XP2/current/",
-                          newvar_rcp26     = "./data/outputs/predictors/XP2/rcp26/",
-                          newvar_rcp45     = "./data/outputs/predictors/XP2/rcp45/",
-                          newvar_rcp60     = "./data/outputs/predictors/XP2/rcp60/",
-                          newvar_rcp85     = "./data/outputs/predictors/XP2/rcp85/",
-                          trainning        = "./data/occurrences/subsets/trainning",
-                          testing          = "./data/occurrences/subsets/testing",
-                          AOGCMs           = c(1, 2, 3),
-                          cross_validation = 20)
-  
-  ###.............. Saving predictions
-  writeRaster(result[["output_current"]], paste0("./data/outputs/XP6/", sp_name[i],"_current.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP6/", sp_name[i],"_rcp26.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP6/", sp_name[i],"_rcp45.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP6/", sp_name[i],"_rcp60.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP6/", sp_name[i],"_rcp85.bil"), format = "EHdr")
-  
-  ###.............. Saving evaluation data
-  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP6/", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP6/", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
-  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP6/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
-  
-  ###.............. Saving Ensembles
-  write.table(result[["FULLensemble"]], paste0("./data/outputs/XP6/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
-}
-beep(8)
 
 # ***************************************************************************************
-
-## 13. XP7                                          ----
-###.....................................
-
-# Biotic Predictor	 Resource SUIT - Plants XP1.2
-# Variables       	 abiotic + resource SUIT -  (6 vars = 5  + 1 )
-# Input           	 bee
-# Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
-# Ensemble           1 * (9 present + 12 future (4 rcps * 3 aogcms))
-
-sp_name
-for (i in 1:length(sp_name))
-{
-  ###.............. Running the modedelling experiment
-  result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_",  sp_name[i], ".txt"),
-                          background       = paste0("./data/occurrences/back_", sp_name[i], ".txt"),
-                          biovar_current   = "./data/climatic_vars/selected/current/",
-                          biovar_rcp26     = "./data/climatic_vars/selected/rcp26/",
-                          biovar_rcp45     = "./data/climatic_vars/selected/rcp45/",
-                          biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
-                          biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
-                          newvar_current   = "./data/outputs/predictors/XP2/current/",
-                          newvar_rcp26     = "./data/outputs/predictors/XP2/rcp26/",
-                          newvar_rcp45     = "./data/outputs/predictors/XP2/rcp45/",
-                          newvar_rcp60     = "./data/outputs/predictors/XP2/rcp60/",
-                          newvar_rcp85     = "./data/outputs/predictors/XP2/rcp85/",
-                          trainning        = "./data/occurrences/subsets/trainning",
-                          testing          = "./data/occurrences/subsets/testing",
-                          AOGCMs           = c(1, 2, 3),
-                          cross_validation = 20)
-  
-  ###.............. Saving predictions
-  writeRaster(result[["output_current"]], paste0("./data/outputs/XP7/", sp_name[i],"_current.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP7/", sp_name[i],"_rcp26.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP7/", sp_name[i],"_rcp45.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP7/", sp_name[i],"_rcp60.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP7/", sp_name[i],"_rcp85.bil"), format = "EHdr")
-  
-  ###.............. Saving evaluation data
-  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP7/", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP7/", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
-  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP7/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
-  
-  ###.............. Saving Ensembles
-  write.table(result[["FULLensemble"]], paste0("./data/outputs/XP7/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
-}
-beep(8)
-
-# ***************************************************************************************
-## 14. Selecting XP from XP2:XP7                    ----
+## 12. Selecting XP from XP2:XP7                    ----
 ###.....................................
 
 
@@ -737,7 +581,7 @@ beep(8)
 # preditor: tamanho de range  XP2:XP7	
 # resposta: huberi	
 
-## 15. Preparing analysis factors                   ----
+## 13. Preparing analysis factors                   ----
 ###.....................................
 
 
@@ -759,7 +603,7 @@ all_val <- values(all_output)
 all_pad <- deconstante(all_val, "standardize", 2)
 
 # ***************************************************************************************
-## 16. Uncertainty Evaluation                       ----
+## 14. Uncertainty Evaluation                       ----
 
 all_huberi <- stack(huberi_c, huberi_rcp26, huberi_rcp45, huberi_rcp60, huberi_rcp85)
 TPR_huberi <- TPR_h[which(TPR_h)]
