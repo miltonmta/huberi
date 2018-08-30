@@ -15,7 +15,8 @@ multiple_ENMs <- function(occurrence,
                           AOGCMs,
                           cross_validation)
 {
-  
+  ### Loading data                    ----
+
   ###.............. Reading the selected climatic variables
   
   if (is.numeric(newvar_current)){
@@ -24,8 +25,6 @@ multiple_ENMs <- function(occurrence,
     current <- addLayer(stack(list.files(biovar_current,  pattern = ".grd$", full.names = TRUE)), 
                         stack(list.files(newvar_current,  pattern = ".grd$", full.names = TRUE)))
   }
-  
-  
   
   ###.............. Reading ocurrence and background
   occur <- read.table(occurrence, sep = ";", h = T)
@@ -44,23 +43,16 @@ multiple_ENMs <- function(occurrence,
   bioclim_t <- gower_t <- maxent_t <- SVM_t <- NULL # The highest threshold at which there is no omission
   bioclim_d <- gower_d <- maxent_d <- SVM_d <- NULL # Area predicted as presence
   
-  ## Partial results
-  bioclim_Pout_c <- gower_Pout_c <- maxent_Pout_c <- SVM_Pout_c <- NULL
-  bioclim_Pout_rcp26 <- gower_Pout_rcp26 <- maxent_Pout_rcp26 <- SVM_Pout_rcp26 <- NULL
-  bioclim_Pout_rcp45 <- gower_Pout_rcp45 <- maxent_Pout_rcp45 <- SVM_Pout_rcp45 <- NULL
-  bioclim_Pout_rcp60 <- gower_Pout_rcp60 <- maxent_Pout_rcp60 <- SVM_Pout_rcp60 <- NULL
-  bioclim_Pout_rcp85 <- gower_Pout_rcp85 <- maxent_Pout_rcp85 <- SVM_Pout_rcp85 <- NULL
-  
-  
   ## Predictions results
   output_current <- output_rcp26 <- output_rcp45 <- output_rcp60 <- output_rcp85 <- NULL
   
   
+  
+  ### Cross validation                ----
   n_cells <- nrow(na.omit(values(current)))
   for (j in 1:cross_validation)
   {
     ### OPEN "j" ----
-    
     ###.............. Loading trainning-testing subsets
     
     if (is.character(trainning)){
@@ -75,7 +67,6 @@ multiple_ENMs <- function(occurrence,
                                p = occur[-sample_occur, 1:2], 
                                b = back [-sample_occur, 1:2])
     }
-    
     
     # ***************************************************************************************
     ### Bioclim -----------------------------------------------------------------------------
@@ -156,13 +147,13 @@ multiple_ENMs <- function(occurrence,
     rm(thr, TPR, Pi)
     
     # ***************************************************************************************
-    
+    par(mfrow )
     ###.............. Making predictions for the RCPs
     
+    #### OPEN "i" ----
     mdid <- paste0('.',1:3,'.grd$')
     for (i in AOGCMs)
     {
-      # OPEN "i" ----
       
       ### Reading the selected AOGCMs climatic models
       
@@ -234,7 +225,7 @@ multiple_ENMs <- function(occurrence,
         mdls     <- c(mdls_bio, mdls_new)
         rcp85  <- addLayer(mdls[[i]], mdls[[i+3]])
         names(rcp85) <- names(current)
-        rm(mdls_bio, mdls_new, mdls)
+        
       }
       
       ### Predicting
@@ -262,38 +253,42 @@ multiple_ENMs <- function(occurrence,
       # AOGCMs
     }
     
-    # CLOSE "j"  ---- 
+    ### CLOSE "j"  ---- 
     # cross-validation
-  } 
+  }
   
-  ###..............  Saving partial outputs
-  bioclim_Pout_c <- na.omit(values(bioclim_c))
-  gower_Pout_c   <- na.omit(values(gower_c))
-  maxent_Pout_c  <- na.omit(values(maxent_c))
-  SVM_Pout_c     <- na.omit(values(SVM_c))
+  ### Partial outputs                 -----
+  ###...................................... 
   
+  bioclim_Pout_c     <- na.omit(values(bioclim_c))
   bioclim_Pout_rcp26 <- na.omit(values(bioclim_rcp26))
   bioclim_Pout_rcp45 <- na.omit(values(bioclim_rcp45))
   bioclim_Pout_rcp60 <- na.omit(values(bioclim_rcp60))
   bioclim_Pout_rcp85 <- na.omit(values(bioclim_rcp85))
   
+  gower_Pout_c       <- na.omit(values(gower_c))
   gower_Pout_rcp26   <- na.omit(values(gower_rcp26))
   gower_Pout_rcp45   <- na.omit(values(gower_rcp45))
   gower_Pout_rcp60   <- na.omit(values(gower_rcp60))
   gower_Pout_rcp85   <- na.omit(values(gower_rcp85))
   
+  maxent_Pout_c      <- na.omit(values(maxent_c))
   maxent_Pout_rcp26  <- na.omit(values(maxent_rcp26))
   maxent_Pout_rcp45  <- na.omit(values(maxent_rcp45))
   maxent_Pout_rcp60  <- na.omit(values(maxent_rcp60))
   maxent_Pout_rcp85  <- na.omit(values(maxent_rcp85))
   
+  SVM_Pout_c         <- na.omit(values(SVM_c))
   SVM_Pout_rcp45     <- na.omit(values(SVM_rcp45))
   SVM_Pout_rcp26     <- na.omit(values(SVM_rcp26))
   SVM_Pout_rcp60     <- na.omit(values(SVM_rcp60))
   SVM_Pout_rcp85     <- na.omit(values(SVM_rcp85))
   
-  ###.............. Saving the predictive methods into the output objects 
-  output_current <- cbind(Bioclim = bioclim_Pout_c,     
+   
+  ### Saving the predictive methods   -----
+  ###......................................
+ 
+   output_current <- cbind(Bioclim = bioclim_Pout_c,     
                           Gower   = gower_Pout_c,     
                           Maxent  = maxent_Pout_c,     
                           SVM     = SVM_Pout_c )
@@ -319,12 +314,14 @@ multiple_ENMs <- function(occurrence,
                           SVM     = SVM_Pout_rcp85 )
   
   
-  ###.............. Stantardizind predictions
+   
+  ### Standardizing predictions       ----
+  ###.....................................
   id_col_fut <- rep(1:ncol(output_current), each = 3)
   id_time    <- c(rep("c", nrow(output_current)), rep(c("rcp26", "rcp45", "rcp60", "rcp85"), 
                                                       each = nrow(output_current) * length(AOGCMs)))
-  pad_c      <- pad_rcp26 <- pad_rcp45 <- pad_rcp60 <- pad_rcp85 <- NULL
   
+  pad_c <- pad_rcp26 <- pad_rcp45 <- pad_rcp60 <- pad_rcp85 <- NULL
   for(p in 1:ncol(output_current))
   {
     suit     <- cbind(output_current[, p], 
@@ -333,7 +330,7 @@ multiple_ENMs <- function(occurrence,
                       output_rcp60[, which(id_col_fut == p)], 
                       output_rcp85[, which(id_col_fut == p)])
     suit     <- as.numeric(suit)
-    suit_pad <- decostand(x = suit, method = "range")
+    suit_pad <- decostand(x = suit, method = "range") # requires vegan
     
     pad_c     <- cbind(pad_c, suit_pad[which(id_time == "c"), 1])
     
@@ -350,7 +347,9 @@ multiple_ENMs <- function(occurrence,
                                          nrow = nrow(output_current), ncol = length(AOGCMs)))
   }
   
-  ###.............. Generating Ensembles
+  
+  ### Calculating Ensembles           ----
+  ###.....................................
   dStat_c <- c(bioclim_d, gower_d, maxent_d, SVM_d)
   dStat_fut <- rep(dStat_c, each= length(AOGCMs))
   
@@ -377,14 +376,16 @@ multiple_ENMs <- function(occurrence,
                                    Ensemble_rcp60   = ensemble_rcp60, 
                                    Ensemble_rcp85   = ensemble_rcp85)
   
+  ### Saving Evaluation data          ----
+  ###.....................................
   
-  ###.............. Saving Evaluation data
   models_e <- data.frame(bioclim = bioclim_e, gower = gower_e, maxent = maxent_e, SVM = SVM_e)
   models_t <- data.frame(bioclim = bioclim_t, gower = gower_t, maxent = maxent_t, SVM = SVM_t)
   models_d <- data.frame(bioclim = bioclim_d, gower = gower_d, maxent = maxent_d, SVM = SVM_d)
   
   
-  #\o/\o/\o/\o/\o/\o/\o/\o/\o/\o/   YOU SHALL... PASS!  \o/\o/\o/\o/\o/\o/\o/\o/\o/\o/
+  ### Returning Function data         ----
+  ###.....................................
   
   return(list(c("output_current"  = output_current, 
                 "output_rcp26"    = output_rcp26, 
