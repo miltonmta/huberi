@@ -13,6 +13,7 @@ load_pak(c("tidyverse", "raster", "rgdal", "abind", "spThin", "dismo", "kernlab"
 
 # ***************************************************************************************
 ## 01. Read aogcms models                           ----
+
 ##### 1.1.............. current                                     
 current_list <- read_current(dir = "./data/climatic_vars/current/")
 
@@ -48,6 +49,7 @@ rm(rcp26_list, rcp45_list, rcp60_list, rcp85_list)
 
 # ***************************************************************************************
 ## 02. Variable selection                           ----
+
 ### By exploratory factor analysis
 
 fa.parallel(current_mat[ , -c(1:2)], fa = 'fa') #scree plot
@@ -187,6 +189,7 @@ points(back[, "x"], back[, "y"], pch = "*", col = 'magenta')
 
 # ***************************************************************************************
 ## 06. Creating trainning-testing subsets           ----
+###.....................................
 
 #  For variation control, the occurrence that runs in all experiments (from XP1 to XP2),  will be modeled with the same random subsets. (see cross_validation loop in Multiple_ENMs)
 
@@ -212,6 +215,7 @@ rm(list = ls())
 # ***************************************************************************************
 
 ## 07. XP1                                          ----
+###.....................................
 
 # Variables	 Abiotic ( 5 vars )
 # Input	     9 sps :: bee + 7 plants + "resource" * (summed occurs of all plants)
@@ -316,74 +320,100 @@ for (i in 1:length(sp_names))
   ###.............. Saving Ensembles
   write.table(result[["FULLensemble"]], paste0("./data/outputs/XP1/", sp_names[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
 }
-rm(sp, sp_names)
 beep(8)
 
-## ..... 07.3 New Variables                 ----
+## ..... 07.3 New Predictor variables       ----
 #   .....................................................................................
-# Creating predictors variables to be used througout XP2:XP7
 
-# future must have new variables for the 3 aogcms. PA_SEP_rcp26 = gcm1, gcm2, gcm3
+# Resulting variables are combination of two base maps: suitability and presence/absence.
+# 
+# A. suitability 
+# For Suitabilility variabels we will use the ensemble suit value, i.e, the weighted mean by "d" of all predictions. 
+# 
+# B. presence/absence.
+# The PA maps are constructed with the threhold cutting analysis. The  cells in which suitability values >= to the threshold are presences represented by 1s. Values below this threshold are absences represended by 0s/
+# 
+# 
+# The new variabables are: sep_pa, sep_suit, PA, SUITstk, PAres, SUITres.
 
-# PA_SEP_c,     PA_STK_c,     SUIT_SEP_c,     SUIT_SKT_c,     resourcePA_c,     resouceSUIT_c,
-# PA_SEP_rcp26, PA_STK_rcp26, SUIT_SEP_rcp26, SUIT_SKT_rcp26, resourcePA_rcp26, resouceSUIT_rcp26,
-# PA_SEP_rcp45, PA_STK_rcp45, SUIT_SEP_rcp45, SUIT_SKT_rcp45, resourcePA_rcp45, resouceSUIT_rcp45,
-# PA_SEP_rcp60, PA_STK_rcp60, SUIT_SEP_rcp60, SUIT_SKT_rcp60, resourcePA_rcp60, resouceSUIT_rcp60,
-# PA_SEP_rcp85, PA_STK_rcp85, SUIT_SEP_rcp85, SUIT_SKT_rcp85, resourcePA_rcp85, resouceSUIT_rcp85,
+## XP2 - sep_pa
+##...................................... 
 
+## bio02, bio03, bio05, bio14, bio16, PAsp01, PAsp01, PAsp03, PAsp04, PAsp05, PAsp06, PAsp07
 
-#
-
-###.............. Sanving predictor variabels for XP2:XP7
-
-# PA_SEP, PA_STK, SUIT_SEP, SUIT_SKT.
-
-## XP2 - sep_pa # criar loop salvar de SP1 a SP7.
-writeRaster(sep_pa_c,       "./data/outputs/predictors/XP2/current/sep_pa.grd",   format = "raster")
-writeRaster(sep_pa_rcp26,   "./data/outputs/predictors/XP2/rcp26/sep_pa.grd",     format = "raster")
-writeRaster(sep_pa_rcp45,   "./data/outputs/predictors/XP2/rcp45/sep_pa.grd",     format = "raster")
-writeRaster(sep_pa_rcp60,   "./data/outputs/predictors/XP2/rcp60/sep_pa.grd",     format = "raster")
-writeRaster(sep_pa_rcp85,   "./data/outputs/predictors/XP2/rcp85/sep_pa.grd",     format = "raster")
 
 ## XP3 - sep_suit
-writeRaster(sep_suit_c,     "./data/outputs/predictors/XP3/current/sep_suit.grd", format = "raster")
-writeRaster(sep_suit_rcp26, "./data/outputs/predictors/XP3/rcp26/sep_suit.grd",   format = "raster")
-writeRaster(sep_suit_rcp45, "./data/outputs/predictors/XP3/rcp45/sep_suit.grd",   format = "raster")
-writeRaster(sep_suit_rcp60, "./data/outputs/predictors/XP3/rcp60/sep_suit.grd",   format = "raster")
-writeRaster(sep_suit_rcp85, "./data/outputs/predictors/XP3/rcp85/sep_suit.grd",   format = "raster")
+##......................................
+
+## bio02, bio03, bio05, bio14, bio16, SUITsp01, SUITsp01, SUITsp03, SUITsp04, SUITsp05, SUITsp06, SUITsp07
+
+sp_names
+for (i in 1:length(sp_names))
+{
+  suit_sp <- read.table(paste0("./data/outputs/XP1/", sp_name[i],"ENSEMBLES.txt"), sep = "\t", row.names = F)
+  
+  period <- c("ensemble_c", "ensemble_rcp26", "ensemble_rcp45", "ensemble_rcp60", "ensemble_rcp85")
+  for(j in 1:length(period))
+  {
+    suit_sp_var <- suit_sp$period[j]
+    suit_sp_var <- raster(suit_sp_var)
+    writeRaster(suit_sp_var, paste0("./data/outputs/predictors/XP2/current/PAsp", sp_name[i] ,".grd"),   format = "raster")
+  }
+}
+
 
 ## XP4 - stk_pa
-writeRaster(stk_pa_c,       "./data/outputs/predictors/XP4/current/stk_pa.grd",   format = "raster")
-writeRaster(stk_pa_rcp26,   "./data/outputs/predictors/XP4/rcp26/stk_pa.grd",     format = "raster")
-writeRaster(stk_pa_rcp45,   "./data/outputs/predictors/XP4/rcp45/stk_pa.grd",     format = "raster")
-writeRaster(stk_pa_rcp60,   "./data/outputs/predictors/XP4/rcp60/stk_pa.grd",     format = "raster")
-writeRaster(stk_pa_rcp85,   "./data/outputs/predictors/XP4/rcp85/stk_pa.grd",     format = "raster")
+##......................................
+
+## bio02, bio03, bio05, bio14, bio16, PAstk
+
+# writeRaster(stk_pa_c,       "./data/outputs/predictors/XP4/current/stk_pa.grd",   format = "raster")
+# writeRaster(stk_pa_rcp26,   "./data/outputs/predictors/XP4/rcp26/stk_pa.grd",     format = "raster")
+# writeRaster(stk_pa_rcp45,   "./data/outputs/predictors/XP4/rcp45/stk_pa.grd",     format = "raster")
+# writeRaster(stk_pa_rcp60,   "./data/outputs/predictors/XP4/rcp60/stk_pa.grd",     format = "raster")
+# writeRaster(stk_pa_rcp85,   "./data/outputs/predictors/XP4/rcp85/stk_pa.grd",     format = "raster")
+
 
 ## XP5 - stk_suit
-writeRaster(stk_suit_c,     "./data/outputs/predictors/XP5/current/stk_suit.grd", format = "raster")
-writeRaster(stk_suit_rcp26, "./data/outputs/predictors/XP5/rcp26/stk_suit.grd",   format = "raster")
-writeRaster(stk_suit_rcp45, "./data/outputs/predictors/XP5/rcp45/stk_suit.grd",   format = "raster")
-writeRaster(stk_suit_rcp60, "./data/outputs/predictors/XP5/rcp60/stk_suit.grd",   format = "raster")
-writeRaster(stk_suit_rcp85, "./data/outputs/predictors/XP5/rcp85/stk_suit.grd",   format = "raster")
+##......................................
+
+## bio02, bio03, bio05, bio14, bio16, SUITstk
+
+# writeRaster(stk_suit_c,     "./data/outputs/predictors/XP5/current/stk_suit.grd", format = "raster")
+# writeRaster(stk_suit_rcp26, "./data/outputs/predictors/XP5/rcp26/stk_suit.grd",   format = "raster")
+# writeRaster(stk_suit_rcp45, "./data/outputs/predictors/XP5/rcp45/stk_suit.grd",   format = "raster")
+# writeRaster(stk_suit_rcp60, "./data/outputs/predictors/XP5/rcp60/stk_suit.grd",   format = "raster")
+# writeRaster(stk_suit_rcp85, "./data/outputs/predictors/XP5/rcp85/stk_suit.grd",   format = "raster")
+
 
 ## XP6 - resource_pa
-writeRaster(res_pa_c,       "./data/outputs/predictors/XP6/current/res_pa.grd",   format = "raster")
-writeRaster(res_pa_rcp26,   "./data/outputs/predictors/XP6/rcp26/res_pa.grd",     format = "raster")
-writeRaster(res_pa_rcp45,   "./data/outputs/predictors/XP6/rcp45/res_pa.grd",     format = "raster")
-writeRaster(res_pa_rcp60,   "./data/outputs/predictors/XP6/rcp60/res_pa.grd",     format = "raster")
-writeRaster(res_pa_rcp85,   "./data/outputs/predictors/XP6/rcp85/res_pa.grd",     format = "raster")
+##......................................
+
+## bio02, bio03, bio05, bio14, bio16, PAres
+
+# writeRaster(res_pa_c,       "./data/outputs/predictors/XP6/current/res_pa.grd",   format = "raster")
+# writeRaster(res_pa_rcp26,   "./data/outputs/predictors/XP6/rcp26/res_pa.grd",     format = "raster")
+# writeRaster(res_pa_rcp45,   "./data/outputs/predictors/XP6/rcp45/res_pa.grd",     format = "raster")
+# writeRaster(res_pa_rcp60,   "./data/outputs/predictors/XP6/rcp60/res_pa.grd",     format = "raster")
+# writeRaster(res_pa_rcp85,   "./data/outputs/predictors/XP6/rcp85/res_pa.grd",     format = "raster")
+
 
 ## XP7 - resource_suit
-writeRaster(res_suit_c,     "./data/outputs/predictors/XP7/current/res_suit.grd", format = "raster")
-writeRaster(res_suit_rcp26, "./data/outputs/predictors/XP7/rcp26/res_suit.grd",   format = "raster")
-writeRaster(res_suit_rcp45, "./data/outputs/predictors/XP7/rcp45/res_suit.grd",   format = "raster")
-writeRaster(res_suit_rcp60, "./data/outputs/predictors/XP7/rcp60/res_suit.grd",   format = "raster")
-writeRaster(res_suit_rcp85, "./data/outputs/predictors/XP7/rcp85/res_suit.grd",   format = "raster")
+##......................................
+
+## bio02, bio03, bio05, bio14, bio16, SUITres
+
+# writeRaster(res_suit_c,     "./data/outputs/predictors/XP7/current/res_suit.grd", format = "raster")
+# writeRaster(res_suit_rcp26, "./data/outputs/predictors/XP7/rcp26/res_suit.grd",   format = "raster")
+# writeRaster(res_suit_rcp45, "./data/outputs/predictors/XP7/rcp45/res_suit.grd",   format = "raster")
+# writeRaster(res_suit_rcp60, "./data/outputs/predictors/XP7/rcp60/res_suit.grd",   format = "raster")
+# writeRaster(res_suit_rcp85, "./data/outputs/predictors/XP7/rcp85/res_suit.grd",   format = "raster")
 
 
 # *************************************************************************************** 
 
 ## 08. XP2                                          ----
+###.....................................
 
 # Biotic Predictor	 SEP/PA - Plants XP1.2
 # Variables       	 abiotic + SEP/PA -  (12 vars = 5  + 7 )
@@ -436,6 +466,7 @@ beep(8)
 # ***************************************************************************************
 
 ## 09. XP3                                          ----
+###.....................................
 
 # Biotic Predictor	 SEP/SUIT - Plants XP1.2
 # Variables       	 abiotic + SEP/SUIT -  (12 vars = 5  + 7 )
@@ -539,6 +570,7 @@ beep(8)
 # ***************************************************************************************
 
 ## 11. XP5                                          ----
+###.....................................
 
 # Biotic Predictor	 STK/SUIT - Plants XP1.2
 # Variables       	 abiotic + STK/SUIT -  (6 vars = 5  + 1 )
@@ -590,6 +622,8 @@ beep(8)
 # ***************************************************************************************
 
 ## 12. XP6                                          ----
+###.....................................
+
 
 # Biotic Predictor	 Resource PA - Plants XP1.2
 # Variables       	 abiotic + Resource PA -  (6 vars = 5  + 1 )
@@ -642,6 +676,8 @@ beep(8)
 # ***************************************************************************************
 
 ## 13. XP7                                          ----
+###.....................................
+
 
 # Biotic Predictor	 Resource SUIT - Plants XP1.2
 # Variables       	 abiotic + resource SUIT -  (6 vars = 5  + 1 )
@@ -693,6 +729,8 @@ beep(8)
 
 # ***************************************************************************************
 ## 14. Selecting XP from XP2:XP7                    ----
+###.....................................
+
 
 # AVALIAÇAO DA REPRESENTATIVIDADE	
 # Anova de Medidas Repetidas (mesmos subconjuntos de XP2 a XP7)	
@@ -704,6 +742,8 @@ beep(8)
 # resposta: huberi	
 
 ## 15. Preparing analysis factors                   ----
+###.....................................
+
 
 back <- list.files("./data/occurrences/", pattern = "back", full.names = TRUE)
 back <- bind_rows(lapply(back, fread))
