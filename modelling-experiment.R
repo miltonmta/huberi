@@ -209,30 +209,49 @@ for (i in 1:cross_validation)
   write.table(trainning, paste0("./data/occurrences/subsets/trainning", i, ".txt"), sep = ";")
   write.table(testing,   paste0("./data/occurrences/subsets/testing",   i, ".txt"), sep = ";")
 }
-rm(occur)
+rm(occur, back)
 
-rm(list = ls())
 # ***************************************************************************************
 
 ## 07. XP1                                          ----
 ###.....................................
-
+rm(list = ls())
+source("./Multiple_ENMs.R")
 # Variables	 Abiotic ( 5 vars )
 # Input	     9 sps :: bee + 7 plants + "resource" * (summed occurs of all plants)
 # Output     9 inputs predictions  + 4 predictive methods * 4 rcps * 3 aogcms
 # Ensembles  117 * (9 present + 12 future (4 rcps * 3 aogcms)) 
 # NEW VARS   Biotic Predictor Variables PA_SEP, PA_STK, SUIT_SEP, SUIT_SKT, resourceSEP, resourceSUIT.
 
-# We splitted XP1 in two for running a specifif set of variables (SOIL) for just one of the input occurrences.
+# We've splitted XP1 in two for running a specifif set of variables (e.g SOIL) for just one group of the input occurrences.
 
-## ..... 07.1 XP1.1 - bee                   -----
-#   .....................................................................................
+## ..... 07.a Loading species names         ---- 
 
-
+## ... bee
 occur_thinned <- read.table("./data/occurrences/occur_thinned.txt", sep = ";", h = T)
 sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
 sp <- gsub("C[1-9]","", sp$SPEC)
 sp_name <- unique(sp)
+sp_name
+
+## ... 7 plantas + "resource"
+occur_thinned <- read.table("./data/occurrences/occur_thinned.txt", sep = ";", h = T) # all species but "resource"
+sp <- occur_thinned[!grepl("Lithurgus_huberi", occur_thinned$SPEC), ] # removing the bee species
+sp <- gsub("C[1-9]","", sp$SPEC)
+sp_names <- unique(sp)
+sp_names <- c(sp_names, "resource")
+sp_names
+
+## ... 7 plantas + "resource"
+occur_thinned <- read.table("./data/occurrences/occur_thinned.txt", sep = ";", h = T) # all species but "resource"
+sp <- occur_thinned[!grepl("Lithurgus_huberi", occur_thinned$SPEC), ] # removing the bee species
+sp <- gsub("C[1-9]","", sp$SPEC)
+sp_plants <- unique(sp)
+sp_plants 
+
+
+## ..... 07.b XP1.1 - bee                   -----
+#   .....................................................................................
 sp_name
 for (i in 1:length(sp_name))
 {
@@ -270,19 +289,12 @@ for (i in 1:length(sp_name))
   ###.............. Saving Ensembles
   write.table(result[["FULLensemble"]], paste0("./data/outputs/XP1/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
 }
-rm(sp, sp_name)
 beep(8)
 
 
-## ..... 07.2 XP1.2 - 7 plants + resource   ----
+## ..... 07.c XP1.2 - 7 plants + resource   ----
 #   .....................................................................................
 # here we could include the soil vars.
-
-occur_thinned <- read.table("./data/occurrences/occur_thinned.txt", sep = ";", h = T) # all species but "resource"
-sp <- occur_thinned[!grepl("Lithurgus_huberi", occur_thinned$SPEC), ] # removing the bee species
-sp <- gsub("C[1-9]","", sp$SPEC)
-sp_names <- unique(sp)
-sp_names <- c(sp_names, "resource") # contains only de 8 sps names - 7 plants + "resource"
 sp_names
 for (i in 1:length(sp_names))
 {
@@ -322,7 +334,7 @@ for (i in 1:length(sp_names))
 }
 beep(8)
 
-## ..... 07.3 New Predictor variables       ----
+## ..... 07.d New Predictor variables       ----
 #   .....................................................................................
 
 # Resulting variables are combination of two base maps: suitability and presence/absence.
@@ -347,20 +359,17 @@ beep(8)
 
 ## bio02, bio03, bio05, bio14, bio16, SUITsp01, SUITsp01, SUITsp03, SUITsp04, SUITsp05, SUITsp06, SUITsp07
 
-sp_names
-for (i in 1:length(sp_names))
-{
-  suit_sp <- read.table(paste0("./data/outputs/XP1/", sp_name[i],"ENSEMBLES.txt"), sep = "\t", row.names = F)
-  
-  period <- c("ensemble_c", "ensemble_rcp26", "ensemble_rcp45", "ensemble_rcp60", "ensemble_rcp85")
-  for(j in 1:length(period))
-  {
-    suit_sp_var <- suit_sp$period[j]
-    suit_sp_var <- raster(suit_sp_var)
-    writeRaster(suit_sp_var, paste0("./data/outputs/predictors/XP2/current/PAsp", sp_name[i] ,".grd"),   format = "raster")
-  }
-}
 
+sp_plants
+SUITsp <- NULL
+for (i in 1:length(sp_plants))
+{
+  suit_sp_df <- read.table(paste0("./data/outputs/XP1/", sp_plants[i],"ENSEMBLES.txt"), sep = "\t", row.names = F)
+  suit_sp_var <- suit_sp_df[["ensemble_c"]]
+  suit_sp <- raster(suit_sp_var)
+  SUITsp <- addLayer(SUITsp, suit_sp)
+}
+writeRaster("./data/outputs/XP3/current/SUITsp.grd", format = "raster")
 
 ## XP4 - stk_pa
 ##......................................
@@ -378,6 +387,19 @@ for (i in 1:length(sp_names))
 ##......................................
 
 ## bio02, bio03, bio05, bio14, bio16, SUITstk
+
+sp_plants
+suit_stk <- NULL
+for (i in 1:length(sp_plants))
+{
+  suit_sp <- read.table(paste0("./data/outputs/XP1/", sp_plants[i],"ENSEMBLES.txt"), sep = "\t", row.names = F)
+  
+  suit_stk <- mean(suit_stk, sum(suit_sp[["ensemble_c"]]))
+}
+
+SUITstk <- raster(suit_stk)
+writeRaster("./data/outputs/XP5/current/SUITstk.grd", format = "raster")
+
 
 # writeRaster(stk_suit_c,     "./data/outputs/predictors/XP5/current/stk_suit.grd", format = "raster")
 # writeRaster(stk_suit_rcp26, "./data/outputs/predictors/XP5/rcp26/stk_suit.grd",   format = "raster")
@@ -421,10 +443,6 @@ for (i in 1:length(sp_names))
 # Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
 # Ensembles          1 * (9 present + 12 future (4 rcps * 3 aogcms)) 
 
-occur_thinned <- read.table("./data/occurrences/occur_thinned.txt", sep = ";", h = T)
-sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
-sp <- gsub("C[1-9]","", sp$SPEC)
-sp_name <- unique(sp)
 sp_name
 for (i in 1:length(sp_name))
 {
@@ -474,10 +492,6 @@ beep(8)
 # Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
 # Ensemble  	       1 * (9 present + 12 future (4 rcps * 3 aogcms)) 
 
-occur_thinned <- read.table("./data/occurrences/occur_thinned.txt", sep = ";", h = T)
-sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
-sp <- gsub("C[1-9]","", sp$SPEC)
-sp_name <- unique(sp)
 sp_name
 for (i in 1:length(sp_name))
 {
@@ -526,10 +540,6 @@ beep(8)
 # Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
 # Ensemble           1 * (9 present + 12 future (4 rcps * 3 aogcms))
 
-occur_thinned <- read.table("./data/occurrences/occur_thinned.txt", sep = ";", h = T)
-sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
-sp <- gsub("C[1-9]","", sp$SPEC)
-sp_name <- unique(sp)
 sp_name
 for (i in 1:length(sp_name))
 {
@@ -578,10 +588,6 @@ beep(8)
 # Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
 # Ensemble           1 * (9 present + 12 future (4 rcps * 3 aogcms))
 
-occur_thinned <- read.table("./data/occurrences/occur_thinned.txt", sep = ";", h = T)
-sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
-sp <- gsub("C[1-9]","", sp$SPEC)
-sp_name <- unique(sp)
 sp_name
 for (i in 1:length(sp_name))
 {
@@ -624,17 +630,12 @@ beep(8)
 ## 12. XP6                                          ----
 ###.....................................
 
-
 # Biotic Predictor	 Resource PA - Plants XP1.2
 # Variables       	 abiotic + Resource PA -  (6 vars = 5  + 1 )
 # Input           	 bee
 # Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
 # Ensemble           1 * (9 present + 12 future (4 rcps * 3 aogcms))
 
-occur_thinned <- read.table("./data/occurrences/occur_thinned.txt", sep = ";", h = T)
-sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
-sp <- gsub("C[1-9]","", sp$SPEC)
-sp_name <- unique(sp)
 sp_name
 for (i in 1:length(sp_name))
 {
@@ -678,17 +679,12 @@ beep(8)
 ## 13. XP7                                          ----
 ###.....................................
 
-
 # Biotic Predictor	 Resource SUIT - Plants XP1.2
 # Variables       	 abiotic + resource SUIT -  (6 vars = 5  + 1 )
 # Input           	 bee
 # Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
 # Ensemble           1 * (9 present + 12 future (4 rcps * 3 aogcms))
 
-occur_thinned <- read.table("./data/occurrences/occur_thinned.txt", sep = ";", h = T)
-sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
-sp <- gsub("C[1-9]","", sp$SPEC)
-sp_name <- unique(sp)
 sp_name
 for (i in 1:length(sp_name))
 {
