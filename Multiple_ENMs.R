@@ -13,6 +13,7 @@ multiple_ENMs <- function(occurrence,
                           trainning,
                           testing,
                           AOGCMs,
+                          Pout,
                           cross_validation)
 {
   ### Loading data                    ----
@@ -76,6 +77,7 @@ multiple_ENMs <- function(occurrence,
     
     ## Predicting
     bioclim_c <- stack(bioclim_c, predict(object = bioclim_model, x = current))
+    save(bioclim_c, file = paste0(Pout, j, "_bioclim_c.Rdata"))
     
     ## Evaluating models
     thr <- quantile(extract(bioclim_c[[j]], occur[,1:2]), 0.05) 
@@ -95,6 +97,7 @@ multiple_ENMs <- function(occurrence,
     
     ## Predicting
     gower_c <- stack(gower_c, predict(object = gower_model, x = current))
+    save(gower_c, file = paste0(Pout, j, "_gower_c.Rdata"))
     
     ## Evaluating models
     thr <- quantile(extract(gower_c[[j]], occur[,1:2]), 0.05) 
@@ -112,6 +115,7 @@ multiple_ENMs <- function(occurrence,
     ## Adjusting models
     Sys.setenv(NOAWT = TRUE)
     maxent_model <- maxent(x = trainning[, -1], p = trainning[, 1])
+    save(maxent_c, file = paste0(Pout, j, "_maxent_c.Rdata"))
     
     ## Predicting
     maxent_c <- stack(maxent_c, predict(object = maxent_model, x = current))
@@ -133,7 +137,8 @@ multiple_ENMs <- function(occurrence,
     SVM_model <- ksvm(pb ~ ., data = trainning)
     
     ## Predicting
-    SVM_c <- stack(SVM_c, predict(model = SVM_model, object = current)) 
+    SVM_c <- stack(SVM_c, predict(model = SVM_model, object = current))
+    save(SVM_c, file = paste0(Pout, j, "_SVM_c.Rdata"))
     
     ## Evaluating models
     thr <- quantile(extract(SVM_c[[j]], occur[,1:2]), 0.05) 
@@ -147,7 +152,7 @@ multiple_ENMs <- function(occurrence,
     rm(thr, TPR, Pi)
     
     # ***************************************************************************************
-    par(mfrow )
+ 
     ###.............. Making predictions for the RCPs
     
     #### OPEN "i" ----
@@ -225,30 +230,65 @@ multiple_ENMs <- function(occurrence,
         mdls     <- c(mdls_bio, mdls_new)
         rcp85  <- addLayer(mdls[[i]], mdls[[i+3]])
         names(rcp85) <- names(current)
+        rm(mdls_bio, mdls_new, mdls)
         
       }
       
       ### Predicting
+      #..........
       bioclim_rcp26 <- stack(bioclim_rcp26, predict(object = bioclim_model, x = rcp26))
+      save(bioclim_rcp26, file = paste0(Pout, j, "_bioclim_rcp26.Rdata"))
+      
       bioclim_rcp45 <- stack(bioclim_rcp45, predict(object = bioclim_model, x = rcp45))
+      save(bioclim_rcp45, file = paste0(Pout, j, "_bioclim_rcp45.Rdata"))
+      
       bioclim_rcp60 <- stack(bioclim_rcp60, predict(object = bioclim_model, x = rcp60))
+      save(bioclim_rcp60, file = paste0(Pout, j, "_bioclim_rcp60.Rdata"))
+      
       bioclim_rcp85 <- stack(bioclim_rcp85, predict(object = bioclim_model, x = rcp85))
+      save(bioclim_rcp85, file = paste0(Pout, j, "_bioclim_rcp85.Rdata"))
       
+      #..........
       gower_rcp26   <- stack(gower_rcp26,   predict(object = gower_model, x = rcp26))
+      save(gower_rcp26,   file = paste0(Pout, j, "_gower_rcp26.Rdata"))
+      
       gower_rcp45   <- stack(gower_rcp45,   predict(object = gower_model, x = rcp45))
+      save(gower_rcp45,   file = paste0(Pout, j, "_gower_rcp45.Rdata"))
+      
       gower_rcp60   <- stack(gower_rcp60,   predict(object = gower_model, x = rcp60))
+      save(gower_rcp60,   file = paste0(Pout, j, "_gower_rcp60.Rdata"))
+      
       gower_rcp85   <- stack(gower_rcp85,   predict(object = gower_model, x = rcp85))
+      save(gower_rcp85,   file = paste0(Pout, j, "_gower_rcp85.Rdata"))
       
+      #..........
       maxent_rcp26  <- stack(maxent_rcp26,  predict(object = maxent_model, x = rcp26))
+      save(maxent_rcp26,  file = paste0(Pout, j, "_maxent_rcp26.Rdata"))
+      
       maxent_rcp45  <- stack(maxent_rcp45,  predict(object = maxent_model, x = rcp45))
+      save(maxent_rcp45,  file = paste0(Pout, j, "_maxent_rcp45.Rdata"))
+      
       maxent_rcp60  <- stack(maxent_rcp60,  predict(object = maxent_model, x = rcp60))
+      save(maxent_rcp60,  file = paste0(Pout, j, "_maxent_rcp60.Rdata"))
+      
       maxent_rcp85  <- stack(maxent_rcp85,  predict(object = maxent_model, x = rcp85))
+      save(maxent_rcp85,  file = paste0(Pout, j, "_maxent_rcp85.Rdata"))
       
+      #...........
       SVM_rcp26     <- stack(SVM_rcp26,     predict(model = SVM_model, object = rcp26))
-      SVM_rcp45     <- stack(SVM_rcp45,     predict(model = SVM_model, object = rcp45))
-      SVM_rcp60     <- stack(SVM_rcp60,     predict(model = SVM_model, object = rcp60))
-      SVM_rcp85     <- stack(SVM_rcp85,     predict(model = SVM_model, object = rcp85))
+      save(SVM_rcp26,     file = paste0(Pout, j, "_SVM_rcp26.Rdata"))
       
+      SVM_rcp45     <- stack(SVM_rcp45,     predict(model = SVM_model, object = rcp45))
+      save(SVM_rcp45,     file = paste0(Pout, j, "_SVM_rcp45.Rdata"))
+      
+      SVM_rcp60     <- stack(SVM_rcp60,     predict(model = SVM_model, object = rcp60))
+      save(SVM_rcp60,     file = paste0(Pout, j, "_SVM_rcp60.Rdata"))
+      
+      SVM_rcp85     <- stack(SVM_rcp85,     predict(model = SVM_model, object = rcp85))
+      save(SVM_rcp85,     file = paste0(Pout, j, "_SVM_rcp85.Rdata"))
+      
+      #...........
+      rm(rcp26, rcp45, rcp60, rcp85)
       # CLOSE "i" ----
       # AOGCMs
     }
@@ -375,6 +415,7 @@ multiple_ENMs <- function(occurrence,
                                    Ensemble_rcp45   = ensemble_rcp45, 
                                    Ensemble_rcp60   = ensemble_rcp60, 
                                    Ensemble_rcp85   = ensemble_rcp85)
+  save(FULLensemble,   file = paste0(Pout, j, "_ENSEMBLE.Rdata"))
   
   ### Saving Evaluation data          ----
   ###.....................................
