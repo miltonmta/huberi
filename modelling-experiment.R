@@ -241,9 +241,10 @@ for (i in 1:length(sp_name))
                           trainning        = "./data/occurrences/subsets/trainning",
                           testing          = "./data/occurrences/subsets/testing",
                           AOGCMs           = c(1, 2, 3),
+                          Pout             = paste0("./data/outputs/checkpoints/XP1_", sp_name[i], "_"),
                           cross_validation = 20)
   
-  ###.............. Saving predictions
+  ##.............. Saving predictions
   writeRaster(result[["output_current"]], paste0("./data/outputs/XP1/", sp_name[i],"_current.bil"), format = "EHdr")
   writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP1/", sp_name[i],"_rcp26.bil"), format = "EHdr")
   writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP1/", sp_name[i],"_rcp45.bil"), format = "EHdr")
@@ -258,9 +259,10 @@ for (i in 1:length(sp_name))
   
   ###.............. Saving Ensembles
   write.table(result[["FULLensemble"]], paste0("./data/outputs/XP1/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
+  
+  rm(result)
 }
 beep(8)
-
 
 ## ..... 07.c XP1.2 - 7 plants              ----
 #   .....................................................................................
@@ -284,6 +286,7 @@ for (i in 1:length(sp_names))
                           trainning        = 0,
                           testing          = 0,
                           AOGCMs           = c(1, 2, 3),
+                          Pout             = paste0("./data/outputs/checkpoints/XP1_", sp_names[i], "_"),
                           cross_validation = 20)
   
   ###.............. Saving predictions
@@ -301,6 +304,8 @@ for (i in 1:length(sp_names))
   
   ###.............. Saving Ensembles
   write.table(result[["FULLensemble"]], paste0("./data/outputs/XP1/", sp_names[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
+  
+  rm(result)
 }
 beep(8)
 
@@ -333,7 +338,7 @@ for (i in 1:length(sp_plants))
 {
   suit_sp_df <- read.table(paste0("./data/outputs/XP1/", sp_plants[i],"ENSEMBLES.txt"), sep = "\t", row.names = F)
   suit_sp_var <- suit_sp_df[["ensemble_c"]]
-  suit_sp <- raster(suit_sp_var)
+  suit_sp <- raster(suit_sp_var) #rasterize....
   SUITsp <- addLayer(SUITsp, suit_sp)
 }
 writeRaster("./data/outputs/XP3/current/SUITsp.grd", format = "raster")
@@ -403,6 +408,7 @@ for (i in 1:length(sp_name))
                           trainning        = "./data/occurrences/subsets/trainning",
                           testing          = "./data/occurrences/subsets/testing",
                           AOGCMs           = c(1, 2, 3),
+                          Pout             = paste0("./data/outputs/checkpoints/XP2_", sp_name[i], "_"),
                           cross_validation = 20)
   
   ###.............. Saving predictions
@@ -452,6 +458,7 @@ for (i in 1:length(sp_name))
                           trainning        = "./data/occurrences/subsets/trainning",
                           testing          = "./data/occurrences/subsets/testing",
                           AOGCMs           = c(1, 2, 3),
+                          Pout             = paste0("./data/outputs/checkpoints/XP3_", sp_name[i], "_"),
                           cross_validation = 20)
   
   ###.............. Saving predictions
@@ -468,6 +475,8 @@ for (i in 1:length(sp_name))
   
   ###.............. Saving Ensembles
   write.table(result[["FULLensemble"]], paste0("./data/outputs/XP3/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
+  
+  rm(result)
 }
 beep(8)
 
@@ -500,6 +509,7 @@ for (i in 1:length(sp_name))
                           trainning        = "./data/occurrences/subsets/trainning",
                           testing          = "./data/occurrences/subsets/testing",
                           AOGCMs           = c(1, 2, 3),
+                          Pout             = paste0("./data/outputs/checkpoints/XP4_", sp_name[i], "_"),
                           cross_validation = 20)
   
   ###.............. Saving predictions
@@ -516,7 +526,10 @@ for (i in 1:length(sp_name))
   
   ###.............. Saving Ensembles
   write.table(result[["FULLensemble"]], paste0("./data/outputs/XP4/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
+  
+  rm(result)
 }
+
 beep(8)
 # ***************************************************************************************
 
@@ -548,6 +561,7 @@ for (i in 1:length(sp_name))
                           trainning        = "./data/occurrences/subsets/trainning",
                           testing          = "./data/occurrences/subsets/testing",
                           AOGCMs           = c(1, 2, 3),
+                          Pout             = paste0("./data/outputs/checkpoints/XP5_", sp_name[i], "_"),
                           cross_validation = 20)
   
   ###.............. Saving predictions
@@ -564,6 +578,8 @@ for (i in 1:length(sp_name))
   
   ###.............. Saving Ensembles
   write.table(result[["FULLensemble"]], paste0("./data/outputs/XP5/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
+  
+  rm(result)
 }
 beep(8)
 
