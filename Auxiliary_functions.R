@@ -30,7 +30,7 @@ read_rcp <- function (x)
   rcp <- NULL
   for (i in 1:length(directories))
   {
-    models_raw       <- stack(list.files(directories[i],pattern = ".tif$", full.names = TRUE))
+    models_raw       <- stack(list.files(directories[i], pattern = ".tif$", full.names = TRUE))
     models_e         <- crop( models_raw , e )
     val              <- values (models_e)
     coord            <- xyFromCell(models_e, 1:ncell(models_e))

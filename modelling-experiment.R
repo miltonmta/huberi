@@ -3,6 +3,7 @@ file.edit("readme.R")
 
 source("./Auxiliary_functions.R")
 source("./Multiple_ENMs.R")
+source("./ensemble.R")
 # file.edit(c("./Auxiliary_functions.R", "./Multiple_ENMs.R"))
 
 # **** Loading packages                             ----
@@ -196,6 +197,7 @@ rm(occur, back)
 ###.....................................
 rm(list = ls())
 source("./Multiple_ENMs.R")
+source("./ensemble.R")
 # Variables	 Abiotic ( 5 vars )
 # Input	     9 sps :: bee + 7 plants + "resource" * (summed occurs of all plants)
 # Output     9 inputs predictions  + 4 predictive methods * 4 rcps * 3 aogcms
@@ -208,7 +210,7 @@ source("./Multiple_ENMs.R")
 
 ## ... bee
 occur_thinned <- read.table("./data/occurrences/occur_thinned.txt", sep = ";", h = T)
-sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ]
+sp <- occur_thinned[occur_thinned[, 1] == "Lithurgus_huberi", ] # keepinng only the bee specie
 sp <- gsub("C[1-9]","", sp$SPEC)
 sp_name <- unique(sp)
 sp_name
@@ -220,6 +222,13 @@ sp <- gsub("C[1-9]","", sp$SPEC)
 sp_names <- unique(sp)
 sp_names
 
+## ... All species
+occur_thinned <- read.table("./data/occurrences/occur_thinned.txt", sep = ";", h = T) 
+sp <- gsub("C[1-9]","", occur_thinned$SPEC)
+ALLsp_names <- unique(sp)
+ALLsp_names
+
+rm(sp, occur_thinned)
 ## ..... 07.b XP1.1 - bee                   -----
 #   .....................................................................................
 sp_name
@@ -241,24 +250,14 @@ for (i in 1:length(sp_name))
                           trainning        = "./data/occurrences/subsets/trainning",
                           testing          = "./data/occurrences/subsets/testing",
                           AOGCMs           = c(1, 2, 3),
-                          Pout             = paste0("./data/outputs/checkpoints/XP1_", sp_name[i], "_"),
-                          cross_validation = 20)
-  
-  ##.............. Saving predictions
-  writeRaster(result[["output_current"]], paste0("./data/outputs/XP1/", sp_name[i],"_current.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP1/", sp_name[i],"_rcp26.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP1/", sp_name[i],"_rcp45.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP1/", sp_name[i],"_rcp60.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP1/", sp_name[i],"_rcp85.bil"), format = "EHdr")
-
+                          Pout             = paste0("./data/outputs/XP1/Pout/xp1_", sp_name[i], "_"),
+                          cross_validation = 3)
   
   ###.............. Saving evaluation data
   write.table(result[["TPR_c"]],        paste0("./data/outputs/XP1/", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
   write.table(result[["Threshold_c"]],  paste0("./data/outputs/XP1/", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
   write.table(result[["Pred_area_c"]],  paste0("./data/outputs/XP1/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
-  ###.............. Saving Ensembles
-  write.table(result[["FULLensemble"]], paste0("./data/outputs/XP1/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
   
   rm(result)
 }
@@ -286,30 +285,40 @@ for (i in 1:length(sp_names))
                           trainning        = 0,
                           testing          = 0,
                           AOGCMs           = c(1, 2, 3),
-                          Pout             = paste0("./data/outputs/checkpoints/XP1_", sp_names[i], "_"),
-                          cross_validation = 20)
-  
-  ###.............. Saving predictions
-  writeRaster(result[["output_current"]], paste0("./data/outputs/XP1/", sp_names[i],"_current.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP1/", sp_names[i],"_rcp26.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP1/", sp_names[i],"_rcp45.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP1/", sp_names[i],"_rcp60.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP1/", sp_names[i],"_rcp85.bil"), format = "EHdr")
-  
+                          Pout             = paste0("./data/outputs/XP1/Pout/xp1_", sp_names[i], "_"),
+                          cross_validation = 10)
   
   ###.............. Saving evaluation data
   write.table(result[["TPR_c"]],        paste0("./data/outputs/XP1/", sp_names[i], "_TPR_current.txt"), sep = "\t", row.names = F)
   write.table(result[["Threshold_c"]],  paste0("./data/outputs/XP1/", sp_names[i], "_t_current.txt"),   sep = "\t", row.names = F)
   write.table(result[["Pred_area_c"]],  paste0("./data/outputs/XP1/", sp_names[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
-  ###.............. Saving Ensembles
-  write.table(result[["FULLensemble"]], paste0("./data/outputs/XP1/", sp_names[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
-  
   rm(result)
 }
 beep(8)
 
-## ..... 07.d New Predictor variables       ----
+
+## ..... 07.d Ensembles  and Final Outputs  ----
+#   .....................................................................................
+ALLsp_names
+for (i in 1:length(ALLsp_names))
+{
+  result <- ensemble(dir = "./data/outputs/XP1/Pout/" )
+  
+  ###.............. Saving predictions
+  writeRaster(result[["output_current"]], paste0("./data/outputs/XP1/", ALLsp_names[i], "_current.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_rcp26.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_rcp45.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_rcp60.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_rcp85.bil"), format = "EHdr")
+  
+  ###.............. Saving Ensembles
+  write.table(result[["FULLensemble"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
+  
+  rm(result)
+}
+
+## ..... 07.e New Predictor variables       ----
 #   .....................................................................................
 # Resulting variables are combination of two base maps: suitability and presence/absence.
 # 
@@ -389,10 +398,10 @@ writeRaster("./data/outputs/XP5/current/SUITstk.grd", format = "raster")
 # Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
 # Ensembles          1 * (9 present + 12 future (4 rcps * 3 aogcms)) 
 
+###.............. Running the modedelling experiment
 sp_name
 for (i in 1:length(sp_name))
 {
-  ###.............. Running the modedelling experiment
   result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_",  sp_name[i], ".txt"),
                           background       = paste0("./data/occurrences/back_", sp_name[i], ".txt"),
                           biovar_current   = "./data/climatic_vars/selected/current/",
@@ -408,8 +417,22 @@ for (i in 1:length(sp_name))
                           trainning        = "./data/occurrences/subsets/trainning",
                           testing          = "./data/occurrences/subsets/testing",
                           AOGCMs           = c(1, 2, 3),
-                          Pout             = paste0("./data/outputs/checkpoints/XP2_", sp_name[i], "_"),
-                          cross_validation = 20)
+                          Pout             = paste0("./data/outputs/XP2/Pout/xp2_", sp_name[i], "_"),
+                          cross_validation = 10)
+  
+  ###.............. Saving evaluation data
+  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP2/", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP2/", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP2/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
+  
+}
+beep(8)
+
+###.............. Ensembles and final outputs
+sp_name
+for (i in 1:length(sp_name))
+{
+  result <- ensemble(dir = "./data/outputs/XP2/Pout/" )
   
   ###.............. Saving predictions
   writeRaster(result[["output_current"]], paste0("./data/outputs/XP2/", sp_name[i],"_current.bil"), format = "EHdr")
@@ -418,15 +441,11 @@ for (i in 1:length(sp_name))
   writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP2/", sp_name[i],"_rcp60.bil"), format = "EHdr")
   writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP2/", sp_name[i],"_rcp85.bil"), format = "EHdr")
   
-  ###.............. Saving evaluation data
-  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP2/", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP2/", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
-  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP2/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
-  
   ###.............. Saving Ensembles
   write.table(result[["FULLensemble"]], paste0("./data/outputs/XP2/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
+  
+  rm(result)
 }
-beep(8)
 
 # ***************************************************************************************
 
@@ -439,10 +458,10 @@ beep(8)
 # Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
 # Ensemble  	       1 * (9 present + 12 future (4 rcps * 3 aogcms)) 
 
+###.............. Running the modedelling experiment
 sp_name
 for (i in 1:length(sp_name))
 {
-  ###.............. Running the modedelling experiment
   result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_",  sp_name[i], ".txt"),
                           background       = paste0("./data/occurrences/back_", sp_name[i], ".txt"),
                           biovar_current   = "./data/climatic_vars/selected/current/",
@@ -458,8 +477,24 @@ for (i in 1:length(sp_name))
                           trainning        = "./data/occurrences/subsets/trainning",
                           testing          = "./data/occurrences/subsets/testing",
                           AOGCMs           = c(1, 2, 3),
-                          Pout             = paste0("./data/outputs/checkpoints/XP3_", sp_name[i], "_"),
-                          cross_validation = 20)
+                          Pout             = paste0("./data/outputs/XP3/Pout/xp3_", sp_name[i], "_"),
+                          cross_validation = 10)
+  
+  ###.............. Saving evaluation data
+  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP3/", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP3/", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP3/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
+  
+  rm(result)
+}
+beep(8)
+
+
+###.............. Ensembles and final outputs
+sp_name
+for (i in 1:length(sp_name))
+{
+  result <- ensemble(dir = "./data/outputs/XP3/Pout/" )
   
   ###.............. Saving predictions
   writeRaster(result[["output_current"]], paste0("./data/outputs/XP3/", sp_name[i],"_current.bil"), format = "EHdr")
@@ -468,17 +503,11 @@ for (i in 1:length(sp_name))
   writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP3/", sp_name[i],"_rcp60.bil"), format = "EHdr")
   writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP3/", sp_name[i],"_rcp85.bil"), format = "EHdr")
   
-  ###.............. Saving evaluation data
-  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP3/", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP3/", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
-  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP3/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
-  
   ###.............. Saving Ensembles
   write.table(result[["FULLensemble"]], paste0("./data/outputs/XP3/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
   
   rm(result)
 }
-beep(8)
 
 # ***************************************************************************************
 
@@ -490,10 +519,10 @@ beep(8)
 # Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
 # Ensemble           1 * (9 present + 12 future (4 rcps * 3 aogcms))
 
+###.............. Running the modedelling experiment
 sp_name
 for (i in 1:length(sp_name))
 {
-  ###.............. Running the modedelling experiment
   result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_",  sp_name[i], ".txt"),
                           background       = paste0("./data/occurrences/back_", sp_name[i], ".txt"),
                           biovar_current   = "./data/climatic_vars/selected/current/",
@@ -509,8 +538,24 @@ for (i in 1:length(sp_name))
                           trainning        = "./data/occurrences/subsets/trainning",
                           testing          = "./data/occurrences/subsets/testing",
                           AOGCMs           = c(1, 2, 3),
-                          Pout             = paste0("./data/outputs/checkpoints/XP4_", sp_name[i], "_"),
-                          cross_validation = 20)
+                          Pout             = paste0("./data/outputs/XP4/Pout/xp4_", sp_name[i], "_"),
+                          cross_validation = 10)
+  
+  
+  ###.............. Saving evaluation data
+  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP4/", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP4/", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP4/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
+  
+  rm(result)
+}
+
+
+###.............. Ensembles and final outputs
+sp_name
+for (i in 1:length(sp_name))
+{
+  result <- ensemble(dir = "./data/outputs/XP4/Pout/" )
   
   ###.............. Saving predictions
   writeRaster(result[["output_current"]], paste0("./data/outputs/XP4/", sp_name[i],"_current.bil"), format = "EHdr")
@@ -519,17 +564,11 @@ for (i in 1:length(sp_name))
   writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP4/", sp_name[i],"_rcp60.bil"), format = "EHdr")
   writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP4/", sp_name[i],"_rcp85.bil"), format = "EHdr")
   
-  ###.............. Saving evaluation data
-  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP4/", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP4/", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
-  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP4/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
-  
   ###.............. Saving Ensembles
   write.table(result[["FULLensemble"]], paste0("./data/outputs/XP4/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
   
   rm(result)
 }
-
 beep(8)
 # ***************************************************************************************
 
@@ -542,10 +581,10 @@ beep(8)
 # Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
 # Ensemble           1 * (9 present + 12 future (4 rcps * 3 aogcms))
 
+###.............. Running the modedelling experiment
 sp_name
 for (i in 1:length(sp_name))
 {
-  ###.............. Running the modedelling experiment
   result <- multiple_ENMs(occurrence       = paste0("./data/occurrences/var_",  sp_name[i], ".txt"),
                           background       = paste0("./data/occurrences/back_", sp_name[i], ".txt"),
                           biovar_current   = "./data/climatic_vars/selected/current/",
@@ -561,8 +600,23 @@ for (i in 1:length(sp_name))
                           trainning        = "./data/occurrences/subsets/trainning",
                           testing          = "./data/occurrences/subsets/testing",
                           AOGCMs           = c(1, 2, 3),
-                          Pout             = paste0("./data/outputs/checkpoints/XP5_", sp_name[i], "_"),
-                          cross_validation = 20)
+                          Pout             = paste0("./data/outputs/XP5/Pout/xp1_", sp_name[i], "_"),
+                          cross_validation = 10)
+  
+  ###.............. Saving evaluation data
+  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP5/", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
+  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP5/", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP5/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
+  
+  rm(result)
+}
+beep(8)
+
+###.............. Ensembles and final outputs
+sp_name
+for (i in 1:length(sp_name))
+{
+  result <- ensemble(dir = "./data/outputs/XP5/Pout/" )
   
   ###.............. Saving predictions
   writeRaster(result[["output_current"]], paste0("./data/outputs/XP5/", sp_name[i],"_current.bil"), format = "EHdr")
@@ -571,30 +625,24 @@ for (i in 1:length(sp_name))
   writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp60.bil"), format = "EHdr")
   writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp85.bil"), format = "EHdr")
   
-  ###.............. Saving evaluation data
-  write.table(result[["TPR_c"]],       paste0("./data/outputs/XP5/", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
-  write.table(result[["Threshold_c"]], paste0("./data/outputs/XP5/", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
-  write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP5/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
-  
   ###.............. Saving Ensembles
   write.table(result[["FULLensemble"]], paste0("./data/outputs/XP5/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
   
   rm(result)
 }
-beep(8)
 
 # ***************************************************************************************
-## 12. Selecting XP from XP2:XP7                    ----
+## 12. Selecting XP from XP2:XP5                    ----
 ###.....................................
 
 
 # AVALIAÇAO DA REPRESENTATIVIDADE	
-# Anova de Medidas Repetidas (mesmos subconjuntos de XP2 a XP7)	
+# Anova de Medidas Repetidas (mesmos subconjuntos de XP2 a XP5)	
 # 1	
 # preditor: adequabilidade ponderada XP2:XP7	
-# resposta: huberi (mesma resposta dividida nos mesmos subgrupos %treino/%teste no 6 XPs)	
+# resposta: huberi (mesma resposta dividida nos mesmos subgrupos %treino/%teste nos 4 XPs)	
 # 2	
-# preditor: tamanho de range  XP2:XP7	
+# preditor: tamanho de range  XP2:XP5	
 # resposta: huberi	
 
 ## 13. Preparing analysis factors                   ----
