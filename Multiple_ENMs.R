@@ -33,11 +33,11 @@ multiple_ENMs <- function(occurrence,
   
   ###.............. Creating objects for saving the results
   
-  bioclim_c <- gower_c  <- maxent_c <- SVM_c <- stack()
+  bioclim_c <- maxent_c <- SVM_c <- stack()
   
-  bioclim_e <- gower_e <- maxent_e <- SVM_e <- NULL # True presence rate (TPR)
-  bioclim_t <- gower_t <- maxent_t <- SVM_t <- NULL # The highest threshold at which there is no omission
-  bioclim_d <- gower_d <- maxent_d <- SVM_d <- NULL # Area predicted as presence
+  bioclim_e <- maxent_e <- SVM_e <- NULL # True presence rate (TPR)
+  bioclim_t <- maxent_t <- SVM_t <- NULL # The highest threshold at which there is no omission
+  bioclim_d <- maxent_d <- SVM_d <- NULL # Area predicted as presence
   
 
   ### Cross validation                ----
@@ -82,8 +82,8 @@ multiple_ENMs <- function(occurrence,
     bioclim_d <- c(bioclim_d, TPR * (1 - Pi))
     rm(thr, TPR, Pi)
     
-    ### Gower -------------------------------------------------------------------------------
-
+    # ### Gower -------------------------------------------------------------------------------
+    # 
     # ## Adjusting models
     # gower_model <- domain(trainning[trainning[,"pb"] == 1, -1])
     # 
@@ -148,153 +148,153 @@ multiple_ENMs <- function(occurrence,
     ###.............. Making predictions for the RCPs
  
     # Creanting objects for saving results at each loop
-    bioclim_rcp26 <- gower_rcp26 <- maxent_rcp26 <- SVM_rcp26 <- stack() 
-    bioclim_rcp45 <- gower_rcp45 <- maxent_rcp45 <- SVM_rcp45 <- stack()
-    bioclim_rcp60 <- gower_rcp60 <- maxent_rcp60 <- SVM_rcp60 <- stack()
-    bioclim_rcp85 <- gower_rcp85 <- maxent_rcp85 <- SVM_rcp85 <- stack()
+    bioclim_rcp26 <- maxent_rcp26 <- SVM_rcp26 <- stack() 
+    bioclim_rcp45 <- maxent_rcp45 <- SVM_rcp45 <- stack()
+    bioclim_rcp60 <- maxent_rcp60 <- SVM_rcp60 <- stack()
+    bioclim_rcp85 <- maxent_rcp85 <- SVM_rcp85 <- stack()
     
-    # mdid <- paste0('.',1:3,'.grd$')
-    # #### OPEN "j" ----
-    # for (j in AOGCMs)
-    # {
-    #  
-    #   ### Reading the selected AOGCMs climatic models
-    #   if(is.numeric(newvar_rcp26)){
-    #     # ..............
-    #     mdls <- lapply(mdid, function(x){stack(list.files(biovar_rcp26, 
-    #                                                       pattern = x, full.names = TRUE))})
-    #     rcp26  <- mdls[[j]] 
-    #     names(rcp26) <- names(current)
-    #     rm(mdls)
-    #     
-    #     # ..............
-    #     mdls <- lapply(mdid, function(x){stack(list.files(biovar_rcp45, 
-    #                                                       pattern = x, full.names = TRUE))})
-    #     rcp45  <- mdls[[j]]
-    #     names(rcp45) <- names(current)
-    #     rm(mdls)
-    #     
-    #     # ..............
-    #     mdls  <- lapply(mdid, function(x){stack(list.files(biovar_rcp60, 
-    #                                                        pattern = x, full.names = TRUE))})
-    #     rcp60  <- mdls[[j]]
-    #     names(rcp60) <- names(current)
-    #     rm(mdls)
-    #     
-    #     # ..............
-    #     mdls    <- lapply(mdid, function(x){stack(list.files(biovar_rcp85, 
-    #                                                        pattern = x, full.names = TRUE))})
-    #     rcp85  <- mdls[[j]]
-    #     names(rcp85) <- names(current)
-    #     rm(mdls)
-    #     
-    #   }else{
-    #     # ..............
-    #     mdls_bio <- lapply(mdid, function(x){stack(list.files(biovar_rcp26, 
-    #                                                           pattern = x, full.names = TRUE))})
-    #     mdls_new <- lapply(mdid, function(x){stack(list.files(newvar_rcp26, 
-    #                                                           pattern = x, full.names = TRUE))})
-    #     mdls     <- c(mdls_bio, mdls_new)
-    #     rcp26  <- addLayer(mdls[[j]], mdls[[j+3]])
-    #     names(rcp26) <- names(current)
-    #     rm(mdls_bio, mdls_new, mdls)
-    #     
-    #     # ..............
-    #     mdls_bio <- lapply(mdid, function(x){stack(list.files(biovar_rcp45, 
-    #                                                           pattern = x, full.names = TRUE))})
-    #     mdls_new <- lapply(mdid, function(x){stack(list.files(newvar_rcp45, 
-    #                                                           pattern = x, full.names = TRUE))})
-    #     mdls     <- c(mdls_bio, mdls_new)
-    #     rcp45  <- addLayer(mdls[[j]], mdls[[j+3]])
-    #     names(rcp45) <- names(current)
-    #     rm(mdls_bio, mdls_new, mdls)
-    #     
-    #     # ..............
-    #     mdls_bio <- lapply(mdid, function(x){stack(list.files(biovar_rcp60, 
-    #                                                           pattern = x, full.names = TRUE))})
-    #     mdls_new <- lapply(mdid, function(x){stack(list.files(newvar_rcp60, 
-    #                                                           pattern = x, full.names = TRUE))})
-    #     mdls     <- c(mdls_bio, mdls_new)
-    #     rcp60  <- addLayer(mdls[[j]], mdls[[j+3]])
-    #     names(rcp60) <- names(current)
-    #     rm(mdls_bio, mdls_new, mdls)
-    #     
-    #     # ..............
-    #     mdls_bio <- lapply(mdid, function(x){stack(list.files(biovar_rcp85, 
-    #                                                           pattern = x, full.names = TRUE))})
-    #     mdls_new <- lapply(mdid, function(x){stack(list.files(newvar_rcp85, 
-    #                                                           pattern = x, full.names = TRUE))})
-    #     mdls     <- c(mdls_bio, mdls_new)
-    #     rcp85  <- addLayer(mdls[[j]], mdls[[j+3]])
-    #     names(rcp85) <- names(current)
-    #     rm(mdls_bio, mdls_new, mdls)
-    #     
-    #   }
-    #   
-    #   ### Predicting
-    #   #..........
-    #   bioclim_rcp26 <- stack(bioclim_rcp26, predict(object = bioclim_model, x = rcp26))
-    #   writeRaster(bioclim_rcp26, paste0(Pout, i, "_bioclim_rcp26.tif"), format = "GTiff", overwrite = TRUE)
-    #   
-    #   bioclim_rcp45 <- stack(bioclim_rcp45, predict(object = bioclim_model, x = rcp45))
-    #   writeRaster(bioclim_rcp45, paste0(Pout, i, "_bioclim_rcp45.tif"), format = "GTiff", overwrite = TRUE)
-    #   
-    #   bioclim_rcp60 <- stack(bioclim_rcp60, predict(object = bioclim_model, x = rcp60))
-    #   writeRaster(bioclim_rcp60, paste0(Pout, i, "_bioclim_rcp60.tif"), format = "GTiff", overwrite = TRUE)
-    #   
-    #   bioclim_rcp85 <- stack(bioclim_rcp85, predict(object = bioclim_model, x = rcp85))
-    #   writeRaster(bioclim_rcp85, paste0(Pout, i, "_bioclim_rcp85.tif"), format = "GTiff", overwrite = TRUE)
-    #   
-    #   #..........
-    #   gower_rcp26   <- stack(gower_rcp26,   predict(object = gower_model, x = rcp26))
-    #   writeRaster(gower_rcp26, paste0(Pout, i, "_gower_rcp26.tif"), format = "GTiff", overwrite = TRUE)
-    # 
-    #   gower_rcp45   <- stack(gower_rcp45,   predict(object = gower_model, x = rcp45))
-    #   writeRaster(gower_rcp45, paste0(Pout, i, "_gower_rcp45.tif"), format = "GTiff", overwrite = TRUE)
-    # 
-    #   gower_rcp60   <- stack(gower_rcp60,   predict(object = gower_model, x = rcp60))
-    #   writeRaster(gower_rcp60, paste0(Pout, i, "_gower_rcp60.tif"), format = "GTiff", overwrite = TRUE)
-    # 
-    #   gower_rcp85   <- stack(gower_rcp85,   predict(object = gower_model, x = rcp85))
-    #   writeRaster(gower_rcp85, paste0(Pout, i, "_gower_rcp85.tif"), format = "GTiff", overwrite = TRUE)
-    #   
-    #   #..........
-    #   maxent_rcp26  <- stack(maxent_rcp26,  predict(object = maxent_model, x = rcp26))
-    #   writeRaster(maxent_rcp26, paste0(Pout, i, "_maxent_rcp26.tif"), format = "GTiff", overwrite = TRUE)
-    #   
-    #   maxent_rcp45  <- stack(maxent_rcp45,  predict(object = maxent_model, x = rcp45))
-    #   writeRaster(maxent_rcp45, paste0(Pout, i, "_maxent_rcp45.tif"), format = "GTiff", overwrite = TRUE)
-    #   
-    #   maxent_rcp60  <- stack(maxent_rcp60,  predict(object = maxent_model, x = rcp60))
-    #   writeRaster(maxent_rcp60, paste0(Pout, i, "_maxent_rcp60.tif"), format = "GTiff", overwrite = TRUE)
-    #   
-    #   maxent_rcp85  <- stack(maxent_rcp85,  predict(object = maxent_model, x = rcp85))
-    #   writeRaster(maxent_rcp85, paste0(Pout, i, "_maxent_rcp85.tif"), format = "GTiff", overwrite = TRUE)
-    #   
-    #   #...........
-    #   SVM_rcp26     <- stack(SVM_rcp26,     predict(model = SVM_model, object = rcp26))
-    #   writeRaster(SVM_rcp26, paste0(Pout, i, "_SVM_rcp26.tif"), format = "GTiff", overwrite = TRUE)
-    #   
-    #   SVM_rcp45     <- stack(SVM_rcp45,     predict(model = SVM_model, object = rcp45))
-    #   writeRaster(SVM_rcp45, paste0(Pout, i, "_SVM_rcp45.tif"), format = "GTiff", overwrite = TRUE)
-    #   
-    #   SVM_rcp60     <- stack(SVM_rcp60,     predict(model = SVM_model, object = rcp60))
-    #   writeRaster(SVM_rcp60, paste0(Pout, i, "_SVM_rcp60.tif"), format = "GTiff", overwrite = TRUE)
-    #   
-    #   SVM_rcp85     <- stack(SVM_rcp85,     predict(model = SVM_model, object = rcp85))
-    #   writeRaster(SVM_rcp85, paste0(Pout, i, "_SVM_rcp85.tif"), format = "GTiff", overwrite = TRUE)
-    #   
-    #   # ...........
-    #   rm(rcp26, rcp45, rcp60, rcp85)
-    #   # CLOSE "i" ----
-    #   # AOGCMs
-    # }
-    # rm(bioclim_rcp26, bioclim_rcp45, bioclim_rcp60, bioclim_rcp85,
-    #    #gower_rcp26,   gower_rcp45,   gower_rcp60,   gower_rcp85,
-    #    maxent_rcp26,  maxent_rcp45,  maxent_rcp60,  maxent_rcp85,
-    #    SVM_rcp26,     SVM_rcp45,     SVM_rcp60,     SVM_rcp85)
-    # # CLOSE "j"   ---- 
-    # # cross-validation
+    mdid <- paste0('.',1:3,'.grd$')
+    #### OPEN "j" ----
+    for (j in AOGCMs)
+    {
+
+      ### Reading the selected AOGCMs climatic models
+      if(is.numeric(newvar_rcp26)){
+        # ..............
+        mdls <- lapply(mdid, function(x){stack(list.files(biovar_rcp26,
+                                                          pattern = x, full.names = TRUE))})
+        rcp26  <- mdls[[j]]
+        names(rcp26) <- names(current)
+        rm(mdls)
+
+        # ..............
+        mdls <- lapply(mdid, function(x){stack(list.files(biovar_rcp45,
+                                                          pattern = x, full.names = TRUE))})
+        rcp45  <- mdls[[j]]
+        names(rcp45) <- names(current)
+        rm(mdls)
+
+        # ..............
+        mdls  <- lapply(mdid, function(x){stack(list.files(biovar_rcp60,
+                                                           pattern = x, full.names = TRUE))})
+        rcp60  <- mdls[[j]]
+        names(rcp60) <- names(current)
+        rm(mdls)
+
+        # ..............
+        mdls    <- lapply(mdid, function(x){stack(list.files(biovar_rcp85,
+                                                           pattern = x, full.names = TRUE))})
+        rcp85  <- mdls[[j]]
+        names(rcp85) <- names(current)
+        rm(mdls)
+
+      }else{
+        # ..............
+        mdls_bio <- lapply(mdid, function(x){stack(list.files(biovar_rcp26,
+                                                              pattern = x, full.names = TRUE))})
+        mdls_new <- lapply(mdid, function(x){stack(list.files(newvar_rcp26,
+                                                              pattern = x, full.names = TRUE))})
+        mdls     <- c(mdls_bio, mdls_new)
+        rcp26  <- addLayer(mdls[[j]], mdls[[j+3]])
+        names(rcp26) <- names(current)
+        rm(mdls_bio, mdls_new, mdls)
+
+        # ..............
+        mdls_bio <- lapply(mdid, function(x){stack(list.files(biovar_rcp45,
+                                                              pattern = x, full.names = TRUE))})
+        mdls_new <- lapply(mdid, function(x){stack(list.files(newvar_rcp45,
+                                                              pattern = x, full.names = TRUE))})
+        mdls     <- c(mdls_bio, mdls_new)
+        rcp45  <- addLayer(mdls[[j]], mdls[[j+3]])
+        names(rcp45) <- names(current)
+        rm(mdls_bio, mdls_new, mdls)
+
+        # ..............
+        mdls_bio <- lapply(mdid, function(x){stack(list.files(biovar_rcp60,
+                                                              pattern = x, full.names = TRUE))})
+        mdls_new <- lapply(mdid, function(x){stack(list.files(newvar_rcp60,
+                                                              pattern = x, full.names = TRUE))})
+        mdls     <- c(mdls_bio, mdls_new)
+        rcp60  <- addLayer(mdls[[j]], mdls[[j+3]])
+        names(rcp60) <- names(current)
+        rm(mdls_bio, mdls_new, mdls)
+
+        # ..............
+        mdls_bio <- lapply(mdid, function(x){stack(list.files(biovar_rcp85,
+                                                              pattern = x, full.names = TRUE))})
+        mdls_new <- lapply(mdid, function(x){stack(list.files(newvar_rcp85,
+                                                              pattern = x, full.names = TRUE))})
+        mdls     <- c(mdls_bio, mdls_new)
+        rcp85  <- addLayer(mdls[[j]], mdls[[j+3]])
+        names(rcp85) <- names(current)
+        rm(mdls_bio, mdls_new, mdls)
+
+      }
+
+      ### Predicting
+      #..........
+      bioclim_rcp26 <- stack(bioclim_rcp26, predict(object = bioclim_model, x = rcp26))
+      writeRaster(bioclim_rcp26, paste0(Pout, i, "_bioclim_rcp26.tif"), format = "GTiff", overwrite = TRUE)
+
+      bioclim_rcp45 <- stack(bioclim_rcp45, predict(object = bioclim_model, x = rcp45))
+      writeRaster(bioclim_rcp45, paste0(Pout, i, "_bioclim_rcp45.tif"), format = "GTiff", overwrite = TRUE)
+
+      bioclim_rcp60 <- stack(bioclim_rcp60, predict(object = bioclim_model, x = rcp60))
+      writeRaster(bioclim_rcp60, paste0(Pout, i, "_bioclim_rcp60.tif"), format = "GTiff", overwrite = TRUE)
+
+      bioclim_rcp85 <- stack(bioclim_rcp85, predict(object = bioclim_model, x = rcp85))
+      writeRaster(bioclim_rcp85, paste0(Pout, i, "_bioclim_rcp85.tif"), format = "GTiff", overwrite = TRUE)
+
+      #..........
+      # gower_rcp26   <- stack(gower_rcp26,   predict(object = gower_model, x = rcp26))
+      # writeRaster(gower_rcp26, paste0(Pout, i, "_gower_rcp26.tif"), format = "GTiff", overwrite = TRUE)
+      # 
+      # gower_rcp45   <- stack(gower_rcp45,   predict(object = gower_model, x = rcp45))
+      # writeRaster(gower_rcp45, paste0(Pout, i, "_gower_rcp45.tif"), format = "GTiff", overwrite = TRUE)
+      # 
+      # gower_rcp60   <- stack(gower_rcp60,   predict(object = gower_model, x = rcp60))
+      # writeRaster(gower_rcp60, paste0(Pout, i, "_gower_rcp60.tif"), format = "GTiff", overwrite = TRUE)
+      # 
+      # gower_rcp85   <- stack(gower_rcp85,   predict(object = gower_model, x = rcp85))
+      # writeRaster(gower_rcp85, paste0(Pout, i, "_gower_rcp85.tif"), format = "GTiff", overwrite = TRUE)
+
+      #..........
+      maxent_rcp26  <- stack(maxent_rcp26,  predict(object = maxent_model, x = rcp26))
+      writeRaster(maxent_rcp26, paste0(Pout, i, "_maxent_rcp26.tif"), format = "GTiff", overwrite = TRUE)
+
+      maxent_rcp45  <- stack(maxent_rcp45,  predict(object = maxent_model, x = rcp45))
+      writeRaster(maxent_rcp45, paste0(Pout, i, "_maxent_rcp45.tif"), format = "GTiff", overwrite = TRUE)
+
+      maxent_rcp60  <- stack(maxent_rcp60,  predict(object = maxent_model, x = rcp60))
+      writeRaster(maxent_rcp60, paste0(Pout, i, "_maxent_rcp60.tif"), format = "GTiff", overwrite = TRUE)
+
+      maxent_rcp85  <- stack(maxent_rcp85,  predict(object = maxent_model, x = rcp85))
+      writeRaster(maxent_rcp85, paste0(Pout, i, "_maxent_rcp85.tif"), format = "GTiff", overwrite = TRUE)
+
+      #...........
+      SVM_rcp26     <- stack(SVM_rcp26,     predict(model = SVM_model, object = rcp26))
+      writeRaster(SVM_rcp26, paste0(Pout, i, "_SVM_rcp26.tif"), format = "GTiff", overwrite = TRUE)
+
+      SVM_rcp45     <- stack(SVM_rcp45,     predict(model = SVM_model, object = rcp45))
+      writeRaster(SVM_rcp45, paste0(Pout, i, "_SVM_rcp45.tif"), format = "GTiff", overwrite = TRUE)
+
+      SVM_rcp60     <- stack(SVM_rcp60,     predict(model = SVM_model, object = rcp60))
+      writeRaster(SVM_rcp60, paste0(Pout, i, "_SVM_rcp60.tif"), format = "GTiff", overwrite = TRUE)
+
+      SVM_rcp85     <- stack(SVM_rcp85,     predict(model = SVM_model, object = rcp85))
+      writeRaster(SVM_rcp85, paste0(Pout, i, "_SVM_rcp85.tif"), format = "GTiff", overwrite = TRUE)
+
+      # ...........
+      rm(rcp26, rcp45, rcp60, rcp85)
+      # CLOSE "i" ----
+      # AOGCMs
+    }
+    rm(bioclim_rcp26, bioclim_rcp45, bioclim_rcp60, bioclim_rcp85,
+       #gower_rcp26,   gower_rcp45,   gower_rcp60,   gower_rcp85,
+       maxent_rcp26,  maxent_rcp45,  maxent_rcp60,  maxent_rcp85,
+       SVM_rcp26,     SVM_rcp45,     SVM_rcp60,     SVM_rcp85)
+    # CLOSE "j"   ----
+    # cross-validation
   }
   
   ### Saving Evaluation data          ----
@@ -308,8 +308,8 @@ multiple_ENMs <- function(occurrence,
   ### Returning Function data         ----
   ###.....................................
   
-  return(list(c("TPR_c"           = models_e, 
-                "Threshold_c"     = models_t, 
-                "Pred_area_c"     = models_d)))
+  return(list("TPR_c"           = models_e, 
+              "Threshold_c"     = models_t, 
+              "Pred_area_c"     = models_d))
   
 } # CLOSE "Multiple_ENMs"
