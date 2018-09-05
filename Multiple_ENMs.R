@@ -166,6 +166,7 @@ multiple_ENMs <- function(occurrence,
         rcp26  <- mdls[[j]]
         names(rcp26) <- names(current)
         rm(mdls)
+        gc()
 
         # ..............
         mdls <- lapply(mdid, function(x){stack(list.files(biovar_rcp45,
@@ -173,6 +174,7 @@ multiple_ENMs <- function(occurrence,
         rcp45  <- mdls[[j]]
         names(rcp45) <- names(current)
         rm(mdls)
+        gc()
 
         # ..............
         mdls  <- lapply(mdid, function(x){stack(list.files(biovar_rcp60,
@@ -180,6 +182,7 @@ multiple_ENMs <- function(occurrence,
         rcp60  <- mdls[[j]]
         names(rcp60) <- names(current)
         rm(mdls)
+        gc()
 
         # ..............
         mdls    <- lapply(mdid, function(x){stack(list.files(biovar_rcp85,
@@ -187,6 +190,7 @@ multiple_ENMs <- function(occurrence,
         rcp85  <- mdls[[j]]
         names(rcp85) <- names(current)
         rm(mdls)
+        gc()
 
       }else{
         # ..............
@@ -198,6 +202,7 @@ multiple_ENMs <- function(occurrence,
         rcp26  <- addLayer(mdls[[j]], mdls[[j+3]])
         names(rcp26) <- names(current)
         rm(mdls_bio, mdls_new, mdls)
+        gc()
 
         # ..............
         mdls_bio <- lapply(mdid, function(x){stack(list.files(biovar_rcp45,
@@ -208,6 +213,7 @@ multiple_ENMs <- function(occurrence,
         rcp45  <- addLayer(mdls[[j]], mdls[[j+3]])
         names(rcp45) <- names(current)
         rm(mdls_bio, mdls_new, mdls)
+        gc()
 
         # ..............
         mdls_bio <- lapply(mdid, function(x){stack(list.files(biovar_rcp60,
@@ -218,6 +224,7 @@ multiple_ENMs <- function(occurrence,
         rcp60  <- addLayer(mdls[[j]], mdls[[j+3]])
         names(rcp60) <- names(current)
         rm(mdls_bio, mdls_new, mdls)
+        gc()
 
         # ..............
         mdls_bio <- lapply(mdid, function(x){stack(list.files(biovar_rcp85,
@@ -228,6 +235,7 @@ multiple_ENMs <- function(occurrence,
         rcp85  <- addLayer(mdls[[j]], mdls[[j+3]])
         names(rcp85) <- names(current)
         rm(mdls_bio, mdls_new, mdls)
+        gc()
 
       }
 
@@ -286,6 +294,7 @@ multiple_ENMs <- function(occurrence,
 
       # ...........
       rm(rcp26, rcp45, rcp60, rcp85)
+      gc()
       # CLOSE "i" ----
       # AOGCMs
     }
@@ -293,6 +302,7 @@ multiple_ENMs <- function(occurrence,
        #gower_rcp26,   gower_rcp45,   gower_rcp60,   gower_rcp85,
        maxent_rcp26,  maxent_rcp45,  maxent_rcp60,  maxent_rcp85,
        SVM_rcp26,     SVM_rcp45,     SVM_rcp60,     SVM_rcp85)
+    gc()
     # CLOSE "j"   ----
     # cross-validation
   }

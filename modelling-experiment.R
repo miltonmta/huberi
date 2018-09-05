@@ -1,4 +1,5 @@
 file.edit("readme.R")
+
 # **** Loading functions                            ----
 
 source("./Auxiliary_functions.R")
@@ -259,6 +260,7 @@ for (i in 1:length(sp_name))
   
   
   rm(result)
+  gc()
 }
 beep(8)
 
@@ -293,6 +295,7 @@ for (i in 1:length(sp_names))
   write.table(result[["Pred_area_c"]],  paste0("./data/outputs/XP1/", sp_names[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
   rm(result)
+  gc()
 }
 beep(8)
 
@@ -304,7 +307,7 @@ ALLsp_names
 for (i in 1:length(ALLsp_names[1]))
 {
   result <- ensemble(Pout           = "./data/outputs/XP1/Pout/",
-                     Alld           = paste0("./data/outputs/XP1/", ALLsp_names[i], "_d_current.txt"),
+                     Alld           =  paste0("./data/outputs/XP1/", ALLsp_names[1], "_d_current.txt"),
                      sp             = ALLsp_names[i],
                      AOGCMs         = c(1, 2, 3),
                      biovar_current = "./data/climatic_vars/selected/current/",
@@ -312,15 +315,16 @@ for (i in 1:length(ALLsp_names[1]))
   
   ###.............. Saving predictions
   writeRaster(result[["output_current"]], paste0("./data/outputs/XP1/", ALLsp_names[i], "_current.bil"), format = "EHdr")
-  # writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_rcp26.bil"), format = "EHdr")
-  # writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_rcp45.bil"), format = "EHdr")
-  # writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_rcp60.bil"), format = "EHdr")
-  # writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_rcp85.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_rcp26.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_rcp45.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_rcp60.bil"), format = "EHdr")
+  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_rcp85.bil"), format = "EHdr")
   
   ###.............. Saving Ensembles
   write.table(result[["FULLensemble"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
   
   rm(result)
+  gc()
 }
 
 ## ..... 07.e New Predictor variables       ----
@@ -430,6 +434,9 @@ for (i in 1:length(sp_name))
   write.table(result[["Threshold_c"]], paste0("./data/outputs/XP2/", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
   write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP2/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
+  rm(result)
+  gc()
+  
 }
 beep(8)
 
@@ -450,6 +457,7 @@ for (i in 1:length(sp_name))
   write.table(result[["FULLensemble"]], paste0("./data/outputs/XP2/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
   
   rm(result)
+  gc()
 }
 
 # ***************************************************************************************
@@ -491,6 +499,7 @@ for (i in 1:length(sp_name))
   write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP3/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
   rm(result)
+  gc()
 }
 beep(8)
 
@@ -512,6 +521,7 @@ for (i in 1:length(sp_name))
   write.table(result[["FULLensemble"]], paste0("./data/outputs/XP3/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
   
   rm(result)
+  gc()
 }
 
 # ***************************************************************************************
@@ -553,6 +563,7 @@ for (i in 1:length(sp_name))
   write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP4/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
   rm(result)
+  gc()
 }
 
 
@@ -573,6 +584,7 @@ for (i in 1:length(sp_name))
   write.table(result[["FULLensemble"]], paste0("./data/outputs/XP4/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
   
   rm(result)
+  gc()
 }
 beep(8)
 # ***************************************************************************************
@@ -614,6 +626,7 @@ for (i in 1:length(sp_name))
   write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP5/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
   
   rm(result)
+  gc()
 }
 beep(8)
 
@@ -634,6 +647,7 @@ for (i in 1:length(sp_name))
   write.table(result[["FULLensemble"]], paste0("./data/outputs/XP5/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
   
   rm(result)
+  gc()
 }
 
 # ***************************************************************************************
@@ -693,7 +707,7 @@ period <- c(bioclim_period_h, gower_period_h, maha_period_h, maxent_period_h, SV
 # **** List of improvements to the scritp           ----
 
 # 1. Implement validation by the checkerboards method.
-# 2. Implement occurrence filtering at the ambiental space and compare with spThin (geographical space)
+# 2. Implement occurrence filtering at the ambiental space and compare with the geographical space one (spThin).
 # 3. Transform maps in frequencies instead of suitabilities.
 # 4. Impelement multi cores for running several models simultaneously.
 # 5. Reduce code by implementing subfunctions, lopps.
