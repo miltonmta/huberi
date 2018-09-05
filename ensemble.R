@@ -21,49 +21,49 @@ ensemble <- function(Pout,
                                        )))
 
   #.......
-  bioclim_rcp26     <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp), 
+  bioclim_rcp26     <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp),
                                                   list.files(Pout, pattern = "bioclim_rcp26"))
                                            )))
-  maxent_rcp26      <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp), 
+  maxent_rcp26      <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp),
                                                   list.files(Pout, pattern = "maxent_rcp26"))
                                            )))
-  SVM_rcp26         <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp), 
+  SVM_rcp26         <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp),
                                                   list.files(Pout, pattern = "SVM_rcp26"))
                                            )))
-  
+
   #.......
-  bioclim_rcp45     <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp), 
+  bioclim_rcp45     <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp),
                                                   list.files(Pout, pattern = "bioclim_rcp45"))
                                            )))
-  maxent_rcp45      <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp), 
+  maxent_rcp45      <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp),
                                                   list.files(Pout, pattern = "maxent_rcp45"))
                                            )))
-  SVM_rcp45         <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp), 
+  SVM_rcp45         <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp),
                                                   list.files(Pout, pattern = "SVM_rcp45"))
                                            )))
-  
+
   #.......
-  bioclim_rcp60     <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp), 
+  bioclim_rcp60     <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp),
                                                   list.files(Pout, pattern = "bioclim_rcp60"))
                                            )))
-  maxent_rcp60      <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp), 
+  maxent_rcp60      <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp),
                                                   list.files(Pout, pattern = "maxent_rcp60"))
                                            )))
-  SVM_rcp60         <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp), 
+  SVM_rcp60         <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp),
                                                   list.files(Pout, pattern = "SVM_rcp60"))
                                            )))
-  
+
   #.......
-  bioclim_rcp85     <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp), 
+  bioclim_rcp85     <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp),
                                                   list.files(Pout, pattern = "bioclim_rcp85"))
                                            )))
-  maxent_rcp85      <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp), 
+  maxent_rcp85      <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp),
                                                   list.files(Pout, pattern = "maxent_rcp85"))
                                            )))
-  SVM_rcp85         <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp), 
+  SVM_rcp85         <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp),
                                                   list.files(Pout, pattern = "SVM_rcp85"))
                                            )))
-  
+
   ### Partial outputs                 -----
   ###......................................
   
@@ -135,7 +135,7 @@ ensemble <- function(Pout,
                           SVM     = SVM_Pout_rcp85 )
   rm(bioclim_Pout_rcp85, maxent_Pout_rcp85, SVM_Pout_rcp85)
   gc()
-  
+
   
   
   ### Ensembles                       ----
@@ -169,7 +169,7 @@ ensemble <- function(Pout,
                                          nrow = nrow(output_current), ncol = length(AOGCMs)))
 
     pad_rcp85 <- cbind(pad_rcp85, matrix(data = suit_pad[which(id_time == "rcp85"), 1],
-                                         nrow = nrow(output_current), ncol = length(AOGCMs)))
+    nrow = nrow(output_current), ncol = length(AOGCMs)))
   }
   
   ## ..... Calculating Ensembles
@@ -190,7 +190,7 @@ ensemble <- function(Pout,
   
   rm( pad_c, pad_rcp26, pad_rcp45, pad_rcp60, pad_rcp85)
   gc()
-  
+  # 
   ### Saving Ensembles with coords    ----
   ###.....................................
   if (is.numeric(newvar_current)){
@@ -213,7 +213,7 @@ ensemble <- function(Pout,
                                    Ensemble_rcp45   = ensemble_rcp45,
                                    Ensemble_rcp60   = ensemble_rcp60,
                                    Ensemble_rcp85   = ensemble_rcp85)
-  
+                                   
   
   ### Returning Function data         ----
   ###.....................................

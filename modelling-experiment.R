@@ -304,10 +304,10 @@ beep(8)
 #   .....................................................................................
 source("./ensemble.R")
 ALLsp_names
-for (i in 1:length(ALLsp_names[1]))
+for (i in 1:length(ALLsp_names[i]))
 {
   result <- ensemble(Pout           = "./data/outputs/XP1/Pout/",
-                     Alld           =  paste0("./data/outputs/XP1/", ALLsp_names[1], "_d_current.txt"),
+                     Alld           =  paste0("./data/outputs/XP1/", ALLsp_names[i], "_d_current.txt"),
                      sp             = ALLsp_names[i],
                      AOGCMs         = c(1, 2, 3),
                      biovar_current = "./data/climatic_vars/selected/current/",
@@ -321,12 +321,12 @@ for (i in 1:length(ALLsp_names[1]))
   writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_rcp85.bil"), format = "EHdr")
   
   ###.............. Saving Ensembles
-  write.table(result[["FULLensemble"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
+  write.table(result[["Ensemble"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
   
   rm(result)
   gc()
 }
-
+beep(8)
 ## ..... 07.e New Predictor variables       ----
 #   .....................................................................................
 # Resulting variables are combination of two base maps: suitability and presence/absence.
