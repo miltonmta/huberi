@@ -137,7 +137,6 @@ ensemble <- function(Pout,
   gc()
 
   
-  
   ### Ensembles                       ----
   ###.....................................
   
@@ -171,7 +170,8 @@ ensemble <- function(Pout,
     pad_rcp85 <- cbind(pad_rcp85, matrix(data = suit_pad[which(id_time == "rcp85"), 1],
     nrow = nrow(output_current), ncol = length(AOGCMs)))
   }
-  
+  # rm(output_current, output_rcp26, output_rcp45, output_rcp60, output_rcp85)
+  gc()
   ## ..... Calculating Ensembles
 
   Alld <- read.table(Alld, sep = "\t", h = T)
@@ -183,14 +183,19 @@ ensemble <- function(Pout,
   dStat_fut <- rep(dStat_c, each= length(AOGCMs))
   
   ensemble_c     <- apply(pad_c,     1, function(x) sum(x * dStat_c)   / sum(dStat_c))
+  gc()
   ensemble_rcp26 <- apply(pad_rcp26, 1, function(x) sum(x * dStat_fut) / sum(dStat_fut))
+  gc()
   ensemble_rcp45 <- apply(pad_rcp45, 1, function(x) sum(x * dStat_fut) / sum(dStat_fut))
+  gc()
   ensemble_rcp60 <- apply(pad_rcp60, 1, function(x) sum(x * dStat_fut) / sum(dStat_fut))
+  gc()
   ensemble_rcp85 <- apply(pad_rcp85, 1, function(x) sum(x * dStat_fut) / sum(dStat_fut))
+  gc()
   
   rm( pad_c, pad_rcp26, pad_rcp45, pad_rcp60, pad_rcp85)
   gc()
-  # 
+  
   ### Saving Ensembles with coords    ----
   ###.....................................
   if (is.numeric(newvar_current)){
@@ -200,13 +205,20 @@ ensemble <- function(Pout,
                         stack(list.files(newvar_current,  pattern = ".grd$", full.names = TRUE)))
   }
   coords <- na.omit(cbind(xyFromCell(current, 1:ncell(current)), values(current)))[,1:2]
-  
+  rm(current)
+  gc()
+ 
   output_current <- rasterFromXYZ(cbind(coords, output_current))
+  gc()
   output_rcp26   <- rasterFromXYZ(cbind(coords, output_rcp26))
+  gc()
   output_rcp45   <- rasterFromXYZ(cbind(coords, output_rcp45))
+  gc()
   output_rcp60   <- rasterFromXYZ(cbind(coords, output_rcp60))
+  gc()
   output_rcp85   <- rasterFromXYZ(cbind(coords, output_rcp85))
-  
+  gc()
+
   FULLensemble       <- data.frame(coords,
                                    Ensemble_present = ensemble_c,
                                    Ensemble_rcp26   = ensemble_rcp26,
@@ -215,10 +227,11 @@ ensemble <- function(Pout,
                                    Ensemble_rcp85   = ensemble_rcp85)
                                    
   
-  ### Returning Function data         ----
-  ###.....................................
   
-  return(list("output_current"  = output_current, 
+  # ### Returning Function data         ----
+  # ###.....................................
+  # 
+  return(list("output_current"  = output_current,
               "output_rcp26"    = output_rcp26,
               "output_rcp45"    = output_rcp45,
               "output_rcp60"    = output_rcp60,

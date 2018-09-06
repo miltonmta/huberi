@@ -1,5 +1,5 @@
 file.edit("readme.R")
-
+# tesde de updade às 18:30.
 # **** Loading functions                            ----
 
 source("./Auxiliary_functions.R")
@@ -229,6 +229,7 @@ ALLsp_names <- unique(sp)
 ALLsp_names
 
 rm(sp, occur_thinned)
+
 ## ..... 07.b XP1.1 - bee                   -----
 #   .....................................................................................
 sp_name
@@ -299,34 +300,72 @@ for (i in 1:length(sp_names))
 }
 beep(8)
 
-
-## ..... 07.d Ensembles  and Final Outputs  ----
+## ..... 07.d Ensembles and Final Outputs   ----
 #   .....................................................................................
 source("./ensemble.R")
 ALLsp_names
-for (i in 1:length(ALLsp_names[i]))
+for (i in 1:length(ALLsp_names))
 {
-  result <- ensemble(Pout           = "./data/outputs/XP1/Pout/",
+  result <- ensemble(Pout           =  "./data/outputs/XP1/Pout/",
                      Alld           =  paste0("./data/outputs/XP1/", ALLsp_names[i], "_d_current.txt"),
-                     sp             = ALLsp_names[i],
-                     AOGCMs         = c(1, 2, 3),
-                     biovar_current = "./data/climatic_vars/selected/current/",
-                     newvar_current = 0)
-  
-  ###.............. Saving predictions
-  writeRaster(result[["output_current"]], paste0("./data/outputs/XP1/", ALLsp_names[i], "_current.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_rcp26.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_rcp45.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_rcp60.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_rcp85.bil"), format = "EHdr")
-  
+                     sp             =  ALLsp_names[i],
+                     AOGCMs         =  c(1, 2, 3),
+                     biovar_current =  "./data/climatic_vars/selected/current/",
+                     newvar_current =  0)
+  gc()
+  ##.............. Saving predictions
+  writeRaster(result[["output_current"]], paste0("./data/outputs/XP1/", ALLsp_names[i], "_current.tif"), format = "GTiff")
+  rm(result[["output_current"]])
+  gc()
+  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_rcp26.tif"), format = "GTiff")
+  rm(result[["output_rcp26"]])
+  gc()
+  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_rcp45.tif"), format = "GTiff")
+  rm(result[["output_rcp45"]])
+  gc()
+  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_rcp60.tif"), format = "GTiff")
+  rm(result[["output_rcp60"]])
+  gc()
+  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_rcp85.tif"), format = "GTiff")
+  rm(result[["output_rcp85"]])
+  gc()
+
   ###.............. Saving Ensembles
-  write.table(result[["Ensemble"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
+  write.table(result[["Ensemble"]],   paste0("./data/outputs/XP1/ensembles/", ALLsp_names[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
   
   rm(result)
   gc()
 }
 beep(8)
+
+#   .....................................................................................
+#   Plotting Ensembles
+
+occur <- read.table("./data/occurrences/occur_thinned.txt", sep = ";", h = T)
+for (i in 1:length(ALLsp_names))
+{
+  FULLensemble <- read.table(paste0("./data/outputs/XP1/ensembles/", ALLsp_names[i], "_ENSEMBLES.txt"), sep = "\t", h = T)
+  scn <- names(FULLensemble)[-c(1, 2)]
+  
+  pdf(paste0("./data/outputs/XP1/ensembles/plot_", ALLsp_names[i], ".pdf" ), width = 14, height = 10)
+  par(mfrow = c(3,2),
+      oma   = c(0, 0, 5, 0))
+  p <- NULL
+  for(j in 1:length(scn))
+  {
+    ensemble <- FULLensemble[, c("x", "y", as.character(scn[j]))]
+    ensemble <- rasterFromXYZ(ensemble)
+    p <- plot(ensemble, main = as.character(scn[j]))
+    P <- points(occur[occur[, 1] == "Lithurgus_huberi", ][,-1], pch = "*", col = "blue")
+  }
+  p <- title(  ALLsp_names[i], outer = TRUE)
+  print(p)
+  dev.off()
+  
+}
+
+
+
 ## ..... 07.e New Predictor variables       ----
 #   .....................................................................................
 # Resulting variables are combination of two base maps: suitability and presence/absence.
@@ -355,8 +394,9 @@ SUITsp <- NULL
 for (i in 1:length(sp_plants))
 {
   suit_sp_df <- read.table(paste0("./data/outputs/XP1/", sp_plants[i],"ENSEMBLES.txt"), sep = "\t", row.names = F)
-  suit_sp_var <- suit_sp_df[["ensemble_c"]]
-  suit_sp <- raster(suit_sp_var) #rasterize....
+  suit_sp_var <- Ensemble[, c("x","y","Ensemble_present")]
+  names(suit_sp_var) <- c("x", "y", "z")
+  suit_sp <- raster(FULLensemble)
   SUITsp <- addLayer(SUITsp, suit_sp)
 }
 writeRaster("./data/outputs/XP3/current/SUITsp.grd", format = "raster")
@@ -444,21 +484,27 @@ beep(8)
 sp_name
 for (i in 1:length(sp_name))
 {
-  result <- ensemble(dir = "./data/outputs/XP2/Pout/" )
+  result <- ensemble(Pout           = "./data/outputs/XP2/Pout/",
+                     Alld           =  paste0("./data/outputs/XP2/", sp_name[i], "_d_current.txt"),
+                     sp             = sp_name[i],
+                     AOGCMs         = c(1, 2, 3),
+                     biovar_current = "./data/climatic_vars/selected/current/",
+                     newvar_current = "./data/outputs/predictors/XP2/current/")
   
   ###.............. Saving predictions
-  writeRaster(result[["output_current"]], paste0("./data/outputs/XP2/", sp_name[i],"_current.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP2/", sp_name[i],"_rcp26.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP2/", sp_name[i],"_rcp45.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP2/", sp_name[i],"_rcp60.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP2/", sp_name[i],"_rcp85.bil"), format = "EHdr")
+  writeRaster(result[["output_current"]], paste0("./data/outputs/XP2/", sp_name[i], "_current.tif"), format = "GTiff")
+  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP2/", sp_name[i], "_rcp26.tif"), format = "GTiff")
+  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP2/", sp_name[i], "_rcp45.tif"), format = "GTiff")
+  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP2/", sp_name[i], "_rcp60.tif"), format = "GTiff")
+  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP2/", sp_name[i], "_rcp85.tif"), format = "GTiff")
   
   ###.............. Saving Ensembles
-  write.table(result[["FULLensemble"]], paste0("./data/outputs/XP2/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
+  write.table(result[["Ensemble"]], paste0("./data/outputs/XP2/ensembles/", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
   
   rm(result)
   gc()
 }
+beep(8)
 
 # ***************************************************************************************
 
@@ -508,21 +554,27 @@ beep(8)
 sp_name
 for (i in 1:length(sp_name))
 {
-  result <- ensemble(dir = "./data/outputs/XP3/Pout/" )
+  result <- ensemble(Pout           = "./data/outputs/XP3/Pout/",
+                     Alld           =  paste0("./data/outputs/XP3/", sp_name[i], "_d_current.txt"),
+                     sp             = sp_name[i],
+                     AOGCMs         = c(1, 2, 3),
+                     biovar_current = "./data/climatic_vars/selected/current/",
+                     newvar_current = "./data/outputs/predictors/XP3/current/")
   
   ###.............. Saving predictions
-  writeRaster(result[["output_current"]], paste0("./data/outputs/XP3/", sp_name[i],"_current.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP3/", sp_name[i],"_rcp26.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP3/", sp_name[i],"_rcp45.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP3/", sp_name[i],"_rcp60.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP3/", sp_name[i],"_rcp85.bil"), format = "EHdr")
+  writeRaster(result[["output_current"]], paste0("./data/outputs/XP3/", sp_name[i], "_current.tif"), format = "GTiff")
+  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP3/", sp_name[i], "_rcp26.tif"), format = "GTiff")
+  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP3/", sp_name[i], "_rcp45.tif"), format = "GTiff")
+  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP3/", sp_name[i], "_rcp60.tif"), format = "GTiff")
+  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP3/", sp_name[i], "_rcp85.tif"), format = "GTiff")
   
   ###.............. Saving Ensembles
-  write.table(result[["FULLensemble"]], paste0("./data/outputs/XP3/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
+  write.table(result[["FULLensemble"]], paste0("./data/outputs/XP3/ensembles/", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
   
   rm(result)
   gc()
 }
+beep(8)
 
 # ***************************************************************************************
 
@@ -565,23 +617,27 @@ for (i in 1:length(sp_name))
   rm(result)
   gc()
 }
-
+beep(8)
 
 ###.............. Ensembles and final outputs
 sp_name
 for (i in 1:length(sp_name))
 {
-  result <- ensemble(dir = "./data/outputs/XP4/Pout/" )
-  
+  result <- ensemble(Pout           = "./data/outputs/XP4/Pout/",
+                     Alld           =  paste0("./data/outputs/XP4/", sp_name[i], "_d_current.txt"),
+                     sp             = sp_name[i],
+                     AOGCMs         = c(1, 2, 3),
+                     biovar_current = "./data/climatic_vars/selected/current/",
+                     newvar_current = "./data/outputs/predictors/XP4/current/")
   ###.............. Saving predictions
-  writeRaster(result[["output_current"]], paste0("./data/outputs/XP4/", sp_name[i],"_current.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP4/", sp_name[i],"_rcp26.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP4/", sp_name[i],"_rcp45.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP4/", sp_name[i],"_rcp60.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP4/", sp_name[i],"_rcp85.bil"), format = "EHdr")
+  writeRaster(result[["output_current"]], paste0("./data/outputs/XP4/", sp_name[i], "_current.tif"), format = "GTiff")
+  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP4/", sp_name[i], "_rcp26.tif"), format = "GTiff")
+  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP4/", sp_name[i], "_rcp45.tif"), format = "GTiff")
+  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP4/", sp_name[i], "_rcp60.tif"), format = "GTiff")
+  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP4/", sp_name[i], "_rcp85.tif"), format = "GTiff")
   
   ###.............. Saving Ensembles
-  write.table(result[["FULLensemble"]], paste0("./data/outputs/XP4/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
+  write.table(result[["Ensemble"]], paste0("./data/outputs/XP4/", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
   
   rm(result)
   gc()
@@ -634,21 +690,27 @@ beep(8)
 sp_name
 for (i in 1:length(sp_name))
 {
-  result <- ensemble(dir = "./data/outputs/XP5/Pout/" )
+  result <- ensemble(Pout           = "./data/outputs/XP5/Pout/",
+                     Alld           =  paste0("./data/outputs/XP5/", sp_name[i], "_d_current.txt"),
+                     sp             = sp_name[i],
+                     AOGCMs         = c(1, 2, 3),
+                     biovar_current = "./data/climatic_vars/selected/current/",
+                     newvar_current = "./data/outputs/predictors/XP5/current/")
   
   ###.............. Saving predictions
-  writeRaster(result[["output_current"]], paste0("./data/outputs/XP5/", sp_name[i],"_current.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp26.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp45.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp60.bil"), format = "EHdr")
-  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp85.bil"), format = "EHdr")
+  writeRaster(result[["output_current"]], paste0("./data/outputs/XP5/", sp_name[i],"_current.tif"), format = "GTiff")
+  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp26.tif"), format = "GTiff")
+  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp45.tif"), format = "GTiff")
+  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp60.tif"), format = "GTiff")
+  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp85.tif"), format = "GTiff")
   
   ###.............. Saving Ensembles
-  write.table(result[["FULLensemble"]], paste0("./data/outputs/XP5/", sp_name[i], "ENSEMBLES.txt"), sep = "\t", row.names = F)
+  write.table(result[["Ensemble"]], paste0("./data/outputs/XP5/ensembles/", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
   
   rm(result)
   gc()
 }
+beep(8)
 
 # ***************************************************************************************
 ## 12. Selecting XP from XP2:XP5                    ----
