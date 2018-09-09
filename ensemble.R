@@ -168,9 +168,9 @@ ensemble <- function(Pout,
                                          nrow = nrow(output_current), ncol = length(AOGCMs)))
 
     pad_rcp85 <- cbind(pad_rcp85, matrix(data = suit_pad[which(id_time == "rcp85"), 1],
-    nrow = nrow(output_current), ncol = length(AOGCMs)))
+                                         nrow = nrow(output_current), ncol = length(AOGCMs)))
   }
-  # rm(output_current, output_rcp26, output_rcp45, output_rcp60, output_rcp85)
+  rm(output_current, output_rcp26, output_rcp45, output_rcp60, output_rcp85)
   gc()
   ## ..... Calculating Ensembles
 
@@ -180,7 +180,7 @@ ensemble <- function(Pout,
   SVM_d     <- Alld[, "SVM"]
   
   dStat_c <- c(bioclim_d, maxent_d, SVM_d)
-  dStat_fut <- rep(dStat_c, each= length(AOGCMs))
+  dStat_fut <- rep(dStat_c, each = length(AOGCMs))
   
   ensemble_c     <- apply(pad_c,     1, function(x) sum(x * dStat_c)   / sum(dStat_c))
   gc()
@@ -193,38 +193,59 @@ ensemble <- function(Pout,
   ensemble_rcp85 <- apply(pad_rcp85, 1, function(x) sum(x * dStat_fut) / sum(dStat_fut))
   gc()
   
+  ensemble_rcp26_ls <- ensemble_rcp45_ls <- ensemble_rcp60_ls <- ensemble_rcp85_ls <- NULL
+  for (i in AOGCMs)
+  {
+    ensemble_rcp26_ls <- apply(pad_rcp26[[i]], 1, function(x) sum(x * dStat_c) / sum(dStat_c))
+    gc()
+    ensemble_rcp45_ls <- apply(pad_rcp45[[i]], 1, function(x) sum(x * dStat_c) / sum(dStat_c))
+    gc()
+    ensemble_rcp60_ls <- apply(pad_rcp60[[i]], 1, function(x) sum(x * dStat_c) / sum(dStat_c))
+    gc()
+    ensemble_rcp85_ls <- apply(pad_rcp85[[i]], 1, function(x) sum(x * dStat_c) / sum(dStat_c))
+    gc()
+  }
   rm( pad_c, pad_rcp26, pad_rcp45, pad_rcp60, pad_rcp85)
   gc()
   
   ### Saving Ensembles with coords    ----
   ###.....................................
-  if (is.numeric(newvar_current)){
-    current <- stack(list.files(biovar_current,  pattern = ".grd$", full.names = TRUE))
-  }else{
-    current <- addLayer(stack(list.files(biovar_current,  pattern = ".grd$", full.names = TRUE)), 
-                        stack(list.files(newvar_current,  pattern = ".grd$", full.names = TRUE)))
-  }
+  
+  current <- stack(list.files(biovar_current,  pattern = ".grd$", full.names = TRUE))
+  
   coords <- na.omit(cbind(xyFromCell(current, 1:ncell(current)), values(current)))[,1:2]
   rm(current)
   gc()
  
-  output_current <- rasterFromXYZ(cbind(coords, output_current))
-  gc()
-  output_rcp26   <- rasterFromXYZ(cbind(coords, output_rcp26))
-  gc()
-  output_rcp45   <- rasterFromXYZ(cbind(coords, output_rcp45))
-  gc()
-  output_rcp60   <- rasterFromXYZ(cbind(coords, output_rcp60))
-  gc()
-  output_rcp85   <- rasterFromXYZ(cbind(coords, output_rcp85))
-  gc()
+  # output_current <- rasterFromXYZ(cbind(coords, output_current))
+  # gc()
+  # output_rcp26   <- rasterFromXYZ(cbind(coords, output_rcp26))
+  # gc()
+  # output_rcp45   <- rasterFromXYZ(cbind(coords, output_rcp45))
+  # gc()
+  # output_rcp60   <- rasterFromXYZ(cbind(coords, output_rcp60))
+  # gc()
+  # output_rcp85   <- rasterFromXYZ(cbind(coords, output_rcp85))
+  # gc()
 
   FULLensemble       <- data.frame(coords,
                                    Ensemble_present = ensemble_c,
                                    Ensemble_rcp26   = ensemble_rcp26,
                                    Ensemble_rcp45   = ensemble_rcp45,
                                    Ensemble_rcp60   = ensemble_rcp60,
-                                   Ensemble_rcp85   = ensemble_rcp85)
+                                   Ensemble_rcp85   = ensemble_rcp85,
+                                   Ensemble_rcp26.1 = ensemble_rcp26_ls[[1]],
+                                   Ensemble_rcp26.2 = ensemble_rcp26_ls[[2]],
+                                   Ensemble_rcp26.3 = ensemble_rcp26_ls[[3]],
+                                   Ensemble_rcp45.1 = ensemble_rcp45_ls[[1]],
+                                   Ensemble_rcp45.2 = ensemble_rcp45_ls[[2]],
+                                   Ensemble_rcp45.3 = ensemble_rcp45_ls[[3]],
+                                   Ensemble_rcp60.1 = ensemble_rcp60_ls[[1]],
+                                   Ensemble_rcp60.2 = ensemble_rcp60_ls[[2]],
+                                   Ensemble_rcp60.3 = ensemble_rcp60_ls[[3]],
+                                   Ensemble_rcp85.1 = ensemble_rcp85_ls[[1]],
+                                   Ensemble_rcp85.2 = ensemble_rcp85_ls[[2]],
+                                   Ensemble_rcp85.3 = ensemble_rcp85_ls[[3]])
                                    
   
   

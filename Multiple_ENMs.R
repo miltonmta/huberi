@@ -17,14 +17,15 @@ multiple_ENMs <- function(occurrence,
                           cross_validation)
 {
   ### Loading data                    ----
-
+  
+  e <- extent(-109.4583, -29.29167, -56, 14)
   ###.............. Reading the selected climatic variables
   
   if (is.numeric(newvar_current)){
-    current <- stack(list.files(biovar_current,  pattern = ".grd$", full.names = TRUE))
+    current <- crop(stack(list.files(biovar_current,  pattern = ".grd$", full.names = TRUE)), e)
   }else{
-    current <- addLayer(stack(list.files(biovar_current,  pattern = ".grd$", full.names = TRUE)), 
-                        stack(list.files(newvar_current,  pattern = ".grd$", full.names = TRUE)))
+    current <- addLayer(crop(stack(list.files(biovar_current,  pattern = ".grd$", full.names = TRUE)), e), 
+                             stack(list.files(newvar_current,  pattern = "_c",    full.names = TRUE)))
   }
   
   ###.............. Reading ocurrence and background
@@ -155,6 +156,7 @@ multiple_ENMs <- function(occurrence,
     
     mdid <- paste0('.',1:3,'.grd$')
     #### OPEN "j" ----
+    
     for (j in AOGCMs)
     {
 
@@ -163,7 +165,7 @@ multiple_ENMs <- function(occurrence,
         # ..............
         mdls <- lapply(mdid, function(x){stack(list.files(biovar_rcp26,
                                                           pattern = x, full.names = TRUE))})
-        rcp26  <- mdls[[j]]
+        rcp26  <- crop(mdls[[j]], e)
         names(rcp26) <- names(current)
         rm(mdls)
         gc()
@@ -171,7 +173,7 @@ multiple_ENMs <- function(occurrence,
         # ..............
         mdls <- lapply(mdid, function(x){stack(list.files(biovar_rcp45,
                                                           pattern = x, full.names = TRUE))})
-        rcp45  <- mdls[[j]]
+        rcp45  <- crop(mdls[[j]], e)
         names(rcp45) <- names(current)
         rm(mdls)
         gc()
@@ -179,7 +181,7 @@ multiple_ENMs <- function(occurrence,
         # ..............
         mdls  <- lapply(mdid, function(x){stack(list.files(biovar_rcp60,
                                                            pattern = x, full.names = TRUE))})
-        rcp60  <- mdls[[j]]
+        rcp60  <- crop(mdls[[j]], e)
         names(rcp60) <- names(current)
         rm(mdls)
         gc()
@@ -187,7 +189,7 @@ multiple_ENMs <- function(occurrence,
         # ..............
         mdls    <- lapply(mdid, function(x){stack(list.files(biovar_rcp85,
                                                            pattern = x, full.names = TRUE))})
-        rcp85  <- mdls[[j]]
+        rcp85  <- crop(mdls[[j]], e)
         names(rcp85) <- names(current)
         rm(mdls)
         gc()
@@ -196,48 +198,42 @@ multiple_ENMs <- function(occurrence,
         # ..............
         mdls_bio <- lapply(mdid, function(x){stack(list.files(biovar_rcp26,
                                                               pattern = x, full.names = TRUE))})
-        mdls_new <- lapply(mdid, function(x){stack(list.files(newvar_rcp26,
-                                                              pattern = x, full.names = TRUE))})
-        mdls     <- c(mdls_bio, mdls_new)
-        rcp26  <- addLayer(mdls[[j]], mdls[[j+3]])
+        mdls_new <- lapply(mdid, function(x){stack(intersect(list.files(newvar_rcp26, pattern = x, full.names = TRUE),
+                                                             list.files(newvar_rcp26, pattern = "_26")))})
+        rcp26    <- addLayer(crop(mdls_bio[[j]], e), mdls_new[[j]])
         names(rcp26) <- names(current)
-        rm(mdls_bio, mdls_new, mdls)
+        rm(mdls_bio, mdls_new)
         gc()
 
         # ..............
         mdls_bio <- lapply(mdid, function(x){stack(list.files(biovar_rcp45,
                                                               pattern = x, full.names = TRUE))})
-        mdls_new <- lapply(mdid, function(x){stack(list.files(newvar_rcp45,
-                                                              pattern = x, full.names = TRUE))})
-        mdls     <- c(mdls_bio, mdls_new)
-        rcp45  <- addLayer(mdls[[j]], mdls[[j+3]])
+        mdls_new <- lapply(mdid, function(x){stack(intersect(list.files(newvar_rcp45, pattern = x, full.names = TRUE),
+                                                             list.files(newvar_rcp45, pattern = "_45")))})
+        rcp45    <- addLayer(crop(mdls_bio[[j]], e), mdls_new[[j]])
         names(rcp45) <- names(current)
-        rm(mdls_bio, mdls_new, mdls)
+        rm(mdls_bio, mdls_new)
         gc()
 
         # ..............
         mdls_bio <- lapply(mdid, function(x){stack(list.files(biovar_rcp60,
                                                               pattern = x, full.names = TRUE))})
-        mdls_new <- lapply(mdid, function(x){stack(list.files(newvar_rcp60,
-                                                              pattern = x, full.names = TRUE))})
-        mdls     <- c(mdls_bio, mdls_new)
-        rcp60  <- addLayer(mdls[[j]], mdls[[j+3]])
+        mdls_new <- lapply(mdid, function(x){stack(intersect(list.files(newvar_rcp60, pattern = x, full.names = TRUE),
+                                                             list.files(newvar_rcp60, pattern = "_60")))})
+        rcp60  <- addLayer(crop(mdls_bio[[j]], e), mdls_new[[j]])
         names(rcp60) <- names(current)
-        rm(mdls_bio, mdls_new, mdls)
+        rm(mdls_bio, mdls_new)
         gc()
 
         # ..............
         mdls_bio <- lapply(mdid, function(x){stack(list.files(biovar_rcp85,
                                                               pattern = x, full.names = TRUE))})
-        mdls_new <- lapply(mdid, function(x){stack(list.files(newvar_rcp85,
-                                                              pattern = x, full.names = TRUE))})
-        mdls     <- c(mdls_bio, mdls_new)
-        rcp85  <- addLayer(mdls[[j]], mdls[[j+3]])
+        mdls_new <- lapply(mdid, function(x){stack(intersect(list.files(newvar_rcp85, pattern = x, full.names = TRUE),
+                                                             list.files(newvar_rcp85, pattern = "_85")))})
+        rcp85  <- addLayer(crop(mdls_bio[[j]], e), mdls_new[[j]])
         names(rcp85) <- names(current)
-        rm(mdls_bio, mdls_new, mdls)
-        gc()
-
-      }
+        rm(mdls_bio, mdls_new)
+        gc()}
 
       ### Predicting
       #..........
