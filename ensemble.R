@@ -172,7 +172,14 @@ ensemble <- function(Pout,
   }
   rm(output_current, output_rcp26, output_rcp45, output_rcp60, output_rcp85)
   gc()
+  
+  pad_rcp26_ls <- list(pad_rcp26[, 1:30], pad_rcp26[, 31:60], pad_rcp26[, 61:90])
+  pad_rcp45_ls <- list(pad_rcp45[, 1:30], pad_rcp45[, 31:60], pad_rcp45[, 61:90])
+  pad_rcp60_ls <- list(pad_rcp60[, 1:30], pad_rcp60[, 31:60], pad_rcp60[, 61:90])
+  pad_rcp85_ls <- list(pad_rcp85[, 1:30], pad_rcp85[, 31:60], pad_rcp85[, 61:90])
+  
   ## ..... Calculating Ensembles
+  
 
   Alld <- read.table(Alld, sep = "\t", h = T)
   bioclim_d <- Alld[, "bioclim"]
@@ -183,29 +190,34 @@ ensemble <- function(Pout,
   dStat_fut <- rep(dStat_c, each = length(AOGCMs))
   
   ensemble_c     <- apply(pad_c,     1, function(x) sum(x * dStat_c)   / sum(dStat_c))
+  rm(pad_c)
   gc()
   ensemble_rcp26 <- apply(pad_rcp26, 1, function(x) sum(x * dStat_fut) / sum(dStat_fut))
+  rm(pad_rcp26)
   gc()
   ensemble_rcp45 <- apply(pad_rcp45, 1, function(x) sum(x * dStat_fut) / sum(dStat_fut))
+  rm(pad_rcp45)
   gc()
   ensemble_rcp60 <- apply(pad_rcp60, 1, function(x) sum(x * dStat_fut) / sum(dStat_fut))
+  rm(pad_rcp60)
   gc()
   ensemble_rcp85 <- apply(pad_rcp85, 1, function(x) sum(x * dStat_fut) / sum(dStat_fut))
+  rm(pad_rcp85)
   gc()
   
-  ensemble_rcp26_ls <- ensemble_rcp45_ls <- ensemble_rcp60_ls <- ensemble_rcp85_ls <- NULL
+  ensemble_rcp26_ls <- ensemble_rcp45_ls <- ensemble_rcp60_ls <- ensemble_rcp85_ls <- list()
   for (i in AOGCMs)
   {
-    ensemble_rcp26_ls <- apply(pad_rcp26[[i]], 1, function(x) sum(x * dStat_c) / sum(dStat_c))
+    ensemble_rcp26_ls[[i]] <- apply(pad_rcp26_ls[[i]], 1, function(x) sum(x * dStat_c) / sum(dStat_c))
     gc()
-    ensemble_rcp45_ls <- apply(pad_rcp45[[i]], 1, function(x) sum(x * dStat_c) / sum(dStat_c))
+    ensemble_rcp45_ls[[i]] <- apply(pad_rcp45_ls[[i]], 1, function(x) sum(x * dStat_c) / sum(dStat_c))
     gc()
-    ensemble_rcp60_ls <- apply(pad_rcp60[[i]], 1, function(x) sum(x * dStat_c) / sum(dStat_c))
+    ensemble_rcp60_ls[[i]] <- apply(pad_rcp60_ls[[i]], 1, function(x) sum(x * dStat_c) / sum(dStat_c))
     gc()
-    ensemble_rcp85_ls <- apply(pad_rcp85[[i]], 1, function(x) sum(x * dStat_c) / sum(dStat_c))
+    ensemble_rcp85_ls[[i]] <- apply(pad_rcp85_ls[[i]], 1, function(x) sum(x * dStat_c) / sum(dStat_c))
     gc()
   }
-  rm( pad_c, pad_rcp26, pad_rcp45, pad_rcp60, pad_rcp85)
+  rm(pad_rcp26_ls, pad_rcp45_ls, pad_rcp60_ls, pad_rcp85_ls)
   gc()
   
   ### Saving Ensembles with coords    ----
@@ -247,16 +259,14 @@ ensemble <- function(Pout,
                                    Ensemble_rcp85.2 = ensemble_rcp85_ls[[2]],
                                    Ensemble_rcp85.3 = ensemble_rcp85_ls[[3]])
                                    
-  
-  
   # ### Returning Function data         ----
   # ###.....................................
   # 
-  return(list("output_current"  = output_current,
-              "output_rcp26"    = output_rcp26,
-              "output_rcp45"    = output_rcp45,
-              "output_rcp60"    = output_rcp60,
-              "output_rcp85"    = output_rcp85,
+  return(list(#"output_current"  = output_current,
+              # "output_rcp26"    = output_rcp26,
+              # "output_rcp45"    = output_rcp45,
+              # "output_rcp60"    = output_rcp60,
+              # "output_rcp85"    = output_rcp85,
               "Ensemble"        = FULLensemble))
 }
   
