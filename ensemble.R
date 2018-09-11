@@ -22,13 +22,13 @@ ensemble <- function(Pout,
 
   #.......
   bioclim_rcp26     <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp),
-                                                  list.files(Pout, pattern = "bioclim_rcp26"))
+                                                      list.files(Pout, pattern = "bioclim_rcp26"))
                                            )))
   maxent_rcp26      <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp),
-                                                  list.files(Pout, pattern = "maxent_rcp26"))
+                                                      list.files(Pout, pattern = "maxent_rcp26"))
                                            )))
   SVM_rcp26         <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp),
-                                                  list.files(Pout, pattern = "SVM_rcp26"))
+                                                      list.files(Pout, pattern = "SVM_rcp26"))
                                            )))
 
   #.......
