@@ -339,28 +339,10 @@ beep(8)
 
 #   .....................................................................................
 #   Plotting Ensembles
-occur <- read.table("./data/occurrences/occur_thinned.txt", sep = ";", h = T)
-for (i in 1:length(ALLsp_names))
-{
-  FULLensemble <- read.table(paste0("./data/outputs/XP1/ensembles/", ALLsp_names[i], "_ENSEMBLES.txt"), sep = "\t", h = T)
-  scn <- names(FULLensemble)[-c(1, 2)]
-  
-  pdf(paste0("./data/outputs/XP1/ensembles/plot_", ALLsp_names[i], ".pdf" ), width = 14, height = 10)
-  par(mfrow = c(3,2),
-      oma   = c(0, 0, 5, 0))
-  p <- NULL
-  for(j in 1:length(scn))
-  {
-    ensemble <- FULLensemble[, c("x", "y", as.character(scn[j]))]
-    ensemble <- rasterFromXYZ(ensemble)
-    p <- plot(ensemble, main = as.character(scn[j]))
-    P <- points(occur[occur[, 1] == "Lithurgus_huberi", ][,-1], pch = "*", col = "blue")
-  }
-  p <- title(  ALLsp_names[i], outer = TRUE)
-  print(p)
-  dev.off()
-  
-}
+PlotEnsemble(occur     = "./data/occurrences/occur_thinned.txt",
+             ensb_data = "./data/outputs/XP1/ensembles/",
+             sp        = ALLsp_names,
+             output    = "./data/outputs/XP1/ensembles/plot_")
 
 ## ..... 07.e New Predictor variables       ----
 #   .....................................................................................
@@ -371,31 +353,46 @@ current <- na.omit(current)
 coords <- na.omit(cbind(xyFromCell(current, 1:ncell(current)), values(current)))[,1:2]
 
 sp_names
-e <- extent(-109.4583, -29.29167, -56, 14) 
 AOGCMs  <-  c(1, 2, 3)
 SPid <- paste0("SP", 1:7)
 SPid_stk <- "stk"
 
 ## .......... XP2 - sep_pa             ----
 ## .......... generating vars .............
-PApres <- NULL
+PApres    <- NULL
+PArcp26.1 <- PArcp26.2 <- PArcp26.3 <- NULL
+PArcp45.1 <- PArcp45.2 <- PArcp45.3 <- NULL
+PArcp60.1 <- PArcp60.2 <- PArcp60.3 <- NULL
+PArcp85.1 <- PArcp85.2 <- PArcp85.3 <- NULL
 for (i in 1:length(sp_names))
 {
-  PA_df <- read.table(paste0("./data/outputs/XP1/ensembles/", sp_names[i],"_ENSEMBLES.txt"), sep = "\t", h = T)
-  thr <- read.table(paste0("./data/outputs/XP1/", sp_names[i], "_t_current.txt"), sep = "\t", h = T)
-  thr.mean <- mean(rowMeans(thr)  / ncol(thr)) # for sp 1 thr.mean =  0.07450934
+  PA_df <- read.table(paste0("./data/outputs/XP1/ensembles/", sp_names[7],"_ENSEMBLES.txt"), sep = "\t", h = T)
+  thr   <- quantile( PA_df[,  3], 0.05)
   
-  PApres  <- cbind( PApres,  ifelse((PA_df[, 3]) > thr.mean, 1, 0))
+  PApres    <- cbind( PApres,    ifelse((PA_df[,  3]) > thr, 1, 0))
   
-  PArcp26 <- PArcp45 <- PArcp60 <- PArcp85 <- list()
-  for(j in 1:length(AOGCMs))
-  {
-    PArcp26[[i]] <- cbind( PArcp26, ifelse((PA_df[, j +  7]) > thr.mean, 1, 0))
-    PArcp45[[i]] <- cbind( PArcp45, ifelse((PA_df[, j + 10]) > thr.mean, 1, 0))
-    PArcp60[[i]] <- cbind( PArcp60, ifelse((PA_df[, j + 13]) > thr.mean, 1, 0))
-    PArcp85[[i]] <- cbind( PArcp85, ifelse((PA_df[, j + 16]) > thr.mean, 1, 0))
-  }
+  PArcp26.1 <- cbind( PArcp26.1, ifelse((PA_df[,  8]) > thr, 1, 0))
+  PArcp26.2 <- cbind( PArcp26.2, ifelse((PA_df[,  9]) > thr, 1, 0))
+  PArcp26.3 <- cbind( PArcp26.3, ifelse((PA_df[, 10]) > thr, 1, 0))
+  
+  PArcp45.1 <- cbind( PArcp45.1, ifelse((PA_df[, 11]) > thr, 1, 0))
+  PArcp45.2 <- cbind( PArcp45.2, ifelse((PA_df[, 12]) > thr, 1, 0))
+  PArcp45.3 <- cbind( PArcp45.3, ifelse((PA_df[, 13]) > thr, 1, 0))
+  
+  PArcp60.1 <- cbind( PArcp60.1, ifelse((PA_df[, 14]) > thr, 1, 0))
+  PArcp60.2 <- cbind( PArcp60.2, ifelse((PA_df[, 15]) > thr, 1, 0))
+  PArcp60.3 <- cbind( PArcp60.3, ifelse((PA_df[, 16]) > thr, 1, 0))
+  
+  PArcp85.1 <- cbind( PArcp85.1, ifelse((PA_df[, 17]) > thr, 1, 0))
+  PArcp85.2 <- cbind( PArcp85.2, ifelse((PA_df[, 18]) > thr, 1, 0))
+  PArcp85.3 <- cbind( PArcp85.3, ifelse((PA_df[, 19]) > thr, 1, 0))
 }
+
+PArcp26 <- list(PArcp26.1, PArcp26.2, PArcp26.3)
+PArcp45 <- list(PArcp45.1, PArcp45.2, PArcp45.3)
+PArcp60 <- list(PArcp60.1, PArcp60.2, PArcp60.3)
+PArcp85 <- list(PArcp85.1, PArcp85.2, PArcp85.3)
+
 
 ## ............ saving vars ...............
 PA_c  <- rasterFromXYZ(cbind(coords, PApres))
@@ -411,28 +408,47 @@ for (i in AOGCMs)
   
   names(PA_26) <- names(PA_45) <- names(PA_60) <- names(PA_85) <- SPid
   
-  writeRaster(PA_26, paste0("./data/outputs/predictors/XP2/sep_PA_26_", i,".tif"), format = "GTiff", overwrite = TRUE)
-  writeRaster(PA_45, paste0("./data/outputs/predictors/XP2/sep_PA_45_", i,".tif"), format = "GTiff", overwrite = TRUE)
-  writeRaster(PA_60, paste0("./data/outputs/predictors/XP2/sep_PA_60_", i,".tif"), format = "GTiff", overwrite = TRUE) 
-  writeRaster(PA_85, paste0("./data/outputs/predictors/XP2/sep_PA_85_", i,".tif"), format = "GTiff", overwrite = TRUE)
+  writeRaster(PA_26, paste0("./data/outputs/predictors/XP2/rcp26/sep_PA_26_", i,".tif"), format = "GTiff", overwrite = TRUE)
+  writeRaster(PA_45, paste0("./data/outputs/predictors/XP2/rcp45/sep_PA_45_", i,".tif"), format = "GTiff", overwrite = TRUE)
+  writeRaster(PA_60, paste0("./data/outputs/predictors/XP2/rcp60/sep_PA_60_", i,".tif"), format = "GTiff", overwrite = TRUE) 
+  writeRaster(PA_85, paste0("./data/outputs/predictors/XP2/rcp85/sep_PA_85_", i,".tif"), format = "GTiff", overwrite = TRUE)
 }
 
 ## .......... XP3 - sep_suit           ----
 ## .......... generating vars .............
-SUITpres <- NULL
+SUITpres    <- NULL
+SUITrcp26.1 <- SUITrcp26.2 <- SUITrcp26.3 <- NULL
+SUITrcp45.1 <- SUITrcp45.2 <- SUITrcp45.3 <- NULL
+SUITrcp60.1 <- SUITrcp60.2 <- SUITrcp60.3 <- NULL
+SUITrcp85.1 <- SUITrcp85.2 <- SUITrcp85.3 <- NULL
+
 for (i in 1:length(sp_names))
 {
   suit_df <- read.table(paste0("./data/outputs/XP1/ensembles/", sp_names[i],"_ENSEMBLES.txt"), sep = "\t", h = T)
   SUITpres  <- cbind( SUITpres,  suit_df[, 3]) 
-  SUITrcp26 <- SUITrcp45 <- SUITrcp60 <- SUITrcp85 <- list()
-  for(j in 1:length(AOGCMs)) 
-  {
-    SUITrcp26[[i]] <- cbind( SUITrcp26, suit_df[, j +  7]) 
-    SUITrcp45[[i]] <- cbind( SUITrcp45, suit_df[, j + 10])
-    SUITrcp60[[i]] <- cbind( SUITrcp60, suit_df[, j + 13]) 
-    SUITrcp85[[i]] <- cbind( SUITrcp85, suit_df[, j + 16])
-  }
+  
+  SUITrcp26.1 <- cbind( SUITrcp26.1, suit_df[,  8]) 
+  SUITrcp26.2 <- cbind( SUITrcp26.2, suit_df[,  9])
+  SUITrcp26.3 <- cbind( SUITrcp26.3, suit_df[, 10]) 
+  
+  SUITrcp45.1 <- cbind( SUITrcp45.1, suit_df[, 11])
+  SUITrcp45.2 <- cbind( SUITrcp45.2, suit_df[, 12])
+  SUITrcp45.3 <- cbind( SUITrcp45.3, suit_df[, 13])
+  
+  SUITrcp60.1 <- cbind( SUITrcp60.1, suit_df[, 14])    
+  SUITrcp60.2 <- cbind( SUITrcp60.2, suit_df[, 15]) 
+  SUITrcp60.3 <- cbind( SUITrcp60.3, suit_df[, 16]) 
+  
+  SUITrcp85.1 <- cbind( SUITrcp85.1, suit_df[, 17])
+  SUITrcp85.2 <- cbind( SUITrcp85.2, suit_df[, 18])
+  SUITrcp85.3 <- cbind( SUITrcp85.3, suit_df[, 19])
 }
+
+SUITrcp26 <- list(SUITrcp26.1, SUITrcp26.2, SUITrcp26.3)
+SUITrcp45 <- list(SUITrcp45.1, SUITrcp45.2, SUITrcp45.3)
+SUITrcp60 <- list(SUITrcp60.1, SUITrcp60.2, SUITrcp60.3)
+SUITrcp85 <- list(SUITrcp85.1, SUITrcp85.2, SUITrcp85.3)
+
 
 ## ............ saving vars ...............
 SUIT_c  <- rasterFromXYZ(cbind(coords, SUITpres))
@@ -448,10 +464,10 @@ for (i in AOGCMs)
   
   names(SUIT_26) <- names(SUIT_45) <- names(SUIT_60) <- names(SUIT_85) <- SPid
   
-  writeRaster(SUIT_26, SUITste0("./data/outputs/predictors/XP3/sep_suit_26_", i,".tif"), format = "GTiff", overwrite = TRUE)
-  writeRaster(SUIT_45, SUITste0("./data/outputs/predictors/XP3/sep_suit_45_", i,".tif"), format = "GTiff", overwrite = TRUE)
-  writeRaster(SUIT_60, SUITste0("./data/outputs/predictors/XP3/sep_suit_60_", i,".tif"), format = "GTiff", overwrite = TRUE)
-  writeRaster(SUIT_85, SUITste0("./data/outputs/predictors/XP3/sep_suit_85_", i,".tif"), format = "GTiff", overwrite = TRUE)
+  writeRaster(SUIT_26, paste0("./data/outputs/predictors/XP3/rcp26/sep_suit_26_", i,".tif"), format = "GTiff", overwrite = TRUE)
+  writeRaster(SUIT_45, paste0("./data/outputs/predictors/XP3/rcp45/sep_suit_45_", i,".tif"), format = "GTiff", overwrite = TRUE)
+  writeRaster(SUIT_60, paste0("./data/outputs/predictors/XP3/rcp60/sep_suit_60_", i,".tif"), format = "GTiff", overwrite = TRUE)
+  writeRaster(SUIT_85, paste0("./data/outputs/predictors/XP3/rcp85/sep_suit_85_", i,".tif"), format = "GTiff", overwrite = TRUE)
 }
 
 ## .......... XP4 - stk_pa             ----
@@ -459,7 +475,7 @@ for (i in AOGCMs)
 pres_STK  <- rowSums(PApres)
 PA_c_STK  <- rasterFromXYZ(cbind(coords, pres_STK))
 names(PA_c_STK) <- SPid_stk
-writeRaster(PA_c_STK,  "./data/outputs/predictors/XP4/stk_PA_c.tif",  format = "GTiff")
+writeRaster(PA_c_STK,  "./data/outputs/predictors/XP4/stk_PA_c.tif",  format = "GTiff", overwrite = TRUE)
 
 for (i in AOGCMs)
 {
@@ -475,10 +491,10 @@ for (i in AOGCMs)
   
   names(PA_26_STK) <- names(PA_45_STK) <- names(PA_60_STK) <- names(PA_85_STK) <- SPid_stk
   
-  writeRaster(PA_26_STK, paste0("./data/outputs/predictors/XP4/stk_PA_26_", i,".tif"), format = "GTiff")
-  writeRaster(PA_45_STK, paste0("./data/outputs/predictors/XP4/stk_PA_45_", i,".tif"), format = "GTiff")
-  writeRaster(PA_60_STK, paste0("./data/outputs/predictors/XP4/stk_PA_60_", i,".tif"), format = "GTiff") 
-  writeRaster(PA_85_STK, paste0("./data/outputs/predictors/XP4/stk_PA_85_", i,".tif"), format = "GTiff")
+  writeRaster(PA_26_STK, paste0("./data/outputs/predictors/XP4/rcp26/stk_PA_26_", i,".tif"), format = "GTiff", overwrite = TRUE)
+  writeRaster(PA_45_STK, paste0("./data/outputs/predictors/XP4/rcp45/stk_PA_45_", i,".tif"), format = "GTiff", overwrite = TRUE)
+  writeRaster(PA_60_STK, paste0("./data/outputs/predictors/XP4/rcp60/stk_PA_60_", i,".tif"), format = "GTiff", overwrite = TRUE) 
+  writeRaster(PA_85_STK, paste0("./data/outputs/predictors/XP4/rcp85/stk_PA_85_", i,".tif"), format = "GTiff", overwrite = TRUE)
 }
 
 ## .......... XP5 - stk_suit           ----
@@ -503,10 +519,10 @@ for (i in AOGCMs)
   
   names(SUIT_26_STK) <- names(SUIT_45_STK) <- names(SUIT_60_STK) <- names(SUIT_85_STK) <- SPid_stk
   
-  writeRaster(SUIT_26_STK, SUITste0("./data/outputs/predictors/XP5/stk_SUIT_26_", i,".tif"), format = "GTiff")
-  writeRaster(SUIT_45_STK, SUITste0("./data/outputs/predictors/XP5/stk_SUIT_45_", i,".tif"), format = "GTiff")
-  writeRaster(SUIT_60_STK, SUITste0("./data/outputs/predictors/XP5/stk_SUIT_60_", i,".tif"), format = "GTiff") 
-  writeRaster(SUIT_85_STK, SUITste0("./data/outputs/predictors/XP5/stk_SUIT_85_", i,".tif"), format = "GTiff")
+  writeRaster(SUIT_26_STK, paste0("./data/outputs/predictors/XP5/rcp26/stk_SUIT_26_", i,".tif"), format = "GTiff", overwrite = TRUE)
+  writeRaster(SUIT_45_STK, paste0("./data/outputs/predictors/XP5/rcp45/stk_SUIT_45_", i,".tif"), format = "GTiff", overwrite = TRUE)
+  writeRaster(SUIT_60_STK, paste0("./data/outputs/predictors/XP5/rcp60/stk_SUIT_60_", i,".tif"), format = "GTiff", overwrite = TRUE)
+  writeRaster(SUIT_85_STK, paste0("./data/outputs/predictors/XP5/rcp85/stk_SUIT_85_", i,".tif"), format = "GTiff", overwrite = TRUE)
 }
 
 # ***************************************************************************************
@@ -531,10 +547,10 @@ for (i in 1:length(sp_name))
                           biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
                           biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
                           newvar_current   = "./data/outputs/predictors/XP2/",
-                          newvar_rcp26     = "./data/outputs/predictors/XP2/",
-                          newvar_rcp45     = "./data/outputs/predictors/XP2/",
-                          newvar_rcp60     = "./data/outputs/predictors/XP2/",
-                          newvar_rcp85     = "./data/outputs/predictors/XP2/",
+                          newvar_rcp26     = "./data/outputs/predictors/XP2/rcp26/",
+                          newvar_rcp45     = "./data/outputs/predictors/XP2/rcp45/",
+                          newvar_rcp60     = "./data/outputs/predictors/XP2/rcp60/",
+                          newvar_rcp85     = "./data/outputs/predictors/XP2/rcp85/",
                           trainning        = "./data/occurrences/subsets/trainning",
                           testing          = "./data/occurrences/subsets/testing",
                           AOGCMs           = c(1, 2, 3),
@@ -562,13 +578,13 @@ for (i in 1:length(sp_name))
                      AOGCMs         = c(1, 2, 3),
                      biovar_current = "./data/climatic_vars/selected/current/")
   
-  ###.............. Saving predictions
-  writeRaster(result[["output_current"]], paste0("./data/outputs/XP2/", sp_name[i], "_current.tif"), format = "GTiff")
-  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP2/", sp_name[i], "_rcp26.tif"), format = "GTiff")
-  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP2/", sp_name[i], "_rcp45.tif"), format = "GTiff")
-  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP2/", sp_name[i], "_rcp60.tif"), format = "GTiff")
-  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP2/", sp_name[i], "_rcp85.tif"), format = "GTiff")
-  
+  # ###.............. Saving predictions
+  # writeRaster(result[["output_current"]], paste0("./data/outputs/XP2/", sp_name[i], "_current.tif"), format = "GTiff")
+  # writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP2/", sp_name[i], "_rcp26.tif"), format = "GTiff")
+  # writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP2/", sp_name[i], "_rcp45.tif"), format = "GTiff")
+  # writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP2/", sp_name[i], "_rcp60.tif"), format = "GTiff")
+  # writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP2/", sp_name[i], "_rcp85.tif"), format = "GTiff")
+  # 
   ###.............. Saving Ensembles
   write.table(result[["Ensemble"]], paste0("./data/outputs/XP2/ensembles/", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
   
@@ -600,10 +616,10 @@ for (i in 1:length(sp_name))
                           biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
                           biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
                           newvar_current   = "./data/outputs/predictors/XP3/",
-                          newvar_rcp26     = "./data/outputs/predictors/XP3/",
-                          newvar_rcp45     = "./data/outputs/predictors/XP3/",
-                          newvar_rcp60     = "./data/outputs/predictors/XP3/",
-                          newvar_rcp85     = "./data/outputs/predictors/XP3/",
+                          newvar_rcp26     = "./data/outputs/predictors/XP3/rcp26/",
+                          newvar_rcp45     = "./data/outputs/predictors/XP3/rcp45/",
+                          newvar_rcp60     = "./data/outputs/predictors/XP3/rcp60/",
+                          newvar_rcp85     = "./data/outputs/predictors/XP3/rcp85/",
                           trainning        = "./data/occurrences/subsets/trainning",
                           testing          = "./data/occurrences/subsets/testing",
                           AOGCMs           = c(1, 2, 3),
@@ -631,20 +647,26 @@ for (i in 1:length(sp_name))
                      AOGCMs         = c(1, 2, 3),
                      biovar_current = "./data/climatic_vars/selected/current/")
   
-  ###.............. Saving predictions
-  writeRaster(result[["output_current"]], paste0("./data/outputs/XP3/", sp_name[i], "_current.tif"), format = "GTiff")
-  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP3/", sp_name[i], "_rcp26.tif"), format = "GTiff")
-  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP3/", sp_name[i], "_rcp45.tif"), format = "GTiff")
-  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP3/", sp_name[i], "_rcp60.tif"), format = "GTiff")
-  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP3/", sp_name[i], "_rcp85.tif"), format = "GTiff")
+  # ###.............. Saving predictions
+  # writeRaster(result[["output_current"]], paste0("./data/outputs/XP3/", sp_name[i], "_current.tif"), format = "GTiff")
+  # writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP3/", sp_name[i], "_rcp26.tif"), format = "GTiff")
+  # writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP3/", sp_name[i], "_rcp45.tif"), format = "GTiff")
+  # writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP3/", sp_name[i], "_rcp60.tif"), format = "GTiff")
+  # writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP3/", sp_name[i], "_rcp85.tif"), format = "GTiff")
   
   ###.............. Saving Ensembles
-  write.table(result[["FULLensemble"]], paste0("./data/outputs/XP3/ensembles/", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
+  write.table(result[["Ensemble"]], paste0("./data/outputs/XP3/ensembles/", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
   
   rm(result)
   gc()
 }
 beep(8)
+
+###.............. Plotting Ensembles
+PlotEnsemble(occur     = "./data/occurrences/occur_thinned.txt",
+             ensb_data = "./data/outputs/XP3/ensembles/",
+             sp        = sp_name,
+             output    = "./data/outputs/XP3/ensembles/plot_")
 
 # ***************************************************************************************
 
@@ -668,10 +690,10 @@ for (i in 1:length(sp_name))
                           biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
                           biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
                           newvar_current   = "./data/outputs/predictors/XP4/",
-                          newvar_rcp26     = "./data/outputs/predictors/XP4/",
-                          newvar_rcp45     = "./data/outputs/predictors/XP4/",
-                          newvar_rcp60     = "./data/outputs/predictors/XP4/",
-                          newvar_rcp85     = "./data/outputs/predictors/XP4/",
+                          newvar_rcp26     = "./data/outputs/predictors/XP4/rcp26/",
+                          newvar_rcp45     = "./data/outputs/predictors/XP4/rcp26/",
+                          newvar_rcp60     = "./data/outputs/predictors/XP4/rcp26/",
+                          newvar_rcp85     = "./data/outputs/predictors/XP4/rcp26/",
                           trainning        = "./data/occurrences/subsets/trainning",
                           testing          = "./data/occurrences/subsets/testing",
                           AOGCMs           = c(1, 2, 3),
@@ -736,10 +758,10 @@ for (i in 1:length(sp_name))
                           biovar_rcp60     = "./data/climatic_vars/selected/rcp60/",
                           biovar_rcp85     = "./data/climatic_vars/selected/rcp85/",
                           newvar_current   = "./data/outputs/predictors/XP5/",
-                          newvar_rcp26     = "./data/outputs/predictors/XP5/",
-                          newvar_rcp45     = "./data/outputs/predictors/XP5/",
-                          newvar_rcp60     = "./data/outputs/predictors/XP5/",
-                          newvar_rcp85     = "./data/outputs/predictors/XP5/",
+                          newvar_rcp26     = "./data/outputs/predictors/XP5/rcp26/",
+                          newvar_rcp45     = "./data/outputs/predictors/XP5/rcp45/",
+                          newvar_rcp60     = "./data/outputs/predictors/XP5/rcp60/",
+                          newvar_rcp85     = "./data/outputs/predictors/XP5/rcp85/",
                           trainning        = "./data/occurrences/subsets/trainning",
                           testing          = "./data/occurrences/subsets/testing",
                           AOGCMs           = c(1, 2, 3),
@@ -767,11 +789,11 @@ for (i in 1:length(sp_name))
                      biovar_current = "./data/climatic_vars/selected/current/")
   
   ###.............. Saving predictions
-  writeRaster(result[["output_current"]], paste0("./data/outputs/XP5/", sp_name[i],"_current.tif"), format = "GTiff")
-  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp26.tif"), format = "GTiff")
-  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp45.tif"), format = "GTiff")
-  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp60.tif"), format = "GTiff")
-  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp85.tif"), format = "GTiff")
+  # writeRaster(result[["output_current"]], paste0("./data/outputs/XP5/", sp_name[i],"_current.tif"), format = "GTiff")
+  # writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp26.tif"), format = "GTiff")
+  # writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp45.tif"), format = "GTiff")
+  # writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp60.tif"), format = "GTiff")
+  # writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp85.tif"), format = "GTiff")
   
   ###.............. Saving Ensembles
   write.table(result[["Ensemble"]], paste0("./data/outputs/XP5/ensembles/", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
