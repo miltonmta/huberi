@@ -74,13 +74,6 @@ ensemble <- function(Pout,
   bioclim_Pout_rcp85 <- na.omit(values(bioclim_rcp85))
   rm(bioclim_c, bioclim_rcp26, bioclim_rcp45, bioclim_rcp60, bioclim_rcp85)
   gc()
-
-  # gower_Pout_c       <- na.omit(values(gower_c))
-  # gower_Pout_rcp26   <- na.omit(values(gower_rcp26))
-  # gower_Pout_rcp45   <- na.omit(values(gower_rcp45))
-  # gower_Pout_rcp60   <- na.omit(values(gower_rcp60))
-  # gower_Pout_rcp85   <- na.omit(values(gower_rcp85))
-  # rm(gower_c, gower_rcp26, gower_rcp45, gower_rcp60, gower_rcp85)
   
   maxent_Pout_c      <- na.omit(values(maxent_c))
   maxent_Pout_rcp26  <- na.omit(values(maxent_rcp26))
@@ -102,35 +95,30 @@ ensemble <- function(Pout,
   ###......................................
   
   output_current <- cbind(Bioclim = bioclim_Pout_c,
-                          # Gower   = gower_Pout_c,
                           Maxent  = maxent_Pout_c,
                           SVM     = SVM_Pout_c )
   rm(bioclim_Pout_c, maxent_Pout_c, SVM_Pout_c)
   gc()
   
   output_rcp26   <- cbind(Bioclim = bioclim_Pout_rcp26,
-                          # Gower   = gower_Pout_rcp26,
                           Maxent  = maxent_Pout_rcp26,
                           SVM     = SVM_Pout_rcp26 )
   rm(bioclim_Pout_rcp26, maxent_Pout_rcp26, SVM_Pout_rcp26)
   gc()
 
   output_rcp45   <- cbind(Bioclim = bioclim_Pout_rcp45,
-                          # Gower   = gower_Pout_rcp45,
                           Maxent  = maxent_Pout_rcp45,
                           SVM     = SVM_Pout_rcp45 )
   rm(bioclim_Pout_rcp45, maxent_Pout_rcp45, SVM_Pout_rcp45)
   gc()
 
   output_rcp60   <- cbind(Bioclim = bioclim_Pout_rcp60,
-                          # Gower   = gower_Pout_rcp60,
                           Maxent  = maxent_Pout_rcp60,
                           SVM     = SVM_Pout_rcp60 )
   rm(bioclim_Pout_rcp60, maxent_Pout_rcp60, SVM_Pout_rcp60)
   gc()
 
   output_rcp85   <- cbind(Bioclim = bioclim_Pout_rcp85,
-                          # Gower   = gower_Pout_rcp85,
                           Maxent  = maxent_Pout_rcp85,
                           SVM     = SVM_Pout_rcp85 )
   rm(bioclim_Pout_rcp85, maxent_Pout_rcp85, SVM_Pout_rcp85)

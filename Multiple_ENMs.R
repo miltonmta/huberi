@@ -83,26 +83,6 @@ multiple_ENMs <- function(occurrence,
     bioclim_d <- c(bioclim_d, TPR * (1 - Pi))
     rm(thr, TPR, Pi)
     
-    # ### Gower -------------------------------------------------------------------------------
-    # 
-    # ## Adjusting models
-    # gower_model <- domain(trainning[trainning[,"pb"] == 1, -1])
-    # 
-    # ## Predicting
-    # gower_c <- stack(gower_c, predict(object = gower_model, x = current))
-    # writeRaster(gower_c, paste0(Pout, "_gower_c.tif"), format = "GTiff", overwrite = TRUE)
-    # 
-    # ## Evaluating models
-    # thr <- quantile(extract(gower_c[[i]], occur[,1:2]), 0.05)
-    # TPR <- evaluate(p = testing[testing[, "pb"] == 1, -1], a = testing[testing[, "pb"] == 0, -1],
-    #                 model = gower_model, tr = thr)@TPR
-    # Pi <- sum(values(gower_c[[i]] >= thr), na.rm = T) / n_cells
-    # 
-    # gower_e <- c(gower_e, TPR)
-    # gower_t <- c(gower_t, thr)
-    # gower_d <- c(gower_d, TPR * (1 - Pi))
-    # rm(thr, TPR, Pi)
-    
     ### Maxent -------------------------------------------------------------------------------
     
     ## Adjusting models
@@ -255,19 +235,6 @@ multiple_ENMs <- function(occurrence,
       writeRaster(bioclim_rcp85, paste0(Pout, i, "_bioclim_rcp85.tif"), format = "GTiff", overwrite = TRUE)
 
       #..........
-      # gower_rcp26   <- stack(gower_rcp26,   predict(object = gower_model, x = rcp26))
-      # writeRaster(gower_rcp26, paste0(Pout, i, "_gower_rcp26.tif"), format = "GTiff", overwrite = TRUE)
-      # 
-      # gower_rcp45   <- stack(gower_rcp45,   predict(object = gower_model, x = rcp45))
-      # writeRaster(gower_rcp45, paste0(Pout, i, "_gower_rcp45.tif"), format = "GTiff", overwrite = TRUE)
-      # 
-      # gower_rcp60   <- stack(gower_rcp60,   predict(object = gower_model, x = rcp60))
-      # writeRaster(gower_rcp60, paste0(Pout, i, "_gower_rcp60.tif"), format = "GTiff", overwrite = TRUE)
-      # 
-      # gower_rcp85   <- stack(gower_rcp85,   predict(object = gower_model, x = rcp85))
-      # writeRaster(gower_rcp85, paste0(Pout, i, "_gower_rcp85.tif"), format = "GTiff", overwrite = TRUE)
-
-      #..........
       maxent_rcp26  <- stack(maxent_rcp26,  predict(object = maxent_model, x = rcp26))
       writeRaster(maxent_rcp26, paste0(Pout, i, "_maxent_rcp26.tif"), format = "GTiff", overwrite = TRUE)
 
@@ -300,7 +267,6 @@ multiple_ENMs <- function(occurrence,
       # AOGCMs
     }
     rm(bioclim_rcp26, bioclim_rcp45, bioclim_rcp60, bioclim_rcp85,
-       #gower_rcp26,   gower_rcp45,   gower_rcp60,   gower_rcp85,
        maxent_rcp26,  maxent_rcp45,  maxent_rcp60,  maxent_rcp85,
        SVM_rcp26,     SVM_rcp45,     SVM_rcp60,     SVM_rcp85)
     gc()
