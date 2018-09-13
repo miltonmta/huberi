@@ -311,23 +311,9 @@ for (i in 1:length(ALLsp_names))
                      sp             =  ALLsp_names[i],
                      AOGCMs         =  c(1, 2, 3),
                      biovar_current =  "./data/climatic_vars/selected/current/")
-  gc()
+  
   # ##.............. Saving predictions
-  # writeRaster(result[["output_current"]], paste0("./data/outputs/XP1/", ALLsp_names[i], "_current.tif"), format = "GTiff")
-  # rm(result[["output_current"]])
-  # gc()
-  # writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_rcp26.tif"), format = "GTiff")
-  # rm(result[["output_rcp26"]])
-  # gc()
-  # writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_rcp45.tif"), format = "GTiff")
-  # rm(result[["output_rcp45"]])
-  # gc()
-  # writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_rcp60.tif"), format = "GTiff")
-  # rm(result[["output_rcp60"]])
-  # gc()
-  # writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP1/", ALLsp_names[i], "_rcp85.tif"), format = "GTiff")
-  # rm(result[["output_rcp85"]])
-  # gc()
+  # Section removed to save memory during processing. Here we would apend all individual predictions into four major output objetcs. Unecessary since we already have all the predictions saved as raster as produced within the cross-validation loop.
 
   ###.............. Saving Ensembles
   write.table(result[["Ensemble"]],   paste0("./data/outputs/XP1/ensembles/", ALLsp_names[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
@@ -337,8 +323,7 @@ for (i in 1:length(ALLsp_names))
 }
 beep(8)
 
-#   .....................................................................................
-#   Plotting Ensembles
+###.............. Plotting Ensembles
 PlotEnsemble(occur     = "./data/occurrences/occur_thinned.txt",
              ensb_data = "./data/outputs/XP1/ensembles/",
              sp        = ALLsp_names,
@@ -528,12 +513,9 @@ for (i in AOGCMs)
 # ***************************************************************************************
 ## 08. XP2                                          ----
 ###.....................................
-
 # Biotic Predictor	 SEP/PA - Plants XP1.2
 # Variables       	 abiotic + SEP/PA -  (12 vars = 5  + 7 )
 # Input           	 bee
-# Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
-# Ensembles          5 ( pres + 4 rcps)
 
 ###.............. Running the modedelling experiment
 sp_name
@@ -578,31 +560,27 @@ for (i in 1:length(sp_name))
                      AOGCMs         = c(1, 2, 3),
                      biovar_current = "./data/climatic_vars/selected/current/")
   
-  # ###.............. Saving predictions
-  # writeRaster(result[["output_current"]], paste0("./data/outputs/XP2/", sp_name[i], "_current.tif"), format = "GTiff")
-  # writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP2/", sp_name[i], "_rcp26.tif"), format = "GTiff")
-  # writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP2/", sp_name[i], "_rcp45.tif"), format = "GTiff")
-  # writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP2/", sp_name[i], "_rcp60.tif"), format = "GTiff")
-  # writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP2/", sp_name[i], "_rcp85.tif"), format = "GTiff")
-  # 
   ###.............. Saving Ensembles
-  write.table(result[["Ensemble"]], paste0("./data/outputs/XP2/ensembles/", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
+  write.table(result[["Ensemble"]], paste0("./data/outputs/XP2/ensembles/xp2_", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
   
   rm(result)
   gc()
 }
 beep(8)
 
+###.............. Plotting Ensembles
+PlotEnsemble(occur     = "./data/occurrences/occur_thinned.txt",
+             ensb_data = "./data/outputs/XP2/ensembles/",
+             sp        = sp_name,
+             output    = "./data/outputs/XP2/ensembles/plot_")
+
 # ***************************************************************************************
 
 ## 09. XP3                                          ----
 ###.....................................
-
 # Biotic Predictor	 SEP/SUIT - Plants XP1.2
 # Variables       	 abiotic + SEP/SUIT -  (12 vars = 5  + 7 )
 # Input           	 bee
-# Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
-# Ensemble  	       1 * (9 present + 12 future (4 rcps * 3 aogcms)) 
 
 ###.............. Running the modedelling experiment
 sp_name
@@ -647,15 +625,8 @@ for (i in 1:length(sp_name))
                      AOGCMs         = c(1, 2, 3),
                      biovar_current = "./data/climatic_vars/selected/current/")
   
-  # ###.............. Saving predictions
-  # writeRaster(result[["output_current"]], paste0("./data/outputs/XP3/", sp_name[i], "_current.tif"), format = "GTiff")
-  # writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP3/", sp_name[i], "_rcp26.tif"), format = "GTiff")
-  # writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP3/", sp_name[i], "_rcp45.tif"), format = "GTiff")
-  # writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP3/", sp_name[i], "_rcp60.tif"), format = "GTiff")
-  # writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP3/", sp_name[i], "_rcp85.tif"), format = "GTiff")
-  
   ###.............. Saving Ensembles
-  write.table(result[["Ensemble"]], paste0("./data/outputs/XP3/ensembles/", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
+  write.table(result[["Ensemble"]], paste0("./data/outputs/XP3/ensembles/xp3_", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
   
   rm(result)
   gc()
@@ -671,12 +642,10 @@ PlotEnsemble(occur     = "./data/occurrences/occur_thinned.txt",
 # ***************************************************************************************
 
 ## 10. XP4                                          ----
-
+###.....................................
 # Biotic Predictor	 STK/PA - Plants XP1.2
 # Variables       	 abiotic + STK/PA -  (6 vars = 5  + 1 )
 # Input           	 bee
-# Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
-# Ensemble           1 * (9 present + 12 future (4 rcps * 3 aogcms))
 
 ###.............. Running the modedelling experiment
 sp_name
@@ -721,30 +690,26 @@ for (i in 1:length(sp_name))
                      AOGCMs         = c(1, 2, 3),
                      biovar_current = "./data/climatic_vars/selected/current/")
                      
-  ###.............. Saving predictions
-  writeRaster(result[["output_current"]], paste0("./data/outputs/XP4/", sp_name[i], "_current.tif"), format = "GTiff")
-  writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP4/", sp_name[i], "_rcp26.tif"), format = "GTiff")
-  writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP4/", sp_name[i], "_rcp45.tif"), format = "GTiff")
-  writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP4/", sp_name[i], "_rcp60.tif"), format = "GTiff")
-  writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP4/", sp_name[i], "_rcp85.tif"), format = "GTiff")
-  
   ###.............. Saving Ensembles
-  write.table(result[["Ensemble"]], paste0("./data/outputs/XP4/", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
+  write.table(result[["Ensemble"]], paste0("./data/outputs/XP4/xp4_", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
   
   rm(result)
   gc()
 }
 beep(8)
+
+###.............. Plotting Ensembles
+PlotEnsemble(occur     = "./data/occurrences/occur_thinned.txt",
+             ensb_data = "./data/outputs/XP4/ensembles/",
+             sp        = sp_name,
+             output    = "./data/outputs/XP4/ensembles/plot_")
 # ***************************************************************************************
 
 ## 11. XP5                                          ----
 ###.....................................
-
 # Biotic Predictor	 STK/SUIT - Plants XP1.2
 # Variables       	 abiotic + STK/SUIT -  (6 vars = 5  + 1 )
 # Input           	 bee
-# Output	           1 input prediction + 4 predictive methods * rcps * 3 aogcms
-# Ensemble           1 * (9 present + 12 future (4 rcps * 3 aogcms))
 
 ###.............. Running the modedelling experiment
 sp_name
@@ -796,12 +761,18 @@ for (i in 1:length(sp_name))
   # writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp85.tif"), format = "GTiff")
   
   ###.............. Saving Ensembles
-  write.table(result[["Ensemble"]], paste0("./data/outputs/XP5/ensembles/", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
+  write.table(result[["Ensemble"]], paste0("./data/outputs/XP5/ensembles/xp5_", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
   
   rm(result)
   gc()
 }
 beep(8)
+
+###.............. Plotting Ensembles
+PlotEnsemble(occur     = "./data/occurrences/occur_thinned.txt",
+             ensb_data = "./data/outputs/XP5/ensembles/",
+             sp        = sp_name,
+             output    = "./data/outputs/XP5/ensembles/plot_")
 
 # ***************************************************************************************
 ## 12. Selecting XP from XP2:XP5                    ----
