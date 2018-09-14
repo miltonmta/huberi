@@ -1,20 +1,20 @@
 file.edit("readme.R")
 
-# **** Loading functions                            ----
+# ****  Loading functions                            ----
 
 source("./Auxiliary_functions.R")
 source("./Multiple_ENMs.R")
 source("./ensemble.R")
 # file.edit(c("./Auxiliary_functions.R", "./Multiple_ENMs.R"))
 
-# **** Loading packages                             ----
+# ****  Loading packages                             ----
 
 # install.packages(c("tidyverse", "raster", "rgdal", "abind", "spThin", "vegan", "maps", "pcych", "kernlab", "dismo", "rJava", "dendextend", "beepr"))
 
 load_pak(c("tidyverse", "raster", "rgdal", "abind", "spThin", "dismo", "kernlab", "vegan", "maps", "psych", "rJava", "dendextend", "beepr", "data.table"))
 
 # ***************************************************************************************
-## 01. Read aogcms models                           ----
+## 01.  Read aogcms models                           ----
 
 ##### 1.1.............. current                                     
 current_list <- read_current(dir = "./data/climatic_vars/current/")
@@ -50,7 +50,7 @@ beep(2)
 rm(rcp26_list, rcp45_list, rcp60_list, rcp85_list)
 
 # ***************************************************************************************
-## 02. Variable selection                           ----
+## 02.  Variable selection                           ----
 
 ### By exploratory factor analysis
 
@@ -64,7 +64,7 @@ beep(2)
 # bio02, bio03, bio10, bio14, bio16.
 
 # ***************************************************************************************
-## 03. Saving selected variables                    ----
+## 03.  Saving selected variables                    ----
 
 ###................ CURRENT
 
@@ -112,7 +112,7 @@ beep(2)
 rm(variables)
 
 # ***************************************************************************************
-## 04. Occurrences data                             ----
+## 04.  Occurrences data                             ----
 
 ###.............. Reading data
 # the names of columms in the file raw_data must be: "SPEC", "LONG", "LAT".
@@ -142,7 +142,7 @@ beep(2)
 
 
 # ***************************************************************************************
-## 05. Background Sampling                          ----
+## 05.  Background Sampling                          ----
 
 ###.............. Background files 
 # Creating and saving the object "back" for each studied species
@@ -169,7 +169,7 @@ points(back[, "x"], back[, "y"], pch = "*", col = 'magenta')
 
 
 # ***************************************************************************************
-## 06. Creating trainning-testing subsets           ----
+## 06.  Creating trainning-testing subsets           ----
 ###.....................................
 
 #  For variation control, the occurrence that runs in all experiments (from XP1 to XP2),  will be modeled with the same random subsets. (see cross_validation loop in Multiple_ENMs)
@@ -194,7 +194,7 @@ rm(occur, back)
 
 # ***************************************************************************************
 
-## 07. XP1                                          ----
+## 07.  XP1                                          ----
 ###.....................................
 rm(list = ls())
 source("./Multiple_ENMs.R")
@@ -206,7 +206,7 @@ source("./Multiple_ENMs.R")
 
 # We've splitted XP1 in two for running a specifif set of variables (e.g SOIL) for just one group of the input occurrences.
 
-## ..... 07.a Loading species names         ---- 
+## 07.a ..... Loading species names                  ---- 
 
 ## ... bee
 occur_thinned <- read.table("./data/occurrences/occur_thinned.txt", sep = ";", h = T)
@@ -230,7 +230,7 @@ ALLsp_names
 
 rm(sp, occur_thinned)
 
-## ..... 07.b XP1.1 - bee                   -----
+## 07.b ..... XP1.1 - bee                            -----
 #   .....................................................................................
 sp_name
 for (i in 1:length(sp_name))
@@ -265,7 +265,7 @@ for (i in 1:length(sp_name))
 }
 beep(8)
 
-## ..... 07.c XP1.2 - 7 plants              ----
+## 07.c ..... XP1.2 - 7 plants                       ----
 #   .....................................................................................
 # here we could include the soil vars.
 sp_names
@@ -300,7 +300,7 @@ for (i in 1:length(sp_names))
 }
 beep(8)
 
-## ..... 07.d Ensembles and Final Outputs   ----
+## 07.d ..... Ensembles and Final Outputs            ----
 #   .....................................................................................
 source("./ensemble.R")
 ALLsp_names
@@ -327,22 +327,25 @@ beep(8)
 PlotEnsemble(occur     = "./data/occurrences/occur_thinned.txt",
              ensb_data = "./data/outputs/XP1/ensembles/",
              sp        = ALLsp_names,
-             output    = "./data/outputs/XP1/ensembles/plot_")
+             output    = "./data/outputs/XP1/ensembles/xp1_plot_")
 
-## ..... 07.e New Predictor variables       ----
+## 07.e ..... New Predictor variables                ----
 #   .....................................................................................
 
 biovar_current <- "./data/climatic_vars/selected/current/"
 current <- stack(list.files(biovar_current,  pattern = ".grd$", full.names = TRUE))
 current <- na.omit(current)
 coords <- na.omit(cbind(xyFromCell(current, 1:ncell(current)), values(current)))[,1:2]
+rm(biovar_current, current)
+
+occur_thinned <- read.table("./data/occurrences/occur_thinned.txt", sep = ";", h = T)
 
 sp_names
 AOGCMs  <-  c(1, 2, 3)
 SPid <- paste0("SP", 1:7)
 SPid_stk <- "stk"
 
-## .......... XP2 - sep_pa             ----
+##      .......... sep_pa   (xp2)                    ----
 ## .......... generating vars .............
 PApres    <- NULL
 PArcp26.1 <- PArcp26.2 <- PArcp26.3 <- NULL
@@ -351,8 +354,10 @@ PArcp60.1 <- PArcp60.2 <- PArcp60.3 <- NULL
 PArcp85.1 <- PArcp85.2 <- PArcp85.3 <- NULL
 for (i in 1:length(sp_names))
 {
-  PA_df <- read.table(paste0("./data/outputs/XP1/ensembles/", sp_names[7],"_ENSEMBLES.txt"), sep = "\t", h = T)
-  thr   <- quantile( PA_df[,  3], 0.05)
+  PA_df <- read.table(paste0("./data/outputs/XP1/ensembles/", sp_names[i],"_ENSEMBLES.txt"), sep = "\t", h = T)
+  ensemble <- rasterFromXYZ(PA_df[, c(1:3)])
+  coords.sp <- occur_thinned[occur_thinned[, 1] == sp_names[i], ][-1]
+  thr <- quantile(na.omit(extract(ensemble, coords.sp)), 0.05)
   
   PApres    <- cbind( PApres,    ifelse((PA_df[,  3]) > thr, 1, 0))
   
@@ -378,6 +383,10 @@ PArcp45 <- list(PArcp45.1, PArcp45.2, PArcp45.3)
 PArcp60 <- list(PArcp60.1, PArcp60.2, PArcp60.3)
 PArcp85 <- list(PArcp85.1, PArcp85.2, PArcp85.3)
 
+rm(PArcp26.1, PArcp26.2, PArcp26.3, 
+   PArcp45.1, PArcp45.2, PArcp45.3, 
+   PArcp60.1, PArcp60.2, PArcp60.3,
+   PArcp85.1, PArcp85.2, PArcp85.3)
 
 ## ............ saving vars ...............
 PA_c  <- rasterFromXYZ(cbind(coords, PApres))
@@ -399,7 +408,7 @@ for (i in AOGCMs)
   writeRaster(PA_85, paste0("./data/outputs/predictors/XP2/rcp85/sep_PA_85_", i,".tif"), format = "GTiff", overwrite = TRUE)
 }
 
-## .......... XP3 - sep_suit           ----
+##      .......... sep_suit (xp3)                    ----
 ## .......... generating vars .............
 SUITpres    <- NULL
 SUITrcp26.1 <- SUITrcp26.2 <- SUITrcp26.3 <- NULL
@@ -434,6 +443,10 @@ SUITrcp45 <- list(SUITrcp45.1, SUITrcp45.2, SUITrcp45.3)
 SUITrcp60 <- list(SUITrcp60.1, SUITrcp60.2, SUITrcp60.3)
 SUITrcp85 <- list(SUITrcp85.1, SUITrcp85.2, SUITrcp85.3)
 
+rm(SUITrcp26.1, SUITrcp26.2, SUITrcp26.3,
+   SUITrcp45.1, SUITrcp45.2, SUITrcp45.3,
+   SUITrcp60.1, SUITrcp60.2, SUITrcp60.3,
+   SUITrcp85.1, SUITrcp85.2, SUITrcp85.3)
 
 ## ............ saving vars ...............
 SUIT_c  <- rasterFromXYZ(cbind(coords, SUITpres))
@@ -455,7 +468,7 @@ for (i in AOGCMs)
   writeRaster(SUIT_85, paste0("./data/outputs/predictors/XP3/rcp85/sep_suit_85_", i,".tif"), format = "GTiff", overwrite = TRUE)
 }
 
-## .......... XP4 - stk_pa             ----
+##      .......... stk_pa   (xp4)                    ----
 
 pres_STK  <- rowSums(PApres)
 PA_c_STK  <- rasterFromXYZ(cbind(coords, pres_STK))
@@ -482,7 +495,7 @@ for (i in AOGCMs)
   writeRaster(PA_85_STK, paste0("./data/outputs/predictors/XP4/rcp85/stk_PA_85_", i,".tif"), format = "GTiff", overwrite = TRUE)
 }
 
-## .......... XP5 - stk_suit           ----
+##      .......... stk_suit (xp5)                    ----
 
 # SUITrcp26.mat <- do.call(rbind, lapply(SUITrcp26, matrix, ncol = 21, byrow = TRUE))
 pres_STK  <- rowMeans(SUITpres)  / ncol(SUITpres)
@@ -511,7 +524,7 @@ for (i in AOGCMs)
 }
 
 # ***************************************************************************************
-## 08. XP2                                          ----
+## 08.  XP2                                          ----
 ###.....................................
 # Biotic Predictor	 SEP/PA - Plants XP1.2
 # Variables       	 abiotic + SEP/PA -  (12 vars = 5  + 7 )
@@ -570,13 +583,13 @@ beep(8)
 
 ###.............. Plotting Ensembles
 PlotEnsemble(occur     = "./data/occurrences/occur_thinned.txt",
-             ensb_data = "./data/outputs/XP2/ensembles/",
+             ensb_data = "./data/outputs/XP2/ensembles/xp2_",
              sp        = sp_name,
-             output    = "./data/outputs/XP2/ensembles/plot_")
+             output    = "./data/outputs/XP2/ensembles/xp2_plot_")
 
 # ***************************************************************************************
 
-## 09. XP3                                          ----
+## 09.  XP3                                          ----
 ###.....................................
 # Biotic Predictor	 SEP/SUIT - Plants XP1.2
 # Variables       	 abiotic + SEP/SUIT -  (12 vars = 5  + 7 )
@@ -637,11 +650,11 @@ beep(8)
 PlotEnsemble(occur     = "./data/occurrences/occur_thinned.txt",
              ensb_data = "./data/outputs/XP3/ensembles/",
              sp        = sp_name,
-             output    = "./data/outputs/XP3/ensembles/plot_")
+             output    = "./data/outputs/XP3/ensembles/xp3_plot_")
 
 # ***************************************************************************************
 
-## 10. XP4                                          ----
+## 10.  XP4                                          ----
 ###.....................................
 # Biotic Predictor	 STK/PA - Plants XP1.2
 # Variables       	 abiotic + STK/PA -  (6 vars = 5  + 1 )
@@ -691,7 +704,7 @@ for (i in 1:length(sp_name))
                      biovar_current = "./data/climatic_vars/selected/current/")
                      
   ###.............. Saving Ensembles
-  write.table(result[["Ensemble"]], paste0("./data/outputs/XP4/xp4_", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
+  write.table(result[["Ensemble"]], paste0("./data/outputs/XP4/ensembles/xp4_", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
   
   rm(result)
   gc()
@@ -700,12 +713,12 @@ beep(8)
 
 ###.............. Plotting Ensembles
 PlotEnsemble(occur     = "./data/occurrences/occur_thinned.txt",
-             ensb_data = "./data/outputs/XP4/ensembles/",
+             ensb_data = "./data/outputs/XP4/ensembles/xp4_",
              sp        = sp_name,
-             output    = "./data/outputs/XP4/ensembles/plot_")
+             output    = "./data/outputs/XP4/ensembles/xp4_plot_")
 # ***************************************************************************************
 
-## 11. XP5                                          ----
+## 11.  XP5                                          ----
 ###.....................................
 # Biotic Predictor	 STK/SUIT - Plants XP1.2
 # Variables       	 abiotic + STK/SUIT -  (6 vars = 5  + 1 )
@@ -772,12 +785,28 @@ beep(8)
 PlotEnsemble(occur     = "./data/occurrences/occur_thinned.txt",
              ensb_data = "./data/outputs/XP5/ensembles/",
              sp        = sp_name,
-             output    = "./data/outputs/XP5/ensembles/plot_")
+             output    = "./data/outputs/XP5/ensembles/xp5_plot_")
 
 # ***************************************************************************************
-## 12. Selecting XP from XP2:XP5                    ----
+## 12.  Selecting XP from XP2:XP5                    ----
 ###.....................................
 
+only_climatic <- read.table("./data/outputs/XP1/ensembles/xp1_Lithurgus_huberi_ENSEMBLES.txt", sep = "\t", h = T)[,3]
+sep_pa   <- read.table("./data/outputs/XP2/ensembles/xp2_Lithurgus_huberi_ENSEMBLES.txt", sep = "\t", h = T)[,3]
+sep_suit <- read.table("./data/outputs/XP3/ensembles/xp3_Lithurgus_huberi_ENSEMBLES.txt", sep = "\t", h = T)[,3]
+stk_pa   <- read.table("./data/outputs/XP4/ensembles/xp4_Lithurgus_huberi_ENSEMBLES.txt", sep = "\t", h = T)[,3]
+stk_suit <- read.table("./data/outputs/XP5/ensembles/xp5_Lithurgus_huberi_ENSEMBLES.txt", sep = "\t", h = T)[,3]
+data <- as.data.frame(cbind(only_climatic, sep_pa, sep_suit, stk_pa, stk_suit))
+head(data)
+data_stack <- data.frame(stack(data[1:5]))
+head(data_stack)
+tail(data_stack)
+
+if(!require(lme4)){install.packages("lme4")}
+if(!require(lmerTest)){install.packages("lmerTest")}
+
+rmaov <- lmer(values ~ ind + (1|ind), data = data_stack)
+anova(rmaov)
 
 # AVALIAÇAO DA REPRESENTATIVIDADE	
 # Anova de Medidas Repetidas (mesmos subconjuntos de XP2 a XP5)	
@@ -788,7 +817,7 @@ PlotEnsemble(occur     = "./data/occurrences/occur_thinned.txt",
 # preditor: tamanho de range  XP2:XP5	
 # resposta: huberi	
 
-## 13. Preparing analysis factors                   ----
+## 13.  Preparing analysis factors                   ----
 ###.....................................
 
 
@@ -810,7 +839,7 @@ all_val <- values(all_output)
 all_pad <- deconstante(all_val, "standardize", 2)
 
 # ***************************************************************************************
-## 14. Uncertainty Evaluation                       ----
+## 14.  Uncertainty Evaluation                       ----
 
 all_huberi <- stack(huberi_c, huberi_rcp26, huberi_rcp45, huberi_rcp60, huberi_rcp85)
 TPR_huberi <- TPR_h[which(TPR_h)]
@@ -828,7 +857,7 @@ period <- c(bioclim_period_h, gower_period_h, maha_period_h, maxent_period_h, SV
 
 
 
-# **** List of improvements to the scritp           ----
+# ****  List of improvements to the scritp           ----
 
 # 1. Implement validation by the checkerboards method.
 # 2. Implement occurrence filtering at the ambiental space and compare with the geographical space one (spThin).
