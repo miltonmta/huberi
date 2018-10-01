@@ -316,7 +316,7 @@ for (i in 1:length(ALLsp_names))
   # Section removed to save memory during processing. Here we would apend all individual predictions into four major output objetcs. Unecessary since we already have all the predictions saved as raster as produced within the cross-validation loop.
 
   ###.............. Saving Ensembles
-  write.table(result[["Ensemble"]],   paste0("./data/outputs/XP1/ensembles/", ALLsp_names[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
+  write.table(result[["Ensemble"]],   paste0("./data/outputs/ensembles/xp1_", ALLsp_names[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
   
   rm(result)
   gc()
@@ -325,9 +325,9 @@ beep(8)
 
 ###.............. Plotting Ensembles
 PlotEnsemble(occur     = "./data/occurrences/occur_thinned.txt",
-             ensb_data = "./data/outputs/XP1/ensembles/",
+             ensb_data = "./data/outputs/ensembles/xp1_",
              sp        = ALLsp_names,
-             output    = "./data/outputs/XP1/ensembles/xp1_plot_")
+             output    = "./data/outputs/ensembles/xp1_plot_")
 
 ## 07.e ..... New Predictor variables                ----
 #   .....................................................................................
@@ -359,22 +359,22 @@ for (i in 1:length(sp_names))
   coords.sp <- occur_thinned[occur_thinned[, 1] == sp_names[i], ][-1]
   thr <- quantile(na.omit(extract(ensemble, coords.sp)), 0.05)
   
-  PApres    <- cbind( PApres,    ifelse((PA_df[,  3]) > thr, 1, 0))
+  PApres    <- cbind( PApres,    ifelse((PA_df[,  3]) >= thr, 1, 0))
   
-  PArcp26.1 <- cbind( PArcp26.1, ifelse((PA_df[,  8]) > thr, 1, 0))
-  PArcp26.2 <- cbind( PArcp26.2, ifelse((PA_df[,  9]) > thr, 1, 0))
-  PArcp26.3 <- cbind( PArcp26.3, ifelse((PA_df[, 10]) > thr, 1, 0))
+  PArcp26.1 <- cbind( PArcp26.1, ifelse((PA_df[,  8]) >= thr, 1, 0))
+  PArcp26.2 <- cbind( PArcp26.2, ifelse((PA_df[,  9]) >= thr, 1, 0))
+  PArcp26.3 <- cbind( PArcp26.3, ifelse((PA_df[, 10]) >= thr, 1, 0))
   
-  PArcp45.1 <- cbind( PArcp45.1, ifelse((PA_df[, 11]) > thr, 1, 0))
-  PArcp45.2 <- cbind( PArcp45.2, ifelse((PA_df[, 12]) > thr, 1, 0))
-  PArcp45.3 <- cbind( PArcp45.3, ifelse((PA_df[, 13]) > thr, 1, 0))
+  PArcp45.1 <- cbind( PArcp45.1, ifelse((PA_df[, 11]) >= thr, 1, 0))
+  PArcp45.2 <- cbind( PArcp45.2, ifelse((PA_df[, 12]) >= thr, 1, 0))
+  PArcp45.3 <- cbind( PArcp45.3, ifelse((PA_df[, 13]) >= thr, 1, 0))
   
-  PArcp60.1 <- cbind( PArcp60.1, ifelse((PA_df[, 14]) > thr, 1, 0))
-  PArcp60.2 <- cbind( PArcp60.2, ifelse((PA_df[, 15]) > thr, 1, 0))
-  PArcp60.3 <- cbind( PArcp60.3, ifelse((PA_df[, 16]) > thr, 1, 0))
+  PArcp60.1 <- cbind( PArcp60.1, ifelse((PA_df[, 14]) >= thr, 1, 0))
+  PArcp60.2 <- cbind( PArcp60.2, ifelse((PA_df[, 15]) >= thr, 1, 0))
+  PArcp60.3 <- cbind( PArcp60.3, ifelse((PA_df[, 16]) >= thr, 1, 0))
   
-  PArcp85.1 <- cbind( PArcp85.1, ifelse((PA_df[, 17]) > thr, 1, 0))
-  PArcp85.2 <- cbind( PArcp85.2, ifelse((PA_df[, 18]) > thr, 1, 0))
+  PArcp85.1 <- cbind( PArcp85.1, ifelse((PA_df[, 17]) >= thr, 1, 0))
+  PArcp85.2 <- cbind( PArcp85.2, ifelse((PA_df[, 18]) >= thr, 1, 0))
   PArcp85.3 <- cbind( PArcp85.3, ifelse((PA_df[, 19]) > thr, 1, 0))
 }
 
@@ -572,9 +572,9 @@ for (i in 1:length(sp_name))
                      sp             = sp_name[i],
                      AOGCMs         = c(1, 2, 3),
                      biovar_current = "./data/climatic_vars/selected/current/")
-  
-  ###.............. Saving Ensembles
-  write.table(result[["Ensemble"]], paste0("./data/outputs/XP2/ensembles/xp2_", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
+ 
+   ###.............. Saving Ensembles
+  write.table(result[["Ensemble"]], paste0("./data/outputs/ensembles/xp2_", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
   
   rm(result)
   gc()
@@ -583,9 +583,9 @@ beep(8)
 
 ###.............. Plotting Ensembles
 PlotEnsemble(occur     = "./data/occurrences/occur_thinned.txt",
-             ensb_data = "./data/outputs/XP2/ensembles/xp2_",
+             ensb_data = "./data/outputs/ensembles/xp2_",
              sp        = sp_name,
-             output    = "./data/outputs/XP2/ensembles/xp2_plot_")
+             output    = "./data/outputs/ensembles/xp2_plot_")
 
 # ***************************************************************************************
 
@@ -639,7 +639,7 @@ for (i in 1:length(sp_name))
                      biovar_current = "./data/climatic_vars/selected/current/")
   
   ###.............. Saving Ensembles
-  write.table(result[["Ensemble"]], paste0("./data/outputs/XP3/ensembles/xp3_", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
+  write.table(result[["Ensemble"]], paste0("./data/outputs/ensembles/xp3_", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
   
   rm(result)
   gc()
@@ -648,9 +648,9 @@ beep(8)
 
 ###.............. Plotting Ensembles
 PlotEnsemble(occur     = "./data/occurrences/occur_thinned.txt",
-             ensb_data = "./data/outputs/XP3/ensembles/",
+             ensb_data = "./data/outputs/ensembles/",
              sp        = sp_name,
-             output    = "./data/outputs/XP3/ensembles/xp3_plot_")
+             output    = "./data/outputs/ensembles/xp3_plot_")
 
 # ***************************************************************************************
 
@@ -704,7 +704,7 @@ for (i in 1:length(sp_name))
                      biovar_current = "./data/climatic_vars/selected/current/")
                      
   ###.............. Saving Ensembles
-  write.table(result[["Ensemble"]], paste0("./data/outputs/XP4/ensembles/xp4_", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
+  write.table(result[["Ensemble"]], paste0("./data/outputs/ensembles/xp4_", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
   
   rm(result)
   gc()
@@ -713,9 +713,9 @@ beep(8)
 
 ###.............. Plotting Ensembles
 PlotEnsemble(occur     = "./data/occurrences/occur_thinned.txt",
-             ensb_data = "./data/outputs/XP4/ensembles/xp4_",
+             ensb_data = "./data/outputs/ensembles/xp4_",
              sp        = sp_name,
-             output    = "./data/outputs/XP4/ensembles/xp4_plot_")
+             output    = "./data/outputs/ensembles/xp4_plot_")
 # ***************************************************************************************
 
 ## 11.  XP5                                          ----
@@ -743,7 +743,7 @@ for (i in 1:length(sp_name))
                           trainning        = "./data/occurrences/subsets/trainning",
                           testing          = "./data/occurrences/subsets/testing",
                           AOGCMs           = c(1, 2, 3),
-                          Pout             = paste0("./data/outputs/XP5/Pout/xp1_", sp_name[i], "_"),
+                          Pout             = paste0("./data/outputs/XP5/Pout/xp5_", sp_name[i], "_"),
                           cross_validation = 10)
   
   ###.............. Saving evaluation data
@@ -774,7 +774,7 @@ for (i in 1:length(sp_name))
   # writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp85.tif"), format = "GTiff")
   
   ###.............. Saving Ensembles
-  write.table(result[["Ensemble"]], paste0("./data/outputs/XP5/ensembles/xp5_", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
+  write.table(result[["Ensemble"]], paste0("./data/outputs/ensembles/xp5_", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
   
   rm(result)
   gc()
@@ -783,39 +783,142 @@ beep(8)
 
 ###.............. Plotting Ensembles
 PlotEnsemble(occur     = "./data/occurrences/occur_thinned.txt",
-             ensb_data = "./data/outputs/XP5/ensembles/",
+             ensb_data = "./data/outputs/ensembles/",
              sp        = sp_name,
-             output    = "./data/outputs/XP5/ensembles/xp5_plot_")
+             output    = "./data/outputs/ensembles/xp5_plot_")
 
 # ***************************************************************************************
 ## 12.  Selecting XP from XP2:XP5                    ----
-###.....................................
-
-only_climatic <- read.table("./data/outputs/XP1/ensembles/xp1_Lithurgus_huberi_ENSEMBLES.txt", sep = "\t", h = T)[,3]
-sep_pa   <- read.table("./data/outputs/XP2/ensembles/xp2_Lithurgus_huberi_ENSEMBLES.txt", sep = "\t", h = T)[,3]
-sep_suit <- read.table("./data/outputs/XP3/ensembles/xp3_Lithurgus_huberi_ENSEMBLES.txt", sep = "\t", h = T)[,3]
-stk_pa   <- read.table("./data/outputs/XP4/ensembles/xp4_Lithurgus_huberi_ENSEMBLES.txt", sep = "\t", h = T)[,3]
-stk_suit <- read.table("./data/outputs/XP5/ensembles/xp5_Lithurgus_huberi_ENSEMBLES.txt", sep = "\t", h = T)[,3]
-data <- as.data.frame(cbind(only_climatic, sep_pa, sep_suit, stk_pa, stk_suit))
-head(data)
-data_stack <- data.frame(stack(data[1:5]))
-head(data_stack)
-tail(data_stack)
-
-if(!require(lme4)){install.packages("lme4")}
-if(!require(lmerTest)){install.packages("lmerTest")}
-
-rmaov <- lmer(values ~ ind + (1|ind), data = data_stack)
-anova(rmaov)
-
-# AVALIAÇAO DA REPRESENTATIVIDADE	
+##      .......... by d                              ----
 # Anova de Medidas Repetidas (mesmos subconjuntos de XP2 a XP5)	
-# 1	
-# preditor: adequabilidade ponderada XP2:XP7	
-# resposta: huberi (mesma resposta dividida nos mesmos subgrupos %treino/%teste nos 4 XPs)	
-# 2	
-# preditor: tamanho de range  XP2:XP5	
-# resposta: huberi	
+# preditor:  XP1:XP5	
+# resposta: estatística "d" para cada método	
+
+# XP1 <- read.table("./data/outputs/XP1/Lithurgus_huberi_d_current.txt", sep = "\t", h = T)
+# XP2 <- read.table("./data/outputs/XP2/Lithurgus_huberi_d_current.txt", sep = "\t", h = T)
+# XP3 <- read.table("./data/outputs/XP3/Lithurgus_huberi_d_current.txt", sep = "\t", h = T)
+# XP4 <- read.table("./data/outputs/XP4/Lithurgus_huberi_d_current.txt", sep = "\t", h = T)
+# XP5 <- read.table("./data/outputs/XP5/Lithurgus_huberi_d_current.txt", sep = "\t", h = T)
+# 
+# CV_only  <- rep("CV-only", 10)
+# sep_pa   <- rep("sep_pa", 10)
+# sep_suit <- rep("sep_suit", 10)
+# stk_pa   <- rep("stk_pa", 10)
+# stk_suit <- rep("stk_suit", 10)
+# 
+# CV_only  <- cbind(CV_only, XP1)
+# sep_pa   <- cbind(sep_pa, XP2)
+# sep_suit <- cbind(sep_suit, XP3)
+# stk_pa   <- cbind(stk_pa, XP4)
+# stk_suit <- cbind(stk_suit, XP5)
+# 
+# names(CV_only) <- names(sep_pa) <- names(sep_suit) <- names(stk_pa) <- names(stk_suit) <- c("id","bioclim", "maxent", "SVM")
+# 
+# 
+# data <- as.data.frame(rbind(CV_only, sep_pa, sep_suit, stk_pa, stk_suit))
+# head(data)
+# data_stack <- data.frame(data[1], stack(data[2:4]))
+# head(data_stack)
+# tail(data_stack)
+# 
+# write.table(data_stack, "Lithurgus_anorep_suit.txt", sep = "\t")
+# 
+# if(!require(lme4)){install.packages("lme4")}
+# if(!require(lmerTest)){install.packages("lmerTest")}
+# library(car)
+# factordata <- as.fac
+# 
+# anova <- aov(values~id, data = data_stack)
+# 
+#  rmaov <- lmer(values ~ id + (1|ind), data = data_stack)
+# anova(rmaov)
+# 
+# data_stack$values <- factor(data_stack$values)
+# data_stack$id <- factor(data_stack$id)
+# 
+# boxplot(id ~ values, data_stack)
+
+# .................................................
+
+
+##      .......... by range                          ----
+
+# predictor: XP1:XP5	
+# resposta: tamanho de range
+
+#........... calculating range.
+source("./get_range.R")
+
+#...........
+XP1 <- get.range(biovar_current = "./data/climatic_vars/selected/current/",
+                 sp_name        = "Lithurgus_huberi_",
+                 pout           = "./data/outputs/XP1/Pout/xp1_",
+                 thr            = "./data/outputs/XP1/",
+                 cross_val      = 10,
+                 AOGCMs         = 3)
+
+write.table(XP1[["pres"]], "./data/outputs/range/xp1_Lithurgus_huberi_current.txt", sep = "\t", row.names = F)
+write.table(XP1[["fut26"]], "./data/outputs/range/xp1_Lithurgus_huberi_rcp26.txt", sep = "\t", row.names = F)
+write.table(XP1[["fut45"]], "./data/outputs/range/xp1_Lithurgus_huberi_rcp45.txt", sep = "\t", row.names = F)
+write.table(XP1[["fut60"]], "./data/outputs/range/xp1_Lithurgus_huberi_rcp60.txt", sep = "\t", row.names = F)
+write.table(XP1[["fut85"]], "./data/outputs/range/xp1_Lithurgus_huberi_rcp85.txt", sep = "\t", row.names = F)
+
+#...........
+XP2 <- get.range(biovar_current = "./data/climatic_vars/selected/current/",
+                 sp_name        = "Lithurgus_huberi_",
+                 pout           = "./data/outputs/XP2/Pout/xp2_",
+                 thr            = "./data/outputs/XP2/",
+                 cross_val      = 10,
+                 AOGCMs         = 3)
+
+write.table(XP2[["pres"]], "./data/outputs/range/xp2_Lithurgus_huberi_current.txt", sep = "\t", row.names = F)
+write.table(XP2[["fut26"]], "./data/outputs/range/xp2_Lithurgus_huberi_rcp26.txt", sep = "\t", row.names = F)
+write.table(XP2[["fut45"]], "./data/outputs/range/xp2_Lithurgus_huberi_rcp45.txt", sep = "\t", row.names = F)
+write.table(XP2[["fut60"]], "./data/outputs/range/xp2_Lithurgus_huberi_rcp60.txt", sep = "\t", row.names = F)
+write.table(XP2[["fut85"]], "./data/outputs/range/xp2_Lithurgus_huberi_rcp85.txt", sep = "\t", row.names = F)
+
+#...........
+XP3 <- get.range(biovar_current = "./data/climatic_vars/selected/current/",
+                 sp_name        = "Lithurgus_huberi_",
+                 pout           = "./data/outputs/XP3/Pout/xp3_",
+                 thr            = "./data/outputs/XP3/",
+                 cross_val      = 10,
+                 AOGCMs         = 3)
+
+write.table(XP3[["pres"]], "./data/outputs/range/xp3_Lithurgus_huberi_current.txt", sep = "\t", row.names = F)
+write.table(XP3[["fut26"]], "./data/outputs/range/xp3_Lithurgus_huberi_rcp26.txt", sep = "\t", row.names = F)
+write.table(XP3[["fut45"]], "./data/outputs/range/xp3_Lithurgus_huberi_rcp45.txt", sep = "\t", row.names = F)
+write.table(XP3[["fut60"]], "./data/outputs/range/xp3_Lithurgus_huberi_rcp60.txt", sep = "\t", row.names = F)
+write.table(XP3[["fut85"]], "./data/outputs/range/xp3_Lithurgus_huberi_rcp85.txt", sep = "\t", row.names = F)
+
+#...........
+XP4 <- get.range(biovar_current = "./data/climatic_vars/selected/current/",
+                 sp_name        = "Lithurgus_huberi_",
+                 pout           = "./data/outputs/XP4/Pout/xp4_",
+                 thr            = "./data/outputs/XP4/",
+                 cross_val      = 10,
+                 AOGCMs         = 3)
+
+write.table(XP4[["pres"]], "./data/outputs/range/xp4_Lithurgus_huberi_current.txt", sep = "\t", row.names = F)
+write.table(XP4[["fut26"]], "./data/outputs/range/xp4_Lithurgus_huberi_rcp26.txt", sep = "\t", row.names = F)
+write.table(XP4[["fut45"]], "./data/outputs/range/xp4_Lithurgus_huberi_rcp45.txt", sep = "\t", row.names = F)
+write.table(XP4[["fut60"]], "./data/outputs/range/xp4_Lithurgus_huberi_rcp60.txt", sep = "\t", row.names = F)
+write.table(XP4[["fut85"]], "./data/outputs/range/xp4_Lithurgus_huberi_rcp85.txt", sep = "\t", row.names = F)
+
+#...........
+XP5 <- get.range(biovar_current = "./data/climatic_vars/selected/current/",
+                 sp_name        = "Lithurgus_huberi_",
+                 pout           = "./data/outputs/XP5/Pout/xp5_",
+                 thr            = "./data/outputs/XP5/",
+                 cross_val      = 10,
+                 AOGCMs         = 3)
+
+write.table(XP5[["pres"]], "./data/outputs/range/xp5_Lithurgus_huberi_current.txt", sep = "\t", row.names = F)
+write.table(XP5[["fut26"]], "./data/outputs/range/xp5_Lithurgus_huberi_rcp26.txt", sep = "\t", row.names = F)
+write.table(XP5[["fut45"]], "./data/outputs/range/xp5_Lithurgus_huberi_rcp45.txt", sep = "\t", row.names = F)
+write.table(XP5[["fut60"]], "./data/outputs/range/xp5_Lithurgus_huberi_rcp60.txt", sep = "\t", row.names = F)
+write.table(XP5[["fut85"]], "./data/outputs/range/xp5_Lithurgus_huberi_rcp85.txt", sep = "\t", row.names = F)
+
 
 ## 13.  Preparing analysis factors                   ----
 ###.....................................
