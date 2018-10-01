@@ -32,7 +32,7 @@ multiple_ENMs <- function(occurrence,
   occur <- read.table(occurrence, sep = ";", h = T)
   back  <- read.table(background, sep = ";", h = T)
   
-  ###.............. Creating objects for saving the results
+  ###.............. Creating objects to save the results
   
   bioclim_c <- maxent_c <- SVM_c <- stack()
   
@@ -40,7 +40,6 @@ multiple_ENMs <- function(occurrence,
   bioclim_t <- maxent_t <- SVM_t <- NULL # The highest threshold at which there is no omission
   bioclim_d <- maxent_d <- SVM_d <- NULL # Area predicted as presence
   
-
   ### Cross validation                ----
   n_cells <- nrow(na.omit(values(current)))
   for (i in 1:cross_validation)
