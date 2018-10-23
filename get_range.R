@@ -21,7 +21,7 @@ get.range <- function(biovar_current,
   bioclim_45_r <- maxent_45_r <- SVM_45_r <- NULL
   bioclim_60_r <- maxent_60_r <- SVM_60_r <- NULL
   bioclim_85_r <- maxent_85_r <- SVM_85_r <- NULL
-  i=1
+
   for (i in 1:cross_val)
   {
     #... reading predictions for futures
@@ -46,15 +46,18 @@ get.range <- function(biovar_current,
     
     val_bioclim <- na.omit(values(bioclim_c[[i]]))
     PAb <- ifelse(val_bioclim >= thr$bioclim[i], 1, 0)
-    bioclim_pres <- c(bioclim_pres, sum(PAb)/n_cells)
+    # bioclim_pres <- c(bioclim_pres, sum(PAb)/n_cells) # range prop number of cells of the studied grid.
+    bioclim_pres <- c(bioclim_pres, sum(PAb)/1000) # range = number of cells with presence (sum 1s)
     
     val_maxent <- na.omit(values(maxent_c[[i]]))
-    PAb <- ifelse(val_maxent >= thr$maxent[i], 1, 0)
-    maxent_pres <- c(maxent_pres, sum(PAb)/n_cells)
+    PAm <- ifelse(val_maxent >= thr$maxent[i], 1, 0)
+    # maxent_pres <- c(maxent_pres, sum(PAm)/n_cells)
+    maxent_pres <- c(maxent_pres, sum(PAm)/1000)
     
     val_SVM <- na.omit(values(SVM_c[[i]]))
-    PAb <- ifelse(val_SVM >= thr$SVM[i], 1, 0)
-    SVM_pres <- c(SVM_pres, sum(PAb)/n_cells)
+    PAs <- ifelse(val_SVM >= thr$SVM[i], 1, 0)
+    # SVM_pres <- c(SVM_pres, sum(PAs)/n_cells)
+    SVM_pres <- c(SVM_pres, sum(PAs)/1000)
     
     #fut
     bioclim_fut26 <- maxent_fut26 <- SVM_fut26 <- NULL
@@ -67,54 +70,66 @@ get.range <- function(biovar_current,
       #RCP26
       val_bioclim <- na.omit(values(bioclim_26[[j]]))
       PAb <- ifelse(val_bioclim >= thr$bioclim[i], 1, 0)
-      bioclim_fut26 <- cbind(bioclim_fut26, sum(PAb)/n_cells)
+      bioclim_fut26 <- cbind(bioclim_fut26, sum(PAb)/1000) 
+      # bioclim_fut26 <- cbind(bioclim_fut26, sum(PAb)/n_cells) 
       
       val_maxent <- na.omit(values(maxent_26[[j]]))
-      PAb <- ifelse(val_maxent >= thr$maxent[i], 1, 0)
-      maxent_fut26 <- cbind(maxent_fut26, sum(PAb)/n_cells)
+      PAm <- ifelse(val_maxent >= thr$maxent[i], 1, 0)
+      maxent_fut26 <- cbind(maxent_fut26, sum(PAm)/1000)
+      # maxent_fut26 <- cbind(maxent_fut26, sum(PAm)/n_cells)
       
       val_SVM <- na.omit(values(SVM_26[[j]]))
-      PAb <- ifelse(val_SVM >= thr$SVM[i], 1, 0)
-      SVM_fut26 <- cbind(SVM_fut26, sum(PAb)/n_cells)
+      PAs <- ifelse(val_SVM >= thr$SVM[i], 1, 0)
+      SVM_fut26 <- cbind(SVM_fut26, sum(PAs)/1000)
+      # SVM_fut26 <- cbind(SVM_fut26, sum(PAs)/n_cells)
       
       #RCP45
       val_bioclim <- na.omit(values(bioclim_45[[j]]))
       PAb <- ifelse(val_bioclim >= thr$bioclim[i], 1, 0)
-      bioclim_fut45 <- cbind(bioclim_fut45, sum(PAb)/n_cells)
+      bioclim_fut45 <- cbind(bioclim_fut45, sum(PAb)/1000)
+      # bioclim_fut45 <- cbind(bioclim_fut45, sum(PAb)/n_cells)
       
       val_maxent <- na.omit(values(maxent_45[[j]]))
       PAm <- ifelse(val_maxent >= thr$maxent[i], 1, 0)
-      maxent_fut45 <- cbind(maxent_fut45, sum(PAm)/n_cells)
+      maxent_fut45 <- cbind(maxent_fut45, sum(PAm)/1000)
+      # maxent_fut45 <- cbind(maxent_fut45, sum(PAm)/n_cells)
       
       val_SVM <- na.omit(values(SVM_45[[j]]))
       PAs <- ifelse(val_SVM >= thr$SVM[i], 1, 0)
-      SVM_fut45 <- cbind(SVM_fut45, sum(PAs)/n_cells)
+      SVM_fut45 <- cbind(SVM_fut45, sum(PAs)/1000)
+      # SVM_fut45 <- cbind(SVM_fut45, sum(PAs)/n_cells)
       
       #RCP60
       val_bioclim <- na.omit(values(bioclim_60[[j]]))
       PAb <- ifelse(val_bioclim >= thr$bioclim[i], 1, 0)
-      bioclim_fut60 <- cbind(bioclim_fut60, sum(PAb)/n_cells)
+      bioclim_fut60 <- cbind(bioclim_fut60, sum(PAb)/1000)
+      # bioclim_fut60 <- cbind(bioclim_fut60, sum(PAb)/n_cells)
       
       val_maxent <- na.omit(values(maxent_60[[j]]))
       PAm <- ifelse(val_maxent >= thr$maxent[i], 1, 0)
-      maxent_fut60 <- cbind(maxent_fut60, sum(PAm)/n_cells)
+      maxent_fut60 <- cbind(maxent_fut60, sum(PAm)/1000)
+      # maxent_fut60 <- cbind(maxent_fut60, sum(PAm)/n_cells)
       
       val_SVM <- na.omit(values(SVM_60[[j]]))
       PAs <- ifelse(val_SVM >= thr$SVM[i], 1, 0)
-      SVM_fut60 <- cbind(SVM_fut60, sum(PAs)/n_cells)
+      SVM_fut60 <- cbind(SVM_fut60, sum(PAs)/1000)
+      # SVM_fut60 <- cbind(SVM_fut60, sum(PAs)/n_cells)
       
       #RCP85
       val_bioclim <- na.omit(values(bioclim_85[[j]]))
       PAb <- ifelse(val_bioclim >= thr$bioclim[i], 1, 0)
-      bioclim_fut85 <- cbind(bioclim_fut85, sum(PAb)/n_cells)
+      bioclim_fut85 <- cbind(bioclim_fut85, sum(PAb)/1000)
+      # bioclim_fut85 <- cbind(bioclim_fut85, sum(PAb)/n_cells)
       
       val_maxent <- na.omit(values(maxent_85[[j]]))
       PAm <- ifelse(val_maxent >= thr$maxent[i], 1, 0)
-      maxent_fut85 <- cbind(maxent_fut85, sum(PAm)/n_cells)
+      maxent_fut85 <- cbind(maxent_fut85, sum(PAm)/1000)
+      # maxent_fut85 <- cbind(maxent_fut85, sum(PAm)/n_cells)
       
       val_SVM <- na.omit(values(SVM_85[[j]]))
       PAs <- ifelse(val_SVM >= thr$SVM[i], 1, 0)
-      SVM_fut85 <- cbind(SVM_fut85, sum(PAs)/n_cells)
+      SVM_fut85 <- cbind(SVM_fut85, sum(PAs)/1000)
+      # SVM_fut85 <- cbind(SVM_fut85, sum(PAs)/n_cells)
     }
     
     bioclim_26_r <- rbind(bioclim_26_r, bioclim_fut26)

@@ -76,7 +76,7 @@ PlotEnsemble <- function(occur, ensb_data, sp, output)
     # scn <- names(FULLensemble)[c(3:7)] # 5 ensembles: presente and four RCPs...
     
     pdf(paste0(output, sp[i], ".pdf" ), width = 14, height = 10)
-    par(mfrow = c(3,2),
+    par(#mfrow = c(3,2),
         oma   = c(0, 0, 5, 0))
     p <- NULL
     for(j in 1:length(scn))

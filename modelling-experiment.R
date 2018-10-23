@@ -1,16 +1,15 @@
 file.edit("readme.R")
-
+citation(package = "kernlab", lib.loc = NULL)
+RStudio.Version()
+R.Version()
 # ****  Loading functions                            ----
-
 source("./Auxiliary_functions.R")
 source("./Multiple_ENMs.R")
 source("./ensemble.R")
+
 # file.edit(c("./Auxiliary_functions.R", "./Multiple_ENMs.R"))
 
 # ****  Loading packages                             ----
-
-# install.packages(c("tidyverse", "raster", "rgdal", "abind", "spThin", "vegan", "maps", "pcych", "kernlab", "dismo", "rJava", "dendextend", "beepr"))
-
 load_pak(c("tidyverse", "raster", "rgdal", "abind", "spThin", "dismo", "kernlab", "vegan", "maps", "psych", "rJava", "dendextend", "beepr", "data.table"))
 
 # ***************************************************************************************
@@ -300,36 +299,8 @@ for (i in 1:length(sp_names))
 }
 beep(8)
 
-## 07.d ..... Ensembles and Final Outputs            ----
-#   .....................................................................................
-source("./ensemble.R")
-ALLsp_names
-for (i in 1:length(ALLsp_names))
-{
-  result <- ensemble(Pout           =  "./data/outputs/XP1/Pout/",
-                     Alld           =  paste0("./data/outputs/XP1/", ALLsp_names[i], "_d_current.txt"),
-                     sp             =  ALLsp_names[i],
-                     AOGCMs         =  c(1, 2, 3),
-                     biovar_current =  "./data/climatic_vars/selected/current/")
-  
-  # ##.............. Saving predictions
-  # Section removed to save memory during processing. Here we would apend all individual predictions into four major output objetcs. Unecessary since we already have all the predictions saved as raster as produced within the cross-validation loop.
 
-  ###.............. Saving Ensembles
-  write.table(result[["Ensemble"]],   paste0("./data/outputs/ensembles/xp1_", ALLsp_names[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
-  
-  rm(result)
-  gc()
-}
-beep(8)
-
-###.............. Plotting Ensembles
-PlotEnsemble(occur     = "./data/occurrences/occur_thinned.txt",
-             ensb_data = "./data/outputs/ensembles/xp1_",
-             sp        = ALLsp_names,
-             output    = "./data/outputs/ensembles/xp1_plot_")
-
-## 07.e ..... New Predictor variables                ----
+## 07.e ..... New Predictor variables (XP2)          ----
 #   .....................................................................................
 
 biovar_current <- "./data/climatic_vars/selected/current/"
@@ -345,7 +316,7 @@ AOGCMs  <-  c(1, 2, 3)
 SPid <- paste0("SP", 1:7)
 SPid_stk <- "stk"
 
-##      .......... sep_pa   (xp2)                    ----
+##      .......... sep_pa                            ----
 ## .......... generating vars .............
 PApres    <- NULL
 PArcp26.1 <- PArcp26.2 <- PArcp26.3 <- NULL
@@ -408,7 +379,7 @@ for (i in AOGCMs)
   writeRaster(PA_85, paste0("./data/outputs/predictors/XP2/rcp85/sep_PA_85_", i,".tif"), format = "GTiff", overwrite = TRUE)
 }
 
-##      .......... sep_suit (xp3)                    ----
+##      .......... sep_suit                          ----
 ## .......... generating vars .............
 SUITpres    <- NULL
 SUITrcp26.1 <- SUITrcp26.2 <- SUITrcp26.3 <- NULL
@@ -468,7 +439,7 @@ for (i in AOGCMs)
   writeRaster(SUIT_85, paste0("./data/outputs/predictors/XP3/rcp85/sep_suit_85_", i,".tif"), format = "GTiff", overwrite = TRUE)
 }
 
-##      .......... stk_pa   (xp4)                    ----
+##      .......... stk_pa                            ----
 
 pres_STK  <- rowSums(PApres)
 PA_c_STK  <- rasterFromXYZ(cbind(coords, pres_STK))
@@ -495,7 +466,7 @@ for (i in AOGCMs)
   writeRaster(PA_85_STK, paste0("./data/outputs/predictors/XP4/rcp85/stk_PA_85_", i,".tif"), format = "GTiff", overwrite = TRUE)
 }
 
-##      .......... stk_suit (xp5)                    ----
+##      .......... stk_suit                          ----
 
 # SUITrcp26.mat <- do.call(rbind, lapply(SUITrcp26, matrix, ncol = 21, byrow = TRUE))
 pres_STK  <- rowMeans(SUITpres)  / ncol(SUITpres)
@@ -524,7 +495,7 @@ for (i in AOGCMs)
 }
 
 # ***************************************************************************************
-## 08.  XP2                                          ----
+## 08.  SEP_PA                                       ----
 ###.....................................
 # Biotic Predictor	 SEP/PA - Plants XP1.2
 # Variables       	 abiotic + SEP/PA -  (12 vars = 5  + 7 )
@@ -563,33 +534,10 @@ for (i in 1:length(sp_name))
 }
 beep(8)
 
-###.............. Ensembles and final outputs
-sp_name
-for (i in 1:length(sp_name))
-{
-  result <- ensemble(Pout           = "./data/outputs/XP2/Pout/",
-                     Alld           =  paste0("./data/outputs/XP2/", sp_name[i], "_d_current.txt"),
-                     sp             = sp_name[i],
-                     AOGCMs         = c(1, 2, 3),
-                     biovar_current = "./data/climatic_vars/selected/current/")
- 
-   ###.............. Saving Ensembles
-  write.table(result[["Ensemble"]], paste0("./data/outputs/ensembles/xp2_", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
-  
-  rm(result)
-  gc()
-}
-beep(8)
-
-###.............. Plotting Ensembles
-PlotEnsemble(occur     = "./data/occurrences/occur_thinned.txt",
-             ensb_data = "./data/outputs/ensembles/xp2_",
-             sp        = sp_name,
-             output    = "./data/outputs/ensembles/xp2_plot_")
 
 # ***************************************************************************************
 
-## 09.  XP3                                          ----
+## 09.  SEP_SUIT                                     ----
 ###.....................................
 # Biotic Predictor	 SEP/SUIT - Plants XP1.2
 # Variables       	 abiotic + SEP/SUIT -  (12 vars = 5  + 7 )
@@ -627,34 +575,9 @@ for (i in 1:length(sp_name))
 }
 beep(8)
 
-
-###.............. Ensembles and final outputs
-sp_name
-for (i in 1:length(sp_name))
-{
-  result <- ensemble(Pout           = "./data/outputs/XP3/Pout/",
-                     Alld           =  paste0("./data/outputs/XP3/", sp_name[i], "_d_current.txt"),
-                     sp             = sp_name[i],
-                     AOGCMs         = c(1, 2, 3),
-                     biovar_current = "./data/climatic_vars/selected/current/")
-  
-  ###.............. Saving Ensembles
-  write.table(result[["Ensemble"]], paste0("./data/outputs/ensembles/xp3_", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
-  
-  rm(result)
-  gc()
-}
-beep(8)
-
-###.............. Plotting Ensembles
-PlotEnsemble(occur     = "./data/occurrences/occur_thinned.txt",
-             ensb_data = "./data/outputs/ensembles/",
-             sp        = sp_name,
-             output    = "./data/outputs/ensembles/xp3_plot_")
-
 # ***************************************************************************************
 
-## 10.  XP4                                          ----
+## 10.  STK_PA                                       ----
 ###.....................................
 # Biotic Predictor	 STK/PA - Plants XP1.2
 # Variables       	 abiotic + STK/PA -  (6 vars = 5  + 1 )
@@ -693,32 +616,10 @@ for (i in 1:length(sp_name))
 }
 beep(8)
 
-###.............. Ensembles and final outputs
-sp_name
-for (i in 1:length(sp_name))
-{
-  result <- ensemble(Pout           = "./data/outputs/XP4/Pout/",
-                     Alld           =  paste0("./data/outputs/XP4/", sp_name[i], "_d_current.txt"),
-                     sp             = sp_name[i],
-                     AOGCMs         = c(1, 2, 3),
-                     biovar_current = "./data/climatic_vars/selected/current/")
-                     
-  ###.............. Saving Ensembles
-  write.table(result[["Ensemble"]], paste0("./data/outputs/ensembles/xp4_", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
-  
-  rm(result)
-  gc()
-}
-beep(8)
 
-###.............. Plotting Ensembles
-PlotEnsemble(occur     = "./data/occurrences/occur_thinned.txt",
-             ensb_data = "./data/outputs/ensembles/xp4_",
-             sp        = sp_name,
-             output    = "./data/outputs/ensembles/xp4_plot_")
 # ***************************************************************************************
 
-## 11.  XP5                                          ----
+## 11.  STK_SUIT                                     ----
 ###.....................................
 # Biotic Predictor	 STK/SUIT - Plants XP1.2
 # Variables       	 abiotic + STK/SUIT -  (6 vars = 5  + 1 )
@@ -756,7 +657,117 @@ for (i in 1:length(sp_name))
 }
 beep(8)
 
-###.............. Ensembles and final outputs
+
+# ***************************************************************************************
+## 12.  Ensembles and Final Outputs                  ----
+#   .....................................................................................
+source("./ensemble.R")
+
+#   ...............XP1
+ALLsp_names
+for (i in 1:length(ALLsp_names))
+{
+  result <- ensemble(Pout           =  "./data/outputs/XP1/Pout/",
+                     Alld           =  paste0("./data/outputs/XP1/", ALLsp_names[i], "_d_current.txt"),
+                     sp             =  ALLsp_names[i],
+                     AOGCMs         =  c(1, 2, 3),
+                     biovar_current =  "./data/climatic_vars/selected/current/")
+  
+### Saving predictions
+  # Section removed to save memory during processing. Here we would apend all individual predictions into four major output objetcs. Unecessary since we already have all the predictions saved as raster as produced within the cross-validation loop.
+  
+### Saving Ensembles
+  write.table(result[["Ensemble"]],   paste0("./data/outputs/ensembles/xp1_", ALLsp_names[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
+  
+  rm(result)
+  gc()
+}
+beep(8)
+
+### Plotting Ensembles
+PlotEnsemble(occur     = "./data/occurrences/occur_thinned.txt",
+             ensb_data = "./data/outputs/ensembles/xp1_",
+             sp        = ALLsp_names,
+             output    = "./data/outputs/ensembles/xp1_plot_ind_")
+
+#   ...............XP2
+
+sp_name
+for (i in 1:length(sp_name))
+{
+  result <- ensemble(Pout           = "./data/outputs/XP2/Pout/",
+                     Alld           =  paste0("./data/outputs/XP2/", sp_name[i], "_d_current.txt"),
+                     sp             = sp_name,
+                     AOGCMs         = c(1, 2, 3),
+                     biovar_current = "./data/climatic_vars/selected/current/")
+  
+### Saving Ensembles
+  write.table(result[["Ensemble"]], paste0("./data/outputs/ensembles/xp2_", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
+  
+  rm(result)
+  gc()
+}
+beep(8)
+
+### Plotting Ensembles
+PlotEnsemble(occur     = "./data/occurrences/occur_thinned.txt",
+             ensb_data = "./data/outputs/ensembles/xp2_",
+             sp        = sp_name,
+             output    = "./data/outputs/ensembles/xp2_plot_ind")
+
+#   ...............XP3
+
+sp_name
+for (i in 1:length(sp_name))
+{
+  result <- ensemble(Pout           = "./data/outputs/XP3/Pout/",
+                     Alld           =  paste0("./data/outputs/XP3/", sp_name[i], "_d_current.txt"),
+                     sp             = sp_name[i],
+                     AOGCMs         = c(1, 2, 3),
+                     biovar_current = "./data/climatic_vars/selected/current/")
+
+### Saving Ensembles
+  write.table(result[["Ensemble"]], paste0("./data/outputs/ensembles/xp3_", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
+  
+  rm(result)
+  gc()
+}
+beep(8)
+
+### Plotting Ensembles
+PlotEnsemble(occur     = "./data/occurrences/occur_thinned.txt",
+             ensb_data = "./data/outputs/ensembles/xp3_",
+             sp        = sp_name,
+             output    = "./data/outputs/ensembles/xp3_plot_ind")
+
+
+#   ...............XP4
+
+sp_name
+for (i in 1:length(sp_name))
+{
+  result <- ensemble(Pout           = "./data/outputs/XP4/Pout/",
+                     Alld           =  paste0("./data/outputs/XP4/", sp_name[i], "_d_current.txt"),
+                     sp             = sp_name[i],
+                     AOGCMs         = c(1, 2, 3),
+                     biovar_current = "./data/climatic_vars/selected/current/")
+  
+### Saving Ensembles
+  write.table(result[["Ensemble"]], paste0("./data/outputs/ensembles/xp4_", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
+  
+  rm(result)
+  gc()
+}
+beep(8)
+
+### Plotting Ensembles
+PlotEnsemble(occur     = "./data/occurrences/occur_thinned.txt",
+             ensb_data = "./data/outputs/ensembles/xp4_",
+             sp        = sp_name,
+             output    = "./data/outputs/ensembles/xp4_plot_ind")
+
+#   ...............XP5
+
 sp_name
 for (i in 1:length(sp_name))
 {
@@ -766,14 +777,14 @@ for (i in 1:length(sp_name))
                      AOGCMs         = c(1, 2, 3),
                      biovar_current = "./data/climatic_vars/selected/current/")
   
-  ###.............. Saving predictions
+### Saving predictions
   # writeRaster(result[["output_current"]], paste0("./data/outputs/XP5/", sp_name[i],"_current.tif"), format = "GTiff")
   # writeRaster(result[["output_rcp26"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp26.tif"), format = "GTiff")
   # writeRaster(result[["output_rcp45"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp45.tif"), format = "GTiff")
   # writeRaster(result[["output_rcp60"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp60.tif"), format = "GTiff")
   # writeRaster(result[["output_rcp85"]],   paste0("./data/outputs/XP5/", sp_name[i],"_rcp85.tif"), format = "GTiff")
   
-  ###.............. Saving Ensembles
+### Saving Ensembles
   write.table(result[["Ensemble"]], paste0("./data/outputs/ensembles/xp5_", sp_name[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
   
   rm(result)
@@ -781,14 +792,14 @@ for (i in 1:length(sp_name))
 }
 beep(8)
 
-###.............. Plotting Ensembles
+### Plotting Ensembles
 PlotEnsemble(occur     = "./data/occurrences/occur_thinned.txt",
-             ensb_data = "./data/outputs/ensembles/",
+             ensb_data = "./data/outputs/ensembles/xp5_",
              sp        = sp_name,
-             output    = "./data/outputs/ensembles/xp5_plot_")
+             output    = "./data/outputs/ensembles/xp5_plot_ind")
 
 # ***************************************************************************************
-## 12.  Selecting XP from XP2:XP5                    ----
+## 12.  Selecting treatment                          ----
 ##      .......... by d                              ----
 # Anova de Medidas Repetidas (mesmos subconjuntos de XP2 a XP5)	
 # preditor:  XP1:XP5	
@@ -864,18 +875,18 @@ write.table(XP1[["fut60"]], "./data/outputs/range/xp1_Lithurgus_huberi_rcp60.txt
 write.table(XP1[["fut85"]], "./data/outputs/range/xp1_Lithurgus_huberi_rcp85.txt", sep = "\t", row.names = F)
 
 #...........
-XP2 <- get.range(biovar_current = "./data/climatic_vars/selected/current/",
+XP2 <- get.range(biovar_current = "./data/climatic_vars/selected/current",
                  sp_name        = "Lithurgus_huberi_",
                  pout           = "./data/outputs/XP2/Pout/xp2_",
                  thr            = "./data/outputs/XP2/",
                  cross_val      = 10,
                  AOGCMs         = 3)
 
-write.table(XP2[["pres"]], "./data/outputs/range/xp2_Lithurgus_huberi_current.txt", sep = "\t", row.names = F)
-write.table(XP2[["fut26"]], "./data/outputs/range/xp2_Lithurgus_huberi_rcp26.txt", sep = "\t", row.names = F)
-write.table(XP2[["fut45"]], "./data/outputs/range/xp2_Lithurgus_huberi_rcp45.txt", sep = "\t", row.names = F)
-write.table(XP2[["fut60"]], "./data/outputs/range/xp2_Lithurgus_huberi_rcp60.txt", sep = "\t", row.names = F)
-write.table(XP2[["fut85"]], "./data/outputs/range/xp2_Lithurgus_huberi_rcp85.txt", sep = "\t", row.names = F)
+write.table(XP2[["pres"]], "./data/outputs/range/xp2_Lithurgus_huberi_current_sumgrid.txt", sep = "\t", row.names = F)
+write.table(XP2[["fut26"]], "./data/outputs/range/xp2_Lithurgus_huberi_rcp26_sumgrid.txt", sep = "\t", row.names = F)
+write.table(XP2[["fut45"]], "./data/outputs/range/xp2_Lithurgus_huberi_rcp45_sumgrid.txt", sep = "\t", row.names = F)
+write.table(XP2[["fut60"]], "./data/outputs/range/xp2_Lithurgus_huberi_rcp60_sumgrid.txt", sep = "\t", row.names = F)
+write.table(XP2[["fut85"]], "./data/outputs/range/xp2_Lithurgus_huberi_rcp85_sumgrid.txt", sep = "\t", row.names = F)
 
 #...........
 XP3 <- get.range(biovar_current = "./data/climatic_vars/selected/current/",

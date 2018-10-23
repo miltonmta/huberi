@@ -1,19 +1,11 @@
+file.edit("readme.R")
+citation(package = "raster", lib.loc = NULL)
 # Selecting AOGCMs - Cluster analysis####
 
-require(raster)
-require(rgdal)
-require(abind)
-require(amap)
-require(stats)
-
-# This script has an index table. If you are in RStudio go to Code > Show Document Outline (shift + command / clrt + o)
-
-# The directories with the data utilized and the ones outputted here can be downloaded from the following OneDrive repositorium:
-browseURL("https://1drv.ms/f/s!ApJZaitgpPr7gZtfS9n9mU9DDzXQMg")
-
-# The models projected for 2070 (average for 2061-2080) were obtain at "worldclim.com" by the spatial resolution of 2.5min (0.04º or ≈ 4.4km). We selected the variables that appear simultaneously in all the representative concentration pathways scnarios (RCP26, RCP45, RCP60, RCP80). The codes of the 11 GCMs utilized are: bc, cc, gs, hd, he, ip, mi, mr, mc, mg, no.
-browseURL("http://www.worldclim.org/cmip5_2.5m")
-
+# ****  Loading packages                             ----
+source("./Auxiliary_functions.R")
+load_pak(c("tidyverse", "raster", "rgdal", "abind", "vegan", 
+           "maps", "dendextend", "beepr", "data.table", "amap", "stats"))
 
 ## Wolrdclim GCM	code----
 
@@ -30,36 +22,17 @@ browseURL("http://www.worldclim.org/cmip5_2.5m")
 # NorESM1-M	        NO
 
 
+# ***************************************************************************************
 ### Read the variables ----
 
-tooth_fairy <- function (x)
-{
-  directories <- list.dirs( x, full.names = TRUE)[-1]
-  e <- extent(-122, -18, -56, 14)
-  rcp <- NULL
-  # models <- list()
-  
-  for (i in 1:length(directories))
-  {
-    models_raw <- stack(list.files(directories[i],pattern = ".tif$", full.names = TRUE))
-    models_e <- crop( models_raw , e ) 
-    val <- values (models_e)
-    coord <- xyFromCell(models_e, 1:ncell(models_e))
-    models <- cbind(coord, val)
-    models <- na.omit(models)
-    # models <- rasterToPoints(model) # suggested by R. Hijimans at SO
-    rcp <- abind (rcp, models, along = 3)
-  }
-  
-  return(rcp) 
-}
-
-rcp_26 <- tooth_fairy( x = "./data/climatic_vars/26bi70/")
-rcp_45 <- tooth_fairy( x = "./data/climatic_vars/45bi70/")
-rcp_60 <- tooth_fairy( x = "./data/climatic_vars/60bi70/")
-rcp_85 <- tooth_fairy( x = "./data/climatic_vars/85bi70/")
-
-## plot variables
+rcp_26 <- read_rcp( x = "./data/climatic_vars/26bi70/")
+rcp_26 <- rcp_26[["array"]]
+rcp_45 <- read_rcp( x = "./data/climatic_vars/45bi70/")
+rcp_45 <- rcp_45[["array"]]
+rcp_60 <- read_rcp( x = "./data/climatic_vars/60bi70/")
+rcp_60 <- rcp_60[["array"]]
+rcp_85 <- read_rcp( x = "./data/climatic_vars/85bi70/")
+rcp_85 <- rcp_85[["array"]]
 
 
 ### Standard Deviation of the variables-----
@@ -79,11 +52,12 @@ rcp_85 <- tooth_fairy( x = "./data/climatic_vars/85bi70/")
 # library (amap)
 model_names <- c("BCC-CSM1-1", "CCSM4", "GISS-EZ-R", "HadGEM2-AO", "HadGEM2-ES", "IPSL-CM5A-LR", "MIROC5", "MRI-CGCM3", "MIROC-ESM-CHEM", "MIROC-ESM", "NorESM1-M") # must be in the same order of the directories.
 # model_names <- c("BC", "CC", "GS", "HD", "HE", "IP", "MC", "MG", "MI", "MR", "NO") # must be in the same order of the directories.
+rcp <- rcp_85 # change the rcp entry here
 
 hc <- list()
 for (i in 1:19)
 {
-  raw_data <- t(rcp_60[ , i+2, ]) # get the variable data except the first two columms (lat, long)
+  raw_data <- t(rcp[ , i+2, ]) # get the variable data except the first two columms (lat, long)
   rownames (raw_data) <- model_names 
   cor_bio <- hcluster (raw_data, method = "correlation")
   # rect.hclust(raw_data, k=i, border = "gray") Erro: $ operator is invalid for atomic vectors
@@ -106,7 +80,7 @@ for (i in 1:19)
 hc_2 <- list()
 for (i in 1:19)
 {
-  raw_data <- t(rcp_60[ , i+2, ])
+  raw_data <- t(rcp[ , i+2, ])
   rownames (raw_data) <- model_names 
   cor_bio <- hcluster (raw_data, method = "euclidean")
   hc_2[[i]] <- cor_bio
@@ -126,44 +100,57 @@ plot (hc[[4]],
       main = "Cluster Dendrogram\n(RCP 60)")
 
 ## Response grouping by k means
-res_k_60 <- NULL
+res_k <- NULL
 for (i in 1:19){
   res <- cutree(hc[[i]], k = 4) 
-  res_k_60 <- rbind (res_k_60, res)
+  res_k <- rbind (res_k, res)
 }
 # dev.off()
 
 # Plot and Write the RCP cluster as PDF
 # require(factoextra)
-rownames (res_k_60) <- c(paste ("BIO", c(1:19), sep = "")) 
-hc_k_60 <- hcluster (t(res_k_60), method = "euclidean")
+rownames (res_k) <- c(paste ("BIO", c(1:19), sep = "")) 
 
-par(mar = c(5, 4, 4, 8))
-par(cex = 4)
-pdf("./data/plots/cluster-rcp60.pdf", width=16, height=12)#Open a PDF device. Run at once from here till dev.off()
-par(mar = c(5, 4, 4, 8))
-p <- fviz_dend (hc_k_60,
-                k           = 4,                          #cut in four groups
-                cex         = 0.9,                        #label size
-                horiz       = TRUE,
-                k_colors    = 'jco',
-                # rect        = TRUE,                       # error only at rcp60 at k=4
-                rect_border = 'jco',
-                rect_fill   = TRUE)
-                # k_colors = c("#2E9FDF", "#00AFBB", "#E7B800", "#FC4E07"),
-                # color_labels_by_k = TRUE,
-                # ggtheme = theme_dark(),
-                # main        = "Cluster Dendrogram for RCP 60")
-theme(axis.title = element_text(size = 20))
-print(p)
-dev.off()                                                 # Close the PDF
+# hc_k_26 <- hcluster (t(res_k), method = "euclidean")
+# hc_k_45 <- hcluster (t(res_k), method = "euclidean")
+# hc_k_60 <- hcluster (t(res_k), method = "euclidean")
+hc_k_85 <- hcluster (t(res_k), method = "euclidean")
+
+# par(mar = c(5, 4, 4, 8))
+# par(cex = 4)
+# png("./data/plots/cluster-rcp26.png", width=618, height=535)#Open a PDF device. Run at once from here till dev.off()
+p <- plot (hc_k_85,
+           hang = -1,
+           # cex  = 1.5,
+           main = "RCP 85")
+# t(res_h)
+# print(p)
+# dev.off()                                                 # Close the PDF
+
+# pdf("./data/plots/cluster-rcp60.pdf", width=16, height=12)#Open a PDF device. Run at once from here till dev.off()
+# par(mar = c(5, 4, 4, 8))
+# p <- fviz_dend (hc_k,
+#                 k           = 4,                          #cut in four groups
+#                 cex         = 0.9,                        #label size
+#                 horiz       = TRUE,
+#                 k_colors    = "black",
+#                 # rect        = TRUE,                       # error only at rcp60 at k=4
+#                 rect_border = 'black',
+#                 rect_fill   = TRUE)
+#                 # k_colors = c("#2E9FDF", "#00AFBB", "#E7B800", "#FC4E07"),
+#                 # color_labels_by_k = TRUE,
+#                 # ggtheme = theme_dark(),
+#                 # main        = "Cluster Dendrogram for RCP 60")
+# theme(axis.title = element_text(size = 20))
+# print(p)
+# dev.off()                                                 # Close the PDF
 
 # require(dendextend)
 # require(magrittr)
 # colorfull <- c("#2E9FDF", "#00AFBB", "#E7B800", "#FC4E07")
-# rownames (res_k_45) <- c(paste ("BIO", c(1:19), sep = ""))
+# rownames (res_k) <- c(paste ("BIO", c(1:19), sep = ""))
 # # par(mar = c(5, 4, 4, 8))
-# hc_k_45 <- t(res_k_45) %>%
+# hc_k <- t(res_k) %>%
 #   hcluster() %>%
 #   as.dendrogram() %>%
 #   set("labels_cex", 0.9) %>%
@@ -176,24 +163,24 @@ dev.off()                                                 # Close the PDF
 #                 não é possível misturar coordenadas de comprimento zero com de não-zero
 
 ## See the results table
-t(res_k_60)
+t(res_k)
 
 ?fviz_dend
 # ## Response grouping by Height
-# res_h_26 <- NULL
+# res_h <- NULL
 # for (i in 1:19){
 #   res <- cutree(hc[[i]], h = 0.2) 
-#   res_h_26 <- rbind (res_h_26, res)
+#   res_h <- rbind (res_h, res)
 # }
 # 
 # # Write the RCP cluster and the results table
-# rownames (res_h_26) <- c(paste ("BIO", c(1:19), sep = "")) 
-# hc_h_26 <- hcluster (t(res_h_26), method = "euclidean")
-# plot (hc_h_26,
-#       hang = -1,
-#       # cex  = 0.6,
-#       main = "Cluster Dendrogram by Height\n(RCP 26)")
-# t(res_h_26)
+# rownames (res_h) <- c(paste ("BIO", c(1:19), sep = "")) 
+# hc_h <- hcluster (t(res_h), method = "euclidean")
+plot (hc_k,
+      hang = -1,
+      # cex  = 0.6,
+      main = "Cluster Dendrogram by Height\n(RCP 26)")
+t(res_h)
 
 
 # Tables of cluster results ####
