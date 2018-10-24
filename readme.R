@@ -1,6 +1,6 @@
 #### --- General Info                                  ----
 
-### The directories with the data utilized and the ones outputted here can be downloaded from the following OneDrive repositorium:
+### The directories with the data used and  outputted here can be viewed from a OneDrive Repositorim. For the porpuses of the article submition this information will be removed from this README file.
 browseURL("https://1drv.ms/f/s!ApJZaitgpPr7gZtfS9n9mU9DDzXQMg")
 
 ### This script has an index table. If you are in RStudio go to Code > Show Document Outline (shift + command / clrt + o)
