@@ -67,47 +67,28 @@ beep(2)
 
 ###................ CURRENT
 
-variables <- as.factor(c("bio02", "bio03", "bio10", "bio14", "bio16"))
-for (i in variables)
-{
-  writeRaster (current[[which(names(current) %in% i)]], filename = paste0("./data/climatic_vars/selected/current/current-", i, ".grd"), format = "raster")
-}
-rm(variables)
+writeRaster (current[[c("bio02", "bio03", "bio10", "bio14", "bio16")]], filename = "./data/climatic_vars/selected/current/current.grd", format = "raster", bylayer = F)
 
-current_select <- stack(list.files("./data/climatic_vars/selected/current",  pattern = ".grd$", full.names = TRUE))
+current_select <- stack("./data/climatic_vars/selected/current/current.grd")
+
 beep(2)
 
 ###................ RCPs
 
-variables <- as.factor(c("bio02.1", "bio03.1", "bio10.1", "bio14.1", "bio16.1", 
-                         "bio02.2", "bio03.2", "bio10.2", "bio14.2", "bio16.2", 
-                         "bio02.3", "bio03.3", "bio10.3", "bio14.3", "bio16.3"))
+variables <- c("bio02.1", "bio03.1", "bio10.1", "bio14.1", "bio16.1", 
+               "bio02.2", "bio03.2", "bio10.2", "bio14.2", "bio16.2", 
+               "bio02.3", "bio03.3", "bio10.3", "bio14.3", "bio16.3")
 
-## RCP26
-for (i in variables)
+
+for (i in 1:length(variables))
 {
-  writeRaster(rcp26[[which(names(rcp26) %in% i)]], filename = paste0("./data/climatic_vars/selected/rcp26/rcp26-", i, ".grd"), format = "raster")
+  writeRaster(rcp26[[i]], filename = paste0("./data/climatic_vars/selected/rcp26/rcp26-", i, ".grd"), format = "raster")
+  writeRaster(rcp45[[i]], filename = paste0("./data/climatic_vars/selected/rcp45/rcp45-", i, ".grd"), format = "raster")
+  writeRaster(rcp60[[i]], filename = paste0("./data/climatic_vars/selected/rcp60/rcp60-", i, ".grd"), format = "raster")
+  writeRaster(rcp85[[i]], filename = paste0("./data/climatic_vars/selected/rcp85/rcp85-", i, ".grd"), format = "raster")
 }
 
-## RCP45
-for (i in variables)
-{
-  writeRaster (rcp45[[which(names(rcp45) %in% i)]], filename = paste0("./data/climatic_vars/selected/rcp45/rcp45-", i, ".grd"), format = "raster")
-}
-
-## RCP60
-for (i in variables)
-{
-  writeRaster (rcp60[[which(names(rcp60) %in% i)]], filename = paste0("./data/climatic_vars/selected/rcp60/rcp60-", i, ".grd"), format = "raster")
-}
-
-## RCP85
-for (i in variables)
-{
-  writeRaster (rcp85[[which(names(rcp85) %in% i)]], filename = paste0("./data/climatic_vars/selected/rcp85/rcp85-", i, ".grd"), format = "raster")
-}
 beep(2)
-
 rm(variables)
 
 # ***************************************************************************************

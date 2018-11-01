@@ -72,8 +72,8 @@ PlotEnsemble <- function(occur, ensb_data, sp, output)
   for (i in 1:length(sp))
   {
     FULLensemble <- read.table(paste0(ensb_data, sp[i], "_ENSEMBLES.txt"), sep = "\t", h = T)
-    scn <- names(FULLensemble)[-c(1, 2)] # All ensembles by aogcms
-    # scn <- names(FULLensemble)[c(3:7)] # 5 ensembles: presente and four RCPs...
+    # scn <- names(FULLensemble)[-c(1, 2)] # All ensembles by aogcms
+    scn <- names(FULLensemble)[c(3:7)] # 5 ensembles: presente and four RCPs...
     
     pdf(paste0(output, sp[i], ".pdf" ), width = 14, height = 10)
     par(#mfrow = c(3,2),
@@ -84,7 +84,7 @@ PlotEnsemble <- function(occur, ensb_data, sp, output)
       ensemble <- FULLensemble[, c("x", "y", as.character(scn[j]))]
       ensemble <- rasterFromXYZ(ensemble)
       p <- plot(ensemble, main = as.character(scn[j]))
-      p <- points(occur[occur[, 1] == "Lithurgus_huberi", ][,-1], pch = "*", col = "blue")
+      p <- points(occur[occur[, 1] == sp[i], ][,-1], pch = "*", col = "blue")
     }
     p <- title(  sp[i], outer = TRUE)
     print(p)
