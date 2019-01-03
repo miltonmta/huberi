@@ -13,6 +13,12 @@ ensemble <- function(Pout,
   bioclim_c     <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp), 
                                                   list.files(Pout, pattern = "bioclim_c"))
                                        )))
+  gower_c       <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp), 
+                                                  list.files(Pout, pattern = "gower_c"))
+                                       )))
+  Enfa_c        <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp), 
+                                                  list.files(Pout, pattern = "Enfa_c"))
+                                       )))
   maxent_c      <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp), 
                                                   list.files(Pout, pattern = "maxent_c"))
                                        )))
@@ -23,6 +29,12 @@ ensemble <- function(Pout,
   #.......
   bioclim_rcp26     <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp),
                                                       list.files(Pout, pattern = "bioclim_rcp26"))
+                                           )))
+  gower_rcp26       <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp), 
+                                                      list.files(Pout, pattern = "gower_rcp26"))
+                                           )))
+  Enfa_rcp26       <- stack(paste0( Pout,  (intersect(list.files(Pout, pattern = sp), 
+                                                      list.files(Pout, pattern = "Enfa_rcp26"))
                                            )))
   maxent_rcp26      <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp),
                                                       list.files(Pout, pattern = "maxent_rcp26"))
@@ -35,6 +47,12 @@ ensemble <- function(Pout,
   bioclim_rcp45     <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp),
                                                   list.files(Pout, pattern = "bioclim_rcp45"))
                                            )))
+  gower_rcp45       <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp), 
+                                                  list.files(Pout, pattern = "gower_rcp45"))
+                                           )))
+  Enfa_rcp45       <- stack(paste0( Pout,  (intersect(list.files(Pout, pattern = sp), 
+                                                      list.files(Pout, pattern = "Enfa_rcp45"))
+                                           )))
   maxent_rcp45      <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp),
                                                   list.files(Pout, pattern = "maxent_rcp45"))
                                            )))
@@ -46,6 +64,12 @@ ensemble <- function(Pout,
   bioclim_rcp60     <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp),
                                                   list.files(Pout, pattern = "bioclim_rcp60"))
                                            )))
+  gower_rcp60       <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp), 
+                                                  list.files(Pout, pattern = "gower_rcp60"))
+                                           )))
+  Enfa_rcp60        <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp), 
+                                                      list.files(Pout, pattern = "Enfa_rcp60"))
+                                           )))
   maxent_rcp60      <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp),
                                                   list.files(Pout, pattern = "maxent_rcp60"))
                                            )))
@@ -56,6 +80,12 @@ ensemble <- function(Pout,
   #.......
   bioclim_rcp85     <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp),
                                                   list.files(Pout, pattern = "bioclim_rcp85"))
+                                           )))
+  gower_rcp85       <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp), 
+                                                  list.files(Pout, pattern = "gower_rcp85"))
+                                           )))
+  Enfa_rcp85        <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp), 
+                                                      list.files(Pout, pattern = "Enfa_rcp85"))
                                            )))
   maxent_rcp85      <- stack(paste0( Pout, (intersect(list.files(Pout, pattern = sp),
                                                   list.files(Pout, pattern = "maxent_rcp85"))
@@ -73,6 +103,22 @@ ensemble <- function(Pout,
   bioclim_Pout_rcp60 <- na.omit(values(bioclim_rcp60))
   bioclim_Pout_rcp85 <- na.omit(values(bioclim_rcp85))
   rm(bioclim_c, bioclim_rcp26, bioclim_rcp45, bioclim_rcp60, bioclim_rcp85)
+  gc()
+  
+  gower_Pout_c       <- na.omit(values(gower_c))
+  gower_Pout_rcp26   <- na.omit(values(gower_rcp26))
+  gower_Pout_rcp45   <- na.omit(values(gower_rcp45))
+  gower_Pout_rcp60   <- na.omit(values(gower_rcp60))
+  gower_Pout_rcp85   <- na.omit(values(gower_rcp85))
+  rm(gower_c, gower_rcp26, gower_rcp45, gower_rcp60, gower_rcp85)
+  gc()
+  
+  Enfa_Pout_c       <- na.omit(values(Enfa_c))
+  Enfa_Pout_rcp26   <- na.omit(values(Enfa_rcp26))
+  Enfa_Pout_rcp45   <- na.omit(values(Enfa_rcp45))
+  Enfa_Pout_rcp60   <- na.omit(values(Enfa_rcp60))
+  Enfa_Pout_rcp85   <- na.omit(values(Enfa_rcp85))
+  rm(Enfa_c, Enfa_rcp26, Enfa_rcp45, Enfa_rcp60, Enfa_rcp85)
   gc()
   
   maxent_Pout_c      <- na.omit(values(maxent_c))
@@ -95,33 +141,43 @@ ensemble <- function(Pout,
   ###......................................
   
   output_current <- cbind(Bioclim = bioclim_Pout_c,
+                          Gower   = gower_Pout_c,
+                          Enfa    = Enfa_Pout_c,
                           Maxent  = maxent_Pout_c,
                           SVM     = SVM_Pout_c )
-  rm(bioclim_Pout_c, maxent_Pout_c, SVM_Pout_c)
+  rm(bioclim_Pout_c, maxent_Pout_c, SVM_Pout_c, gower_Pout_c, Enfa_Pout_c)
   gc()
   
   output_rcp26   <- cbind(Bioclim = bioclim_Pout_rcp26,
+                          Gower   = gower_Pout_rcp26,
+                          Enfa    = Enfa_Pout_rcp26,
                           Maxent  = maxent_Pout_rcp26,
                           SVM     = SVM_Pout_rcp26 )
-  rm(bioclim_Pout_rcp26, maxent_Pout_rcp26, SVM_Pout_rcp26)
+  rm(bioclim_Pout_rcp26, maxent_Pout_rcp26, SVM_Pout_rcp26, gower_Pout_rcp26, Enfa_Pout_rcp26)
   gc()
 
   output_rcp45   <- cbind(Bioclim = bioclim_Pout_rcp45,
+                          Gower   = gower_Pout_rcp45,
+                          Enfa    = Enfa_Pout_rcp45,
                           Maxent  = maxent_Pout_rcp45,
                           SVM     = SVM_Pout_rcp45 )
-  rm(bioclim_Pout_rcp45, maxent_Pout_rcp45, SVM_Pout_rcp45)
+  rm(bioclim_Pout_rcp45, maxent_Pout_rcp45, SVM_Pout_rcp45, gower_Pout_rcp45, Enfa_Pout_rcp45)
   gc()
 
   output_rcp60   <- cbind(Bioclim = bioclim_Pout_rcp60,
+                          Gower   = gower_Pout_rcp60,
+                          Enfa    = Enfa_Pout_rcp60,
                           Maxent  = maxent_Pout_rcp60,
                           SVM     = SVM_Pout_rcp60 )
-  rm(bioclim_Pout_rcp60, maxent_Pout_rcp60, SVM_Pout_rcp60)
+  rm(bioclim_Pout_rcp60, maxent_Pout_rcp60, SVM_Pout_rcp60, gower_Pout_rcp60, Enfa_Pout_rcp60)
   gc()
 
   output_rcp85   <- cbind(Bioclim = bioclim_Pout_rcp85,
+                          Gower   = gower_Pout_rcp85,
+                          Enfa    = Enfa_Pout_rcp85,
                           Maxent  = maxent_Pout_rcp85,
                           SVM     = SVM_Pout_rcp85 )
-  rm(bioclim_Pout_rcp85, maxent_Pout_rcp85, SVM_Pout_rcp85)
+  rm(bioclim_Pout_rcp85, maxent_Pout_rcp85, SVM_Pout_rcp85, gower_Pout_rcp85, Enfa_Pout_rcp85)
   gc()
 
   
@@ -161,6 +217,7 @@ ensemble <- function(Pout,
   rm(output_current, output_rcp26, output_rcp45, output_rcp60, output_rcp85)
   gc()
   
+  ### checar e incluir os outros dois novos métodos daqui para baixo..
   pad_rcp26_ls <- list(pad_rcp26[, 1:30], pad_rcp26[, 31:60], pad_rcp26[, 61:90])
   pad_rcp45_ls <- list(pad_rcp45[, 1:30], pad_rcp45[, 31:60], pad_rcp45[, 61:90])
   pad_rcp60_ls <- list(pad_rcp60[, 1:30], pad_rcp60[, 31:60], pad_rcp60[, 61:90])
