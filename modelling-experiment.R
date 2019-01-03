@@ -6,11 +6,12 @@ R.Version()
 source("./Auxiliary_functions.R")
 source("./Multiple_ENMs.R")
 source("./ensemble.R")
+source("./predict_enfa.R")
 
 # file.edit(c("./Auxiliary_functions.R", "./Multiple_ENMs.R"))
 
 # ****  Loading packages                             ----
-load_pak(c("tidyverse", "raster", "rgdal", "abind", "spThin", "dismo", "kernlab", "vegan", "maps", "psych", "rJava", "dendextend", "beepr", "data.table"))
+load_pak(c("tidyverse", "raster", "rgdal", "abind", "spThin", "dismo", "kernlab", "vegan", "maps", "psych", "rJava", "dendextend", "beepr", "data.table", "adehabitatHS"))
 
 # ***************************************************************************************
 ## 01.  Read aogcms models                           ----
@@ -238,7 +239,8 @@ for (i in 1:length(sp_name))
   write.table(result[["TPR_c"]],        paste0("./data/outputs/XP1/", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
   write.table(result[["Threshold_c"]],  paste0("./data/outputs/XP1/", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
   write.table(result[["Pred_area_c"]],  paste0("./data/outputs/XP1/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
-  
+  write.table(result[["Threshold_sens"]],  paste0("./data/outputs/XP1/", sp_name[i], "_t_sens_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["AUC"]],  paste0("./data/outputs/XP1/", sp_name[i], "_AUC_current.txt"),   sep = "\t", row.names = F)
   
   rm(result)
   gc()
@@ -274,6 +276,8 @@ for (i in 1:length(sp_names))
   write.table(result[["TPR_c"]],        paste0("./data/outputs/XP1/", sp_names[i], "_TPR_current.txt"), sep = "\t", row.names = F)
   write.table(result[["Threshold_c"]],  paste0("./data/outputs/XP1/", sp_names[i], "_t_current.txt"),   sep = "\t", row.names = F)
   write.table(result[["Pred_area_c"]],  paste0("./data/outputs/XP1/", sp_names[i], "_d_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Threshold_sens"]],  paste0("./data/outputs/XP1/", sp_name[i], "_t_sens_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["AUC"]],  paste0("./data/outputs/XP1/", sp_name[i], "_AUC_current.txt"),   sep = "\t", row.names = F)
   
   rm(result)
   gc()
@@ -309,7 +313,7 @@ for (i in 1:length(sp_names))
   PA_df <- read.table(paste0("./data/outputs/XP1/ensembles/", sp_names[i],"_ENSEMBLES.txt"), sep = "\t", h = T)
   ensemble <- rasterFromXYZ(PA_df[, c(1:3)])
   coords.sp <- occur_thinned[occur_thinned[, 1] == sp_names[i], ][-1]
-  thr <- quantile(na.omit(extract(ensemble, coords.sp)), 0.05)
+  thr <- quantile(na.omit(extract(ensemble, coords.sp)), 0.05) # get the no-omission thr from present
   
   PApres    <- cbind( PApres,    ifelse((PA_df[,  3]) >= thr, 1, 0))
   
@@ -327,7 +331,7 @@ for (i in 1:length(sp_names))
   
   PArcp85.1 <- cbind( PArcp85.1, ifelse((PA_df[, 17]) >= thr, 1, 0))
   PArcp85.2 <- cbind( PArcp85.2, ifelse((PA_df[, 18]) >= thr, 1, 0))
-  PArcp85.3 <- cbind( PArcp85.3, ifelse((PA_df[, 19]) > thr, 1, 0))
+  PArcp85.3 <- cbind( PArcp85.3, ifelse((PA_df[, 19]) >= thr, 1, 0))
 }
 
 PArcp26 <- list(PArcp26.1, PArcp26.2, PArcp26.3)
@@ -508,6 +512,8 @@ for (i in 1:length(sp_name))
   write.table(result[["TPR_c"]],       paste0("./data/outputs/XP2/", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
   write.table(result[["Threshold_c"]], paste0("./data/outputs/XP2/", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
   write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP2/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Threshold_sens"]],  paste0("./data/outputs/XP2/", sp_name[i], "_t_sens_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["AUC"]],  paste0("./data/outputs/XP2/", sp_name[i], "_AUC_current.txt"),   sep = "\t", row.names = F)
   
   rm(result)
   gc()
@@ -550,6 +556,8 @@ for (i in 1:length(sp_name))
   write.table(result[["TPR_c"]],       paste0("./data/outputs/XP3/", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
   write.table(result[["Threshold_c"]], paste0("./data/outputs/XP3/", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
   write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP3/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Threshold_sens"]],  paste0("./data/outputs/XP3/", sp_name[i], "_t_sens_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["AUC"]],  paste0("./data/outputs/XP3/", sp_name[i], "_AUC_current.txt"),   sep = "\t", row.names = F)
   
   rm(result)
   gc()
@@ -591,6 +599,8 @@ for (i in 1:length(sp_name))
   write.table(result[["TPR_c"]],       paste0("./data/outputs/XP4/", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
   write.table(result[["Threshold_c"]], paste0("./data/outputs/XP4/", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
   write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP4/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Threshold_sens"]],  paste0("./data/outputs/XP4/", sp_name[i], "_t_sens_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["AUC"]],  paste0("./data/outputs/XP4/", sp_name[i], "_AUC_current.txt"),   sep = "\t", row.names = F)
   
   rm(result)
   gc()
@@ -632,6 +642,8 @@ for (i in 1:length(sp_name))
   write.table(result[["TPR_c"]],       paste0("./data/outputs/XP5/", sp_name[i], "_TPR_current.txt"), sep = "\t", row.names = F)
   write.table(result[["Threshold_c"]], paste0("./data/outputs/XP5/", sp_name[i], "_t_current.txt"),   sep = "\t", row.names = F)
   write.table(result[["Pred_area_c"]], paste0("./data/outputs/XP5/", sp_name[i], "_d_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["Threshold_sens"]],  paste0("./data/outputs/XP5/", sp_name[i], "_t_sens_current.txt"),   sep = "\t", row.names = F)
+  write.table(result[["AUC"]],  paste0("./data/outputs/XP5/", sp_name[i], "_AUC_current.txt"),   sep = "\t", row.names = F)
   
   rm(result)
   gc()
@@ -655,7 +667,6 @@ for (i in 1:length(ALLsp_names))
                      biovar_current =  "./data/climatic_vars/selected/current/")
   
 ### Saving predictions
-  # Section removed to save memory during processing. Here we would apend all individual predictions into four major output objetcs. Unecessary since we already have all the predictions saved as raster as produced within the cross-validation loop.
   
 ### Saving Ensembles
   write.table(result[["Ensemble"]],   paste0("./data/outputs/ensembles/xp1_", ALLsp_names[i], "_ENSEMBLES.txt"), sep = "\t", row.names = F)
